@@ -109,9 +109,37 @@
             border: none !important;
         }
 
-        .pipe-piece.dragging {
+        .pipe-piece.dragging, .placed-pipe.dragging {
             opacity: 0.7;
             transform: rotate(5deg);
+            z-index: 1000;
+        }
+        
+        .placed-pipe {
+            cursor: grab;
+        }
+        
+        .placed-pipe:active {
+            cursor: grabbing;
+        }
+        
+        .placed-pipe.rotatable {
+            cursor: pointer;
+        }
+        
+        .placed-pipe.rotatable:hover::after {
+            content: '🔄 Double-click to rotate';
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            white-space: nowrap;
+            z-index: 1001;
         }
 
         .play-area {
@@ -691,6 +719,9 @@
                 <h4 style="color: #0f0; margin: 15px 0 10px 0;">🎮 Game Mechanics:</h4>
                 <ul style="text-align: left; margin-left: 20px; line-height: 1.8;">
                     <li><strong>Grid-based placement:</strong> Pipes snap to 80x80 grid positions</li>
+                    <li><strong>Repositioning:</strong> Drag placed pipes to new positions on the grid</li>
+                    <li><strong>Rotation:</strong> Double-click connector pipes to rotate them 90°</li>
+                    <li><strong>Strategic thinking:</strong> Extra numbers are included to make you think!</li>
                     <li><strong>Pressure system:</strong> Time pressure increases, correct connections reduce it</li>
                     <li><strong>Multiple answers:</strong> One correct (red), others are decoys (blue)</li>
                     <li><strong>Flow testing:</strong> See water flow step-by-step with calculations</li>
@@ -757,6 +788,7 @@
                 this.pipes = [];
                 this.connectedPipes = [];
                 this.draggedPipe = null;
+                this.draggedPlacedPipe = null;
                 this.timer = null;
                 this.pipeHistory = [];
                 
@@ -1163,6 +1195,29 @@
                     pipes.push(pipeTypes.find(p => p.value === this.currentExpression.d));
                 }
                 
+                // Add some extra numbers to make players think strategically
+                const extraNumbers = [2, 3, 4, 6, 7, 8, 9].filter(num => {
+                    // Don't add numbers that are already in the expression
+                    if (this.currentExpression.type === 'simple') {
+                        return num !== this.currentExpression.a && num !== this.currentExpression.b;
+                    } else if (this.currentExpression.type === 'leftGrouped') {
+                        return num !== this.currentExpression.a && num !== this.currentExpression.b && num !== this.currentExpression.c;
+                    } else if (this.currentExpression.type === 'rightGrouped') {
+                        return num !== this.currentExpression.a && num !== this.currentExpression.b && num !== this.currentExpression.c;
+                    } else if (this.currentExpression.type === 'precedence') {
+                        return num !== this.currentExpression.a && num !== this.currentExpression.b && num !== this.currentExpression.c && num !== this.currentExpression.d;
+                    }
+                    return true;
+                });
+                
+                // Add 2-3 random extra numbers
+                const extraCount = Math.min(3, extraNumbers.length);
+                for (let i = 0; i < extraCount; i++) {
+                    const randomIndex = Math.floor(Math.random() * extraNumbers.length);
+                    const extraNum = extraNumbers.splice(randomIndex, 1)[0];
+                    pipes.push(pipeTypes.find(p => p.value === extraNum));
+                }
+                
                 // Add operators - only use the ones in the current expression
                 if (this.currentExpression.type === 'simple') {
                     pipes.push(pipeTypes.find(p => p.operation === this.currentExpression.op));
@@ -1381,9 +1436,81 @@
                 this.clearGridHighlights();
             }
             
+            handlePlacedPipeDragStart(e, pipeElement) {
+                this.draggedPlacedPipe = pipeElement;
+                pipeElement.classList.add('dragging');
+                e.dataTransfer.setData('text/plain', 'placed-pipe');
+                
+                // Show grid highlights
+                this.showGridHighlights();
+            }
+            
+            handlePlacedPipeDragEnd() {
+                if (this.draggedPlacedPipe) {
+                    this.draggedPlacedPipe.classList.remove('dragging');
+                    this.draggedPlacedPipe = null;
+                }
+                
+                // Clear grid highlights
+                this.clearGridHighlights();
+            }
+            
+            rotatePipe(pipeElement) {
+                const pipeData = JSON.parse(pipeElement.dataset.pipeData);
+                
+                // Only rotate connector pipes (not numbers or operators)
+                if (pipeData.type === 'connector') {
+                    // Get current rotation
+                    let currentRotation = parseInt(pipeElement.dataset.rotation || '0');
+                    currentRotation = (currentRotation + 90) % 360;
+                    
+                    // Update rotation data
+                    pipeElement.dataset.rotation = currentRotation;
+                    
+                    // Re-render the pipe with new rotation
+                    let type = 'straight-h';
+                    switch(pipeData.symbol) {
+                        case '━': type = 'straight-h'; break;
+                        case '┃': type = 'straight-v'; break;
+                        case '╭': type = 'elbow'; break;
+                        case '╮': type = 'elbow'; break;
+                        case '╰': type = 'elbow'; break;
+                        case '╯': type = 'elbow'; break;
+                        case '┣': type = 'tee'; break;
+                        case '┫': type = 'tee'; break;
+                        case '┻': type = 'tee'; break;
+                        case '┳': type = 'tee'; break;
+                        case '╋': type = 'cross'; break;
+                    }
+                    
+                    renderPipeInto(pipeElement, type, currentRotation);
+                    
+                    // Recheck connections after rotation
+                    setTimeout(() => this.checkConnections(), 100);
+                }
+            }
+            
+            repositionPlacedPipe(pipeElement, newX, newY) {
+                // Update the pipe's position
+                pipeElement.style.left = newX + 'px';
+                pipeElement.style.top = newY + 'px';
+                pipeElement.dataset.x = newX;
+                pipeElement.dataset.y = newY;
+                
+                // Update the pipe info in our arrays
+                const timestamp = pipeElement.dataset.timestamp;
+                const pipeInfo = this.pipes.find(p => p.timestamp === parseInt(timestamp));
+                if (pipeInfo) {
+                    pipeInfo.x = newX;
+                    pipeInfo.y = newY;
+                }
+                
+                // Recheck connections after repositioning
+                setTimeout(() => this.checkConnections(), 100);
+            }
+            
             handleDrop(e) {
                 e.preventDefault();
-                if (!this.draggedPipe) return;
                 
                 const rect = e.currentTarget.getBoundingClientRect();
                 const rawX = e.clientX - rect.left;
@@ -1400,7 +1527,13 @@
                 const clampedX = Math.max(0, Math.min(x, maxX));
                 const clampedY = Math.max(0, Math.min(y, maxY));
                 
-                this.placePipe(this.draggedPipe, clampedX, clampedY);
+                if (this.draggedPipe) {
+                    // Placing a new pipe from inventory
+                    this.placePipe(this.draggedPipe, clampedX, clampedY);
+                } else if (this.draggedPlacedPipe) {
+                    // Repositioning an existing placed pipe
+                    this.repositionPlacedPipe(this.draggedPlacedPipe, clampedX, clampedY);
+                }
             }
             
             placePipe(pipeData, x, y) {
@@ -1413,6 +1546,14 @@
                 pipeElement.dataset.pipeData = JSON.stringify(pipeData);
                 pipeElement.dataset.x = x;
                 pipeElement.dataset.y = y;
+                
+                // Make placed pipes draggable for repositioning
+                pipeElement.draggable = true;
+                pipeElement.addEventListener('dragstart', (e) => this.handlePlacedPipeDragStart(e, pipeElement));
+                pipeElement.addEventListener('dragend', () => this.handlePlacedPipeDragEnd());
+                
+                // Add double-click to rotate pipes
+                pipeElement.addEventListener('dblclick', () => this.rotatePipe(pipeElement));
                 
                 // Decide what kind of pipe it is and render SVG
                 let type = 'straight-h'; let rot = 0;
@@ -1476,6 +1617,9 @@
                         default: type = 'straight-h';
                     }
                     renderPipeInto(pipeElement, type, rot);
+                    
+                    // Add rotatable class for connector pipes
+                    pipeElement.classList.add('rotatable');
                 }
                 
 
@@ -2125,7 +2269,7 @@
             const paths = {
                 'straight-h': `<path class="${strokeClass}" d="M12 50 H88"/>`,
                 'straight-v': `<path class="${strokeClass}" d="M50 12 V88"/>`,
-                'elbow': `<path class="${strokeClass}" d="M12 50 A38 38 0 0 1 50 12"/>`,
+                'elbow': `<path class="${strokeClass}" d="M12 50 H50 V12"/>`,
                 'tee': `
                     <path class="${strokeClass}" d="M12 50 H88"/>
                     <path class="${strokeClass}" d="M50 50 V12"/>`,
@@ -2136,7 +2280,7 @@
             const inner = {
                 'straight-h': `<path class="pipe-inner" d="M12 50 H88"/>`,
                 'straight-v': `<path class="pipe-inner" d="M50 12 V88"/>`,
-                'elbow': `<path class="pipe-inner" d="M12 50 A38 38 0 0 1 50 12"/>`,
+                'elbow': `<path class="pipe-inner" d="M12 50 H50 V12"/>`,
                 'tee': `
                     <path class="pipe-inner" d="M12 50 H88"/>
                     <path class="pipe-inner" d="M50 50 V12"/>`,
