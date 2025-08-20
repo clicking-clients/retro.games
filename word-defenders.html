@@ -360,6 +360,24 @@ input[type=range] {
   font-style: italic;
 }
 
+/* Current word list display */
+.current-word-list {
+  margin: 15px 0;
+}
+
+.word-list-display {
+  background: rgba(0, 255, 0, 0.05);
+  border: 2px solid var(--green);
+  border-radius: 6px;
+  padding: 12px;
+  max-height: 120px;
+  overflow-y: auto;
+  font-family: monospace;
+  font-size: 0.9rem;
+  color: var(--green);
+  line-height: 1.4;
+}
+
 /* Responsive breakpoints */
 @media (min-width: 768px) {
   #container {
@@ -555,6 +573,13 @@ input[type=range] {
       <div class="section-title">WORD LIST</div>
     <label for="wordListSelect">Difficulty Level:</label>
     <select id="wordListSelect" aria-describedby="wordList"></select>
+    
+    <!-- Current Word List Display -->
+    <div class="current-word-list">
+      <div class="section-title">CURRENT WORDS</div>
+      <div id="currentWordList" class="word-list-display" aria-live="polite"></div>
+    </div>
+    
     <label for="wordList">Custom Words:</label>
     <textarea id="wordList" aria-describedby="applyWords resetWords" placeholder="Enter custom words, one per line"></textarea><br>
     <button class="pill" id="applyWords" aria-describedby="wordList">Apply</button>
@@ -614,6 +639,7 @@ const scoreEl=document.getElementById('score');
 const wordsLeftEl=document.getElementById('wordsLeft');
 const wpmEl=document.getElementById('wpm');
 const wordListSelect=document.getElementById('wordListSelect');
+const currentWordListEl=document.getElementById('currentWordList');
 const applyWordsBtn=document.getElementById('applyWords');
 const resetWordsBtn=document.getElementById('resetWords');
 const timerToggle=document.getElementById('timerToggle');
@@ -652,8 +678,48 @@ wordListsData.forEach((wl,i)=>{
   wordListSelect.appendChild(opt);
 });
 let wordBank = [...wordListsData[0].words];
-applyWordsBtn.onclick = ()=>{ wordBank=[...wordListsData[parseInt(wordListSelect.value)].words]; resetLevel(true); };
-resetWordsBtn.onclick = ()=>{ wordBank=[...wordListsData[0].words]; resetLevel(true); };
+
+// Function to update the word list display
+function updateWordListDisplay() {
+  if (currentWordListEl) {
+    if (wordBank === wordListsData[parseInt(wordListSelect.value)]?.words) {
+      // Using predefined list
+      const currentList = wordListsData[parseInt(wordListSelect.value)];
+      currentWordListEl.innerHTML = currentList.words.join(', ');
+    } else {
+      // Using custom words
+      currentWordListEl.innerHTML = wordBank.join(', ');
+    }
+  }
+}
+
+// Function to change difficulty and update word bank
+function changeDifficulty() {
+  const selectedIndex = parseInt(wordListSelect.value);
+  wordBank = [...wordListsData[selectedIndex].words];
+  updateWordListDisplay();
+  resetLevel(true);
+}
+
+// Event listeners for word list controls
+wordListSelect.addEventListener('change', changeDifficulty);
+applyWordsBtn.onclick = ()=>{ 
+  const customWords = document.getElementById('wordList').value.trim().split('\n').filter(w => w.trim());
+  if (customWords.length > 0) {
+    wordBank = customWords;
+    updateWordListDisplay();
+    resetLevel(true);
+  }
+}; 
+resetWordsBtn.onclick = ()=>{ 
+  wordBank=[...wordListsData[0].words]; 
+  wordListSelect.value = 0;
+  updateWordListDisplay();
+  resetLevel(true); 
+};
+
+// Initialize the word list display
+updateWordListDisplay();
 
 /* ===== quotes ===== */
 const QUOTES=["You are brave and strong!","Trust yourself—you can do it!","Your kindness makes magic!","Every step shows courage!","You are unstoppable!","Believe in yourself!","Your heart is full of power!","You are wise and brave!","Shine with your own light!","You make the world brighter!"];
