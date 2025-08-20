@@ -134,6 +134,53 @@ function initCars(){
   }
 }
 
+function drawCar(car) {
+  const baseX = Math.floor(car.x);
+  const y = car.y;
+  const len = car.len;
+  
+  // Car body (main rectangle)
+  ctx.fillStyle = '#f00';
+  ctx.fillRect(baseX, y, len, 1);
+  
+  // Add car details based on direction and length
+  if (len >= 3) {
+    // Car windows (lighter red)
+    ctx.fillStyle = '#ff6666';
+    if (car.dir > 0) { // Moving right
+      ctx.fillRect(baseX + 1, y, 1, 1); // Front window
+      if (len >= 4) {
+        ctx.fillRect(baseX + len - 2, y, 1, 1); // Back window
+      }
+    } else { // Moving left
+      ctx.fillRect(baseX + len - 2, y, 1, 1); // Front window
+      if (len >= 4) {
+        ctx.fillRect(baseX + 1, y, 1, 1); // Back window
+      }
+    }
+    
+    // Car wheels (dark circles)
+    ctx.fillStyle = '#333';
+    if (len >= 4) {
+      // Front wheel
+      ctx.fillRect(baseX + 1, y - 0.2, 0.6, 0.6);
+      // Back wheel
+      ctx.fillRect(baseX + len - 2, y - 0.2, 0.6, 0.6);
+    } else if (len >= 3) {
+      // Single wheel for shorter cars
+      ctx.fillRect(baseX + 1, y - 0.2, 0.6, 0.6);
+    }
+  }
+  
+  // Car headlights (yellow)
+  ctx.fillStyle = '#ffff00';
+  if (car.dir > 0) { // Moving right
+    ctx.fillRect(baseX + len - 1, y, 0.3, 0.3); // Right headlight
+  } else { // Moving left
+    ctx.fillRect(baseX, y, 0.3, 0.3); // Left headlight
+  }
+}
+
 function draw(){
   ctx.fillStyle = '#000';
   ctx.fillRect(0,0,canvas.width,canvas.height);
@@ -146,13 +193,9 @@ function draw(){
   ctx.fillRect(frog.x, frog.y, 1, 1);
   ctx.globalAlpha = 1;
 
-  // draw cars (snap to integer tile for crisp pixels)
-  ctx.fillStyle = '#f00';
+  // draw cars with more realistic appearance
   cars.forEach(car => {
-    const baseX = Math.floor(car.x);
-    for(let i=0;i<car.len;i++){
-      ctx.fillRect(baseX + i, car.y, 1, 1);
-    }
+    drawCar(car);
   });
 
   ctx.restore();
