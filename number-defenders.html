@@ -274,6 +274,7 @@ document.addEventListener('keydown',(e)=>{
   if(parseInt(target.input) === target.answer){
     target.fly=true; target.done=true; wordsLeft = Math.max(0, wordsLeft-1); updateScore();
     score+=1; rocket && rocket.grow();
+    beep(520,0.03); // Success sound like Word Defenders
     if(wordsLeft===0 && !gameOver){ rocketLaunched=true; rocket && rocket.launch(); }
   } else if(!target.answer.toString().startsWith(target.input)){ beep(180,0.03); target.input=''; }
 });

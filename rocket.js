@@ -57,7 +57,7 @@ export class Rocket {
     this.audio.rocketRumble();
 
     const dir = Math.random() < 0.5 ? -1 : 1;              // left/right arc
-    const amplitude = 120 + Math.random() * 160;           // horizontal wiggle
+    const amplitude = 60 + Math.random() * 80;             // reduced horizontal wiggle to keep in view
     const speed = 260 + Math.random() * 110;               // vertical speed px/s
     const wobble = 2 + Math.random() * 3;                  // sine frequency
 
