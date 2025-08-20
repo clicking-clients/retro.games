@@ -43,15 +43,15 @@ A collection of classic retro games playable in your web browser. All games are 
 ├── index.html              # Main homepage
 ├── styles.css              # Shared styling
 ├── navigation.js           # Shared navigation
-├── pac-man.html           # Dot Eater game
-├── tetris.html            # Block Stack game
-├── snake.html             # Worm Trail game
-├── breakout.html          # Wall Breaker game
-├── frogger.html           # Road Crosser game
-├── pong.html              # Paddle Ball game
-├── maths-invaders.html    # Number Defenders game
-├── spelling-invaders.html # Word Defenders game
-└── README.md              # This file
+├── chompy.html             # Dot Eater game
+├── block-stack.html        # Block Stack game
+├── wormy.html              # Worm Trail game
+├── wall-breaker.html       # Wall Breaker game
+├── road-dash.html          # Road Crosser game
+├── paddle-ball.html        # Paddle Ball game
+├── number-defenders.html   # Number Defenders game
+├── word-defenders.html     # Word Defenders game
+└── README.md               # This file
 ```
 
 ## 🎮 Features

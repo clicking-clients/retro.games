@@ -3,14 +3,14 @@
 // Game files configuration - moved to global scope
 const gameFiles = [
     { file: "index.html", title: "🏠 Home" },
-    { file: "pac-man.html", title: "Dot Eater" },
-    { file: "tetris.html", title: "Block Stack" },
-    { file: "snake.html", title: "Worm Trail" },
-    { file: "breakout.html", title: "Wall Breaker" },
-    { file: "frogger.html", title: "Road Crosser" },
-    { file: "pong.html", title: "Paddle Ball" },
-    { file: "maths-invaders.html", title: "Number Defenders" },
-    { file: "spelling-invaders.html", title: "Word Defenders" }
+    { file: "chompy.html", title: "Dot Eater" },
+    { file: "block-stack.html", title: "Block Stack" },
+    { file: "wormy.html", title: "Worm Trail" },
+    { file: "wall-breaker.html", title: "Wall Breaker" },
+    { file: "road-dash.html", title: "Road Crosser" },
+    { file: "paddle-ball.html", title: "Paddle Ball" },
+    { file: "number-defenders.html", title: "Number Defenders" },
+    { file: "word-defenders.html", title: "Word Defenders" }
 ];
 
 document.addEventListener('DOMContentLoaded', function() {
