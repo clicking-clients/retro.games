@@ -165,6 +165,53 @@
             box-shadow: 0 0 20px #0099ff;
         }
 
+        .start-pipe {
+            position: absolute;
+            width: 80px;
+            height: 40px;
+            background: linear-gradient(135deg, #00ff00, #00cc00);
+            border: 3px solid #00ff00;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: #000;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px #fff;
+            z-index: 10;
+        }
+
+        .answer-pipe {
+            position: absolute;
+            width: 80px;
+            height: 40px;
+            border: 3px solid #ff6b6b;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: #fff;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px #000;
+            z-index: 10;
+        }
+
+        .answer-pipe.correct {
+            background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+            border-color: #ff6b6b;
+        }
+
+        .answer-pipe.decoy {
+            background: linear-gradient(135deg, #6b6bff, #8e8eff);
+            border-color: #6b6bff;
+        }
+
+        .grid-cell {
+            background: rgba(0, 255, 0, 0.05);
+        }
+
         .water-flow {
             position: absolute;
             width: 4px;
@@ -230,10 +277,27 @@
             margin: 15px 0;
         }
 
-        .timer {
-            font-size: 1.5rem;
+        .pressure-gauge {
+            font-size: 1.2rem;
             color: #ff6b6b;
             font-weight: bold;
+        }
+
+        .pressure-bar {
+            width: 100px;
+            height: 20px;
+            background: rgba(255, 107, 107, 0.3);
+            border: 2px solid #ff6b6b;
+            border-radius: 10px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+
+        .pressure-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b6b, #ff8e8e);
+            width: 0%;
+            transition: width 0.3s ease;
         }
 
         .game-over {
@@ -312,36 +376,39 @@
             <div style="background: rgba(0, 255, 0, 0.1); padding: 20px; border-radius: 15px; margin: 20px 0; border: 2px solid #0f0;">
                 <h3 style="color: #ffd700; margin-bottom: 15px;">🎯 Game Objective</h3>
                 <p style="margin-bottom: 15px; line-height: 1.6;">
-                    <strong>Your goal:</strong> Create a pipe network that connects the numbers needed to solve the math problem at the top of the screen.
+                    <strong>Your goal:</strong> Build a pipe network that routes water from the start pipe (green) to the correct answer pipe (red) while solving math expressions step by step.
                 </p>
                 
                 <h4 style="color: #0f0; margin: 15px 0 10px 0;">📋 How to Play:</h4>
                 <ol style="text-align: left; margin-left: 20px; line-height: 1.8;">
-                    <li><strong>Look at the math problem</strong> (e.g., "5 + 3 = ?")</li>
-                    <li><strong>Drag number pipes</strong> from the bottom inventory to the play area</li>
-                    <li><strong>Pipes snap to a grid</strong> - you'll see the green grid lines to help you</li>
-                    <li><strong>Place pipes adjacent to each other</strong> on the grid to create connections</li>
-                    <li><strong>Use connector pipes</strong> (┌, ┐, └, ┘, ─, │) to create paths between numbers</li>
-                    <li><strong>Pipes automatically connect</strong> when placed correctly and turn green</li>
-                    <li><strong>Water flows</strong> through connected pipes when you solve the puzzle!</li>
+                    <li><strong>Start pipe (green)</strong> emits the first number in the expression</li>
+                    <li><strong>Drag pipes from inventory</strong> to build your network on the grid</li>
+                    <li><strong>Use operator pipes</strong> (+, −, ×, ÷) to perform calculations</li>
+                    <li><strong>Connect with pipes</strong> (┌, ┐, └, ┘, ─, │) to route water flow</li>
+                    <li><strong>Route to correct answer</strong> (red pipe) while avoiding decoys (blue)</li>
+                    <li><strong>Press "Flow Test"</strong> to see water flow through your network</li>
+                    <li><strong>Watch pressure gauge</strong> - leaks and wrong answers increase pressure!</li>
                 </ol>
                 
                 <h4 style="color: #0f0; margin: 15px 0 10px 0;">🔧 Pipe Types:</h4>
                 <ul style="text-align: left; margin-left: 20px; line-height: 1.8;">
-                    <li><strong>Number pipes (1-9):</strong> These have values you need to connect</li>
-                    <li><strong>Connector pipes:</strong> ┌ (top-right), ┐ (top-left), └ (bottom-right), ┘ (bottom-left), ─ (horizontal), │ (vertical)</li>
+                    <li><strong>Number pipes (1-9):</strong> Supply values for calculations</li>
+                    <li><strong>Operator pipes (+, −, ×, ÷):</strong> Perform math operations on water flow</li>
+                    <li><strong>Connector pipes:</strong> Route water without changing values</li>
+                    <li><strong>Special pipes:</strong> Splitters (Y), valves (▶), crossovers (⊕) for advanced puzzles</li>
                 </ul>
                 
-                <h4 style="color: #0f0; margin: 15px 0 10px 0;">🎮 Grid System:</h4>
+                <h4 style="color: #0f0; margin: 15px 0 10px 0;">🎮 Game Mechanics:</h4>
                 <ul style="text-align: left; margin-left: 20px; line-height: 1.8;">
-                    <li><strong>Pipes snap to grid positions</strong> for precise placement</li>
-                    <li><strong>Adjacent grid cells</strong> automatically connect compatible pipes</li>
-                    <li><strong>Number pipes only connect</strong> when they form a valid math expression</li>
-                    <li><strong>Connector pipes</strong> can connect to any adjacent pipe</li>
+                    <li><strong>Grid-based placement:</strong> Pipes snap to 80x80 grid positions</li>
+                    <li><strong>Pressure system:</strong> Time pressure increases, correct connections reduce it</li>
+                    <li><strong>Multiple answers:</strong> One correct (red), others are decoys (blue)</li>
+                    <li><strong>Flow testing:</strong> See water flow step-by-step with calculations</li>
+                    <li><strong>Precedence matters:</strong> × ÷ happen before + − in complex expressions</li>
                 </ul>
                 
                 <div style="background: rgba(255, 215, 0, 0.1); padding: 15px; border-radius: 10px; margin: 15px 0; border: 1px solid #ffd700;">
-                    <strong>💡 Example:</strong> For "5 + 3 = ?", place a pipe with value 5 and a pipe with value 3 in adjacent grid cells. Add connector pipes to create a path between them. When connected, the total value equals 8!
+                    <strong>💡 Example:</strong> For "5 + 3 × 2 = ?", start with 5, route through + and 3, then × and 2. The correct answer is 11 (5 + (3 × 2)), not 16 ((5 + 3) × 2)!
                 </div>
             </div>
         </div>
@@ -350,9 +417,13 @@
             <div class="score-display">
                 <strong>Level:</strong> <span id="level">1</span>
                 <strong>Score:</strong> <span id="score">0</span>
+                <strong>Stars:</strong> <span id="stars">0</span>
             </div>
-            <div class="timer">
-                <span id="time">60</span>s
+            <div class="pressure-gauge">
+                <strong>Pressure:</strong> <span id="pressure">0</span>%
+                <div class="pressure-bar">
+                    <div class="pressure-fill" id="pressureFill"></div>
+                </div>
             </div>
         </div>
 
@@ -372,6 +443,7 @@
             <button class="control-btn" id="newLevelBtn" aria-label="Start new level">New Level</button>
             <button class="control-btn" id="resetBtn" aria-label="Reset current level">Reset</button>
             <button class="control-btn" id="undoBtn" aria-label="Undo last pipe placement">Undo</button>
+            <button class="control-btn" id="flowTestBtn" aria-label="Test water flow">Flow Test</button>
             <button class="control-btn" id="hintBtn" aria-label="Get a hint for current problem">Hint</button>
         </div>
     </div>
@@ -379,94 +451,388 @@
     <script>
         class PipeDream {
             constructor() {
+                this.gameMode = 'practice'; // 'adventure', 'practice', 'timed'
+                this.difficulty = 'medium'; // 'easy', 'medium', 'hard', 'custom'
+                this.operations = ['+', '×']; // Available operations
+                this.allowNegatives = false;
+                this.showPrecedenceHints = true;
+                
                 this.level = 1;
                 this.score = 0;
-                this.timeLeft = 60;
+                this.stars = 0;
+                this.pressure = 0;
+                this.maxPressure = 100;
                 this.gameActive = true;
+                
                 this.pipes = [];
                 this.connectedPipes = [];
                 this.draggedPipe = null;
                 this.timer = null;
+                this.pipeHistory = [];
                 
-                this.pipeTypes = [
-                    { symbol: '1', value: 1, connections: ['top', 'bottom', 'left', 'right'] },
-                    { symbol: '2', value: 2, connections: ['top', 'bottom', 'left', 'right'] },
-                    { symbol: '3', value: 3, connections: ['top', 'bottom', 'left', 'right'] },
-                    { symbol: '4', value: 4, connections: ['top', 'bottom', 'left', 'right'] },
-                    { symbol: '5', value: 5, connections: ['top', 'bottom', 'left', 'right'] },
-                    { symbol: '6', value: 6, connections: ['top', 'bottom', 'left', 'right'] },
-                    { symbol: '7', value: 7, connections: ['top', 'bottom', 'left', 'right'] },
-                    { symbol: '8', value: 8, connections: ['top', 'bottom', 'left', 'right'] },
-                    { symbol: '9', value: 9, connections: ['top', 'bottom', 'left', 'right'] },
-                    { symbol: '┌', value: 0, connections: ['top', 'right'] },
-                    { symbol: '┐', value: 0, connections: ['top', 'left'] },
-                    { symbol: '└', value: 0, connections: ['bottom', 'right'] },
-                    { symbol: '┘', value: 0, connections: ['bottom', 'left'] },
-                    { symbol: '─', value: 0, connections: ['left', 'right'] },
-                    { symbol: '│', value: 0, connections: ['top', 'bottom'] }
-                ];
+                this.gridSize = 7; // 7x7 for medium
+                this.startPipe = null;
+                this.answerPipes = [];
+                this.obstacles = [];
+                this.inventory = [];
                 
-                this.currentProblem = { num1: 5, num2: 3, operator: '+', answer: 8 };
+                this.currentExpression = null;
+                this.correctAnswer = null;
+                this.decoyAnswers = [];
                 
                 this.init();
             }
             
+            // Game configuration based on difficulty
+            getGameConfig() {
+                const configs = {
+                    easy: {
+                        gridSize: 5,
+                        maxPathLength: 8,
+                        answerPipeCount: 3,
+                        allowCrossings: false,
+                        pressureRate: 0.5
+                    },
+                    medium: {
+                        gridSize: 7,
+                        maxPathLength: 12,
+                        answerPipeCount: 4,
+                        allowCrossings: false,
+                        pressureRate: 1.0
+                    },
+                    hard: {
+                        gridSize: 9,
+                        maxPathLength: 16,
+                        answerPipeCount: 5,
+                        allowCrossings: true,
+                        pressureRate: 2.0
+                    }
+                };
+                return configs[this.difficulty] || configs.medium;
+            }
+            
+            // Enhanced pipe types with operators and special pieces
+            getPipeTypes() {
+                const basePipes = [
+                    // Numbers
+                    { symbol: '1', value: 1, type: 'number', connections: ['top', 'bottom', 'left', 'right'] },
+                    { symbol: '2', value: 2, type: 'number', connections: ['top', 'bottom', 'left', 'right'] },
+                    { symbol: '3', value: 3, type: 'number', connections: ['top', 'bottom', 'left', 'right'] },
+                    { symbol: '4', value: 4, type: 'number', connections: ['top', 'bottom', 'left', 'right'] },
+                    { symbol: '5', value: 5, type: 'number', connections: ['top', 'bottom', 'left', 'right'] },
+                    { symbol: '6', value: 6, type: 'number', connections: ['top', 'bottom', 'left', 'right'] },
+                    { symbol: '7', value: 7, type: 'number', connections: ['top', 'bottom', 'left', 'right'] },
+                    { symbol: '8', value: 8, type: 'number', connections: ['top', 'bottom', 'left', 'right'] },
+                    { symbol: '9', value: 9, type: 'number', connections: ['top', 'bottom', 'left', 'right'] },
+                    
+                    // Operators
+                    { symbol: '+', value: 0, type: 'operator', operation: '+', connections: ['top', 'bottom', 'left', 'right'] },
+                    { symbol: '−', value: 0, type: 'operator', operation: '-', connections: ['top', 'bottom', 'left', 'right'] },
+                    { symbol: '×', value: 0, type: 'operator', operation: '×', connections: ['top', 'bottom', 'left', 'right'] },
+                    { symbol: '÷', value: 0, type: 'operator', operation: '÷', connections: ['top', 'bottom', 'left', 'right'] },
+                    
+                    // Connectors
+                    { symbol: '┌', value: 0, type: 'connector', connections: ['top', 'right'] },
+                    { symbol: '┐', value: 0, type: 'connector', connections: ['top', 'left'] },
+                    { symbol: '└', value: 0, type: 'connector', connections: ['bottom', 'right'] },
+                    { symbol: '┘', value: 0, type: 'connector', connections: ['bottom', 'left'] },
+                    { symbol: '─', value: 0, type: 'connector', connections: ['left', 'right'] },
+                    { symbol: '│', value: 0, type: 'connector', connections: ['top', 'bottom'] }
+                ];
+                
+                // Add special pieces for medium+ difficulty
+                if (this.difficulty !== 'easy') {
+                    basePipes.push(
+                        { symbol: 'Y', value: 0, type: 'splitter', connections: ['top', 'bottom', 'left', 'right'] },
+                        { symbol: '▶', value: 0, type: 'valve', connections: ['left', 'right'] }
+                    );
+                }
+                
+                // Add advanced pieces for hard difficulty
+                if (this.difficulty === 'hard') {
+                    basePipes.push(
+                        { symbol: '⊕', value: 0, type: 'crossover', connections: ['top', 'bottom', 'left', 'right'] },
+                        { symbol: '⚡', value: 0, type: 'pressureValve', connections: ['top', 'bottom', 'left', 'right'] }
+                    );
+                }
+                
+                return basePipes;
+            }
+            
             init() {
                 this.pipeHistory = [];
-                this.generatePipes();
+                this.gridSize = this.getGameConfig().gridSize;
+                this.createNewPuzzle();
                 this.setupEventListeners();
-                this.startTimer();
+                this.startPressureTimer();
                 this.updateDisplay();
                 this.updateUndoButton();
             }
             
-            generatePipes() {
+            createNewPuzzle() {
+                this.currentExpression = this.generateExpression();
+                this.correctAnswer = this.evaluateExpression(this.currentExpression);
+                this.decoyAnswers = this.generateDecoyAnswers();
+                this.createGrid();
+                this.placeStartAndAnswerPipes();
+                this.generateInventory();
+                this.updateDisplay();
+            }
+            
+            generateExpression() {
+                const config = this.getGameConfig();
+                let expression;
+                
+                if (this.difficulty === 'easy') {
+                    // Simple: a ⊕ b
+                    const op = this.operations[Math.floor(Math.random() * this.operations.length)];
+                    const a = this.getRandomNumber(op, 0, 10);
+                    const b = this.getRandomNumber(op, 0, 10);
+                    expression = { a, b, op, type: 'simple' };
+                } else if (this.difficulty === 'medium') {
+                    // Medium: (a ⊕ b) ⊗ c or a ⊕ (b ⊗ c)
+                    const op1 = this.operations[Math.floor(Math.random() * this.operations.length)];
+                    const op2 = this.operations[Math.floor(Math.random() * this.operations.length)];
+                    const a = this.getRandomNumber(op1, 0, 20);
+                    const b = this.getRandomNumber(op1, 0, 20);
+                    const c = this.getRandomNumber(op2, 0, 10);
+                    
+                    if (Math.random() > 0.5) {
+                        expression = { a, b, c, op1, op2, type: 'leftGrouped' };
+                    } else {
+                        expression = { a, b, c, op1, op2, type: 'rightGrouped' };
+                    }
+                } else {
+                    // Hard: a ⊕ b ⊗ c ⊖ d with precedence
+                    const a = this.getRandomNumber('+', 0, 50);
+                    const b = this.getRandomNumber('×', 0, 12);
+                    const c = this.getRandomNumber('×', 0, 12);
+                    const d = this.getRandomNumber('+', 0, 50);
+                    expression = { a, b, c, d, type: 'precedence' };
+                }
+                
+                return expression;
+            }
+            
+            getRandomNumber(operation, min, max) {
+                let num;
+                do {
+                    num = Math.floor(Math.random() * (max - min + 1)) + min;
+                } while (!this.allowNegatives && operation === '-' && num === 0);
+                return num;
+            }
+            
+            evaluateExpression(expr) {
+                if (expr.type === 'simple') {
+                    return this.applyOperation(expr.a, expr.b, expr.op);
+                } else if (expr.type === 'leftGrouped') {
+                    const first = this.applyOperation(expr.a, expr.b, expr.op1);
+                    return this.applyOperation(first, expr.c, expr.op2);
+                } else if (expr.type === 'rightGrouped') {
+                    const second = this.applyOperation(expr.b, expr.c, expr.op2);
+                    return this.applyOperation(expr.a, second, expr.op1);
+                } else if (expr.type === 'precedence') {
+                    // Follow order of operations: × ÷ before + −
+                    const product = this.applyOperation(expr.b, expr.c, '×');
+                    const sum = this.applyOperation(expr.a, product, '+');
+                    return this.applyOperation(sum, expr.d, '-');
+                }
+                return 0;
+            }
+            
+            applyOperation(a, b, op) {
+                switch (op) {
+                    case '+': return a + b;
+                    case '-': return a - b;
+                    case '×': return a * b;
+                    case '÷': return Math.floor(a / b);
+                    default: return a;
+                }
+            }
+            
+            generateDecoyAnswers() {
+                const config = this.getGameConfig();
+                const decoys = [];
+                const correct = this.correctAnswer;
+                
+                // Generate plausible wrong answers
+                const decoyTypes = [
+                    correct + 1, // off-by-one
+                    correct - 1,
+                    correct * 2, // operation confusion
+                    correct / 2,
+                    Math.abs(correct), // sign error
+                    -correct
+                ];
+                
+                // Filter valid decoys
+                decoyTypes.forEach(decoy => {
+                    if (decoy !== correct && 
+                        decoy >= (this.allowNegatives ? -100 : 0) && 
+                        decoy <= 100 &&
+                        !decoys.includes(decoy)) {
+                        decoys.push(decoy);
+                    }
+                });
+                
+                // Fill remaining slots with random plausible values
+                while (decoys.length < config.answerPipeCount - 1) {
+                    const randomDecoy = Math.floor(Math.random() * 50) - (this.allowNegatives ? 25 : 0);
+                    if (randomDecoy !== correct && !decoys.includes(randomDecoy)) {
+                        decoys.push(randomDecoy);
+                    }
+                }
+                
+                return decoys.slice(0, config.answerPipeCount - 1);
+            }
+            
+            createGrid() {
+                const playArea = document.getElementById('playArea');
+                playArea.innerHTML = '';
+                
+                // Set grid size
+                const config = this.getGameConfig();
+                this.gridSize = config.gridSize;
+                
+                // Update grid background
+                playArea.style.backgroundSize = `${80}px ${80}px`;
+                
+                // Create grid cells for visual reference
+                for (let x = 0; x < this.gridSize; x++) {
+                    for (let y = 0; y < this.gridSize; y++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'grid-cell';
+                        cell.style.position = 'absolute';
+                        cell.style.left = (x * 80) + 'px';
+                        cell.style.top = (y * 80) + 'px';
+                        cell.style.width = '80px';
+                        cell.style.height = '80px';
+                        cell.style.border = '1px solid rgba(0, 255, 0, 0.2)';
+                        cell.style.pointerEvents = 'none';
+                        cell.style.zIndex = '1';
+                        playArea.appendChild(cell);
+                    }
+                }
+            }
+            
+            placeStartAndAnswerPipes() {
+                const playArea = document.getElementById('playArea');
+                const config = this.getGameConfig();
+                
+                // Place start pipe on left side
+                const startY = Math.floor(this.gridSize / 2);
+                this.startPipe = {
+                    x: 0,
+                    y: startY,
+                    value: this.currentExpression.a,
+                    type: 'start'
+                };
+                
+                // Create start pipe element
+                const startElement = document.createElement('div');
+                startElement.className = 'start-pipe';
+                startElement.textContent = this.currentExpression.a;
+                startElement.style.left = '0px';
+                startElement.style.top = (startY * 80) + 'px';
+                playArea.appendChild(startElement);
+                
+                // Place answer pipes along right and bottom edges
+                const allAnswers = [this.correctAnswer, ...this.decoyAnswers];
+                const shuffledAnswers = allAnswers.sort(() => Math.random() - 0.5);
+                
+                shuffledAnswers.forEach((answer, index) => {
+                    let x, y;
+                    
+                    if (index < this.gridSize - 1) {
+                        // Place along right edge
+                        x = this.gridSize - 1;
+                        y = index;
+                    } else {
+                        // Place along bottom edge
+                        x = index - (this.gridSize - 1);
+                        y = this.gridSize - 1;
+                    }
+                    
+                    const answerPipe = {
+                        x: x,
+                        y: y,
+                        value: answer,
+                        type: 'answer',
+                        isCorrect: answer === this.correctAnswer
+                    };
+                    
+                    this.answerPipes.push(answerPipe);
+                    
+                    // Create answer pipe element
+                    const answerElement = document.createElement('div');
+                    answerElement.className = `answer-pipe ${answer === this.correctAnswer ? 'correct' : 'decoy'}`;
+                    answerElement.textContent = answer;
+                    answerElement.style.left = (x * 80) + 'px';
+                    answerElement.style.top = (y * 80) + 'px';
+                    playArea.appendChild(answerElement);
+                });
+            }
+            
+            generateInventory() {
                 const inventory = document.getElementById('pipeInventory');
                 inventory.innerHTML = '';
                 
-                // Generate pipes that can solve the current problem
-                const numPipes = Math.min(5 + this.level, 10);
+                const config = this.getGameConfig();
+                const pipeTypes = this.getPipeTypes();
                 const pipes = [];
                 
-                // Always include the numbers needed to solve the problem
-                if (this.currentProblem.operator === '+') {
-                    pipes.push(this.pipeTypes.find(p => p.value === this.currentProblem.num1));
-                    pipes.push(this.pipeTypes.find(p => p.value === this.currentProblem.num2));
-                } else if (this.currentProblem.operator === '-') {
-                    pipes.push(this.pipeTypes.find(p => p.value === this.currentProblem.num1));
-                    pipes.push(this.pipeTypes.find(p => p.value === this.currentProblem.num2));
-                } else if (this.currentProblem.operator === '×') {
-                    pipes.push(this.pipeTypes.find(p => p.value === this.currentProblem.num1));
-                    pipes.push(this.pipeTypes.find(p => p.value === this.currentProblem.num2));
+                // Add numbers from the expression
+                if (this.currentExpression.type === 'simple') {
+                    pipes.push(pipeTypes.find(p => p.value === this.currentExpression.b));
+                } else if (this.currentExpression.type === 'leftGrouped') {
+                    pipes.push(pipeTypes.find(p => p.value === this.currentExpression.c));
+                } else if (this.currentExpression.type === 'rightGrouped') {
+                    pipes.push(pipeTypes.find(p => p.value === this.currentExpression.b));
+                    pipes.push(pipeTypes.find(p => p.value === this.currentExpression.c));
+                } else if (this.currentExpression.type === 'precedence') {
+                    pipes.push(pipeTypes.find(p => p.value === this.currentExpression.b));
+                    pipes.push(pipeTypes.find(p => p.value === this.currentExpression.c));
+                    pipes.push(pipeTypes.find(p => p.value === this.currentExpression.d));
                 }
                 
-                // Add some connector pipes
-                const connectors = this.pipeTypes.filter(p => p.value === 0);
-                for (let i = 0; i < Math.min(3, connectors.length); i++) {
+                // Add operators
+                if (this.currentExpression.type === 'simple') {
+                    pipes.push(pipeTypes.find(p => p.operation === this.currentExpression.op));
+                } else if (this.currentExpression.type === 'leftGrouped') {
+                    pipes.push(pipeTypes.find(p => p.operation === this.currentExpression.op1));
+                    pipes.push(pipeTypes.find(p => p.operation === this.currentExpression.op2));
+                } else if (this.currentExpression.type === 'rightGrouped') {
+                    pipes.push(pipeTypes.find(p => p.operation === this.currentExpression.op1));
+                    pipes.push(pipeTypes.find(p => p.operation === this.currentExpression.op2));
+                } else if (this.currentExpression.type === 'precedence') {
+                    pipes.push(pipeTypes.find(p => p.operation === '+'));
+                    pipes.push(pipeTypes.find(p => p.operation === '×'));
+                    pipes.push(pipeTypes.find(p => p.operation === '-'));
+                }
+                
+                // Add connector pipes
+                const connectors = pipeTypes.filter(p => p.type === 'connector');
+                for (let i = 0; i < Math.min(8, connectors.length); i++) {
                     pipes.push(connectors[i]);
                 }
                 
-                // Add some random number pipes to make it interesting
-                const numbers = this.pipeTypes.filter(p => p.value > 0 && p.value <= 9);
-                const randomNumbers = numbers.sort(() => Math.random() - 0.5).slice(0, 2);
-                pipes.push(...randomNumbers);
+                // Shuffle and create elements
+                const shuffledPipes = pipes.sort(() => Math.random() - 0.5);
                 
-                // Shuffle and limit to numPipes
-                const shuffledPipes = pipes.sort(() => Math.random() - 0.5).slice(0, numPipes);
-                
-                for (let i = 0; i < shuffledPipes.length; i++) {
-                    const pipe = shuffledPipes[i];
-                    const pipeElement = document.createElement('div');
-                    pipeElement.className = 'pipe-piece';
-                    pipeElement.textContent = pipe.symbol;
-                    pipeElement.draggable = true;
-                    pipeElement.dataset.pipeType = JSON.stringify(pipe);
-                    
-                    pipeElement.addEventListener('dragstart', (e) => this.handleDragStart(e, pipe));
-                    pipeElement.addEventListener('dragend', () => this.handleDragEnd());
-                    
-                    inventory.appendChild(pipeElement);
-                }
+                shuffledPipes.forEach(pipe => {
+                    if (pipe) {
+                        const pipeElement = document.createElement('div');
+                        pipeElement.className = 'pipe-piece';
+                        pipeElement.textContent = pipe.symbol;
+                        pipeElement.draggable = true;
+                        pipeElement.dataset.pipeType = JSON.stringify(pipe);
+                        
+                        pipeElement.addEventListener('dragstart', (e) => this.handleDragStart(e, pipe));
+                        pipeElement.addEventListener('dragend', () => this.handleDragEnd());
+                        
+                        inventory.appendChild(pipeElement);
+                    }
+                });
             }
             
             setupEventListeners() {
@@ -528,6 +894,7 @@
                 document.getElementById('newLevelBtn').addEventListener('click', () => this.nextLevel());
                 document.getElementById('resetBtn').addEventListener('click', () => this.resetLevel());
                 document.getElementById('undoBtn').addEventListener('click', () => this.undoLastPipe());
+                document.getElementById('flowTestBtn').addEventListener('click', () => this.testFlow());
                 document.getElementById('hintBtn').addEventListener('click', () => this.showHint());
             }
             
@@ -807,15 +1174,13 @@
             
             nextLevel() {
                 this.level++;
-                this.timeLeft = 60 + (this.level * 10);
+                this.pressure = 0;
                 this.pipes = [];
                 this.connectedPipes = [];
                 this.pipeHistory = [];
-                this.generateNewProblem();
-                this.clearPlayArea();
-                this.generatePipes();
-                this.updateDisplay();
-                this.startTimer();
+                this.answerPipes = [];
+                this.createNewPuzzle();
+                this.startPressureTimer();
                 this.updateUndoButton();
             }
             
@@ -852,14 +1217,13 @@
             }
             
             resetLevel() {
+                this.pressure = 0;
                 this.pipes = [];
                 this.connectedPipes = [];
                 this.pipeHistory = [];
-                this.clearPlayArea();
-                this.generatePipes();
-                this.timeLeft = 60 + (this.level * 10);
-                this.updateDisplay();
-                this.startTimer();
+                this.answerPipes = [];
+                this.createNewPuzzle();
+                this.startPressureTimer();
                 this.updateUndoButton();
             }
             
@@ -944,17 +1308,137 @@
                 alert(hint);
             }
             
-            startTimer() {
+            startPressureTimer() {
                 if (this.timer) clearInterval(this.timer);
                 
+                const config = this.getGameConfig();
                 this.timer = setInterval(() => {
-                    this.timeLeft--;
+                    this.pressure += config.pressureRate;
                     this.updateDisplay();
                     
-                    if (this.timeLeft <= 0) {
+                    if (this.pressure >= this.maxPressure) {
                         this.gameOver();
                     }
                 }, 1000);
+            }
+            
+            testFlow() {
+                if (this.pipes.length === 0) {
+                    alert('Place some pipes first!');
+                    return;
+                }
+                
+                // Simulate water flow through the pipe network
+                this.animateFlow();
+            }
+            
+            animateFlow() {
+                const playArea = document.getElementById('playArea');
+                
+                // Find the path from start to answer pipes
+                const path = this.findFlowPath();
+                
+                if (!path) {
+                    this.showFlowError('No valid path found!');
+                    return;
+                }
+                
+                // Animate water flow step by step
+                let currentValue = this.startPipe.value;
+                let step = 0;
+                
+                const animateStep = () => {
+                    if (step >= path.length) {
+                        this.checkFlowResult(currentValue);
+                        return;
+                    }
+                    
+                    const pipe = path[step];
+                    const flowElement = this.createFlowElement(pipe.x, pipe.y);
+                    playArea.appendChild(flowElement);
+                    
+                    // Apply operation if it's an operator
+                    if (pipe.data && pipe.data.type === 'operator') {
+                        const nextPipe = path[step + 1];
+                        if (nextPipe && nextPipe.data && nextPipe.data.type === 'number') {
+                            currentValue = this.applyOperation(currentValue, nextPipe.data.value, pipe.data.operation);
+                            step++; // Skip the number pipe since we processed it
+                        }
+                    }
+                    
+                    step++;
+                    
+                    setTimeout(() => {
+                        flowElement.remove();
+                        animateStep();
+                    }, 500);
+                };
+                
+                animateStep();
+            }
+            
+            findFlowPath() {
+                // Simple pathfinding from start to answer pipes
+                // This is a simplified version - in a full implementation you'd want proper pathfinding
+                const path = [];
+                const visited = new Set();
+                
+                const dfs = (x, y, targetX, targetY) => {
+                    if (x === targetX && y === targetY) return true;
+                    if (x < 0 || y < 0 || x >= this.gridSize || y >= this.gridSize) return false;
+                    
+                    const key = `${x},${y}`;
+                    if (visited.has(key)) return false;
+                    visited.add(key);
+                    
+                    // Check if there's a pipe here
+                    const pipe = this.pipes.find(p => Math.floor(p.x / 80) === x && Math.floor(p.y / 80) === y);
+                    if (pipe) {
+                        path.push(pipe);
+                        
+                        // Try adjacent cells
+                        const directions = [[0, 1], [1, 0], [0, -1], [-1, 0]];
+                        for (const [dx, dy] of directions) {
+                            if (dfs(x + dx, y + dy, targetX, targetY)) return true;
+                        }
+                        
+                        path.pop();
+                    }
+                    
+                    return false;
+                };
+                
+                // Try to find path to correct answer
+                const correctAnswer = this.answerPipes.find(p => p.isCorrect);
+                if (correctAnswer && dfs(1, Math.floor(this.gridSize / 2), correctAnswer.x, correctAnswer.y)) {
+                    return path;
+                }
+                
+                return null;
+            }
+            
+            createFlowElement(x, y) {
+                const flow = document.createElement('div');
+                flow.className = 'water-flow';
+                flow.style.left = (x + 40) + 'px';
+                flow.style.top = (y + 20) + 'px';
+                return flow;
+            }
+            
+            checkFlowResult(finalValue) {
+                const correctAnswer = this.answerPipes.find(p => p.isCorrect);
+                
+                if (finalValue === correctAnswer.value) {
+                    this.celebrateWin();
+                } else {
+                    this.showFlowError(`Flow reached value ${finalValue}, but correct answer is ${correctAnswer.value}`);
+                }
+            }
+            
+            showFlowError(message) {
+                this.pressure += 20; // Increase pressure for failed attempt
+                alert(message);
+                this.updateDisplay();
             }
             
             gameOver() {
@@ -964,9 +1448,10 @@
                 const gameOver = document.createElement('div');
                 gameOver.className = 'game-over';
                 gameOver.innerHTML = `
-                    <h2>Game Over!</h2>
+                    <h2>Pressure Too High!</h2>
                     <p>Final Score: ${this.score}</p>
                     <p>Level Reached: ${this.level}</p>
+                    <p>Stars Earned: ${this.stars}</p>
                     <button class="control-btn" onclick="location.reload()">Play Again</button>
                 `;
                 
@@ -976,7 +1461,29 @@
             updateDisplay() {
                 document.getElementById('level').textContent = this.level;
                 document.getElementById('score').textContent = this.score;
-                document.getElementById('time').textContent = this.timeLeft;
+                document.getElementById('stars').textContent = this.stars;
+                document.getElementById('pressure').textContent = Math.round(this.pressure);
+                
+                // Update pressure bar
+                const pressureFill = document.getElementById('pressureFill');
+                if (pressureFill) {
+                    pressureFill.style.width = (this.pressure / this.maxPressure * 100) + '%';
+                }
+                
+                // Update expression display
+                if (this.currentExpression) {
+                    let expressionText = '';
+                    if (this.currentExpression.type === 'simple') {
+                        expressionText = `${this.currentExpression.a} ${this.currentExpression.op} ${this.currentExpression.b} = ?`;
+                    } else if (this.currentExpression.type === 'leftGrouped') {
+                        expressionText = `(${this.currentExpression.a} ${this.currentExpression.op1} ${this.currentExpression.b}) ${this.currentExpression.op2} ${this.currentExpression.c} = ?`;
+                    } else if (this.currentExpression.type === 'rightGrouped') {
+                        expressionText = `${this.currentExpression.a} ${this.currentExpression.op1} (${this.currentExpression.b} ${this.currentExpression.op2} ${this.currentExpression.c}) = ?`;
+                    } else if (this.currentExpression.type === 'precedence') {
+                        expressionText = `${this.currentExpression.a} + ${this.currentExpression.b} × ${this.currentExpression.c} - ${this.currentExpression.d} = ?`;
+                    }
+                    document.getElementById('mathProblem').textContent = expressionText;
+                }
             }
         }
         
