@@ -4,14 +4,14 @@ A collection of classic retro games playable in your web browser. All games are 
 
 ## 🎯 Games Included
 
-- **Pac-Man** - Classic maze game with ghosts and power pellets
-- **Tetris** - Block-stacking puzzle game
-- **Snake** - Control a growing snake to eat food
-- **Breakout** - Break bricks with a bouncing ball
-- **Frogger** - Help the frog cross the road safely
-- **Pong** - Classic two-player table tennis
-- **Maths Invaders** - Solve math problems while fighting aliens
-- **Spelling Invaders** - Improve spelling while defending against word invaders
+- **Dot Eater** - Classic maze game with ghosts and power pellets
+- **Block Stack** - Block-stacking puzzle game
+- **Worm Trail** - Control a growing worm to eat food
+- **Wall Breaker** - Break bricks with a bouncing ball
+- **Road Crosser** - Help the frog cross the road safely
+- **Paddle Ball** - Classic two-player table tennis
+- **Number Defenders** - Solve math problems while fighting aliens
+- **Word Defenders** - Improve spelling while defending against word invaders
 
 ## 🚀 How to Deploy
 
@@ -43,14 +43,14 @@ A collection of classic retro games playable in your web browser. All games are 
 ├── index.html              # Main homepage
 ├── styles.css              # Shared styling
 ├── navigation.js           # Shared navigation
-├── pac-man.html           # Pac-Man game
-├── tetris.html            # Tetris game
-├── snake.html             # Snake game
-├── breakout.html          # Breakout game
-├── frogger.html           # Frogger game
-├── pong.html              # Pong game
-├── maths-invaders.html    # Maths Invaders game
-├── spelling-invaders.html # Spelling Invaders game
+├── pac-man.html           # Dot Eater game
+├── tetris.html            # Block Stack game
+├── snake.html             # Worm Trail game
+├── breakout.html          # Wall Breaker game
+├── frogger.html           # Road Crosser game
+├── pong.html              # Paddle Ball game
+├── maths-invaders.html    # Number Defenders game
+├── spelling-invaders.html # Word Defenders game
 └── README.md              # This file
 ```
 
