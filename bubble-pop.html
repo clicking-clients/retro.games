@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Wall Breaker</title>
+<title>Bubble Pop</title>
 <style>
 body { background: black; color: #0f0; font-family: monospace; display: flex; justify-content: center; align-items: flex-start; height: 100%; margin: 0; padding: 20px; }
 #container { display: flex; gap: 20px; align-items: flex-start; }
@@ -46,7 +46,7 @@ body { background: black; color: #0f0; font-family: monospace; display: flex; ju
   </nav>
   <canvas id="breakoutGame" width="960" height="480"></canvas>
   <div id="sidebar">
-    <div id="title">Wall Breaker</div>
+    <div id="title">Bubble Pop</div>
     <div id="scoreboard">
       <div class="section-title">SCORE</div>
       <div id="score">0</div>
@@ -87,6 +87,69 @@ const bricks = [];
 const brickColors = ['#ff0000', '#ff8000', '#ffff00', '#00ff00', '#00ffff', '#ff00ff'];
 const bubbleParticles = [];
 
+// Audio context for bubble pop sounds
+let audioContext;
+let popSounds = [];
+
+function initAudio() {
+  try {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    createPopSounds();
+  } catch (e) {
+    console.log('Audio not supported');
+  }
+}
+
+function createPopSounds() {
+  // Create 3 different bubble pop sounds
+  const popFrequencies = [
+    [800, 1200, 600], // High pop
+    [400, 800, 300],  // Medium pop  
+    [200, 400, 150]   // Low pop
+  ];
+  
+  popFrequencies.forEach((freqs, index) => {
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    // Store the sound data
+    popSounds.push({
+      oscillator: oscillator,
+      gainNode: gainNode,
+      frequencies: freqs
+    });
+  });
+}
+
+function playRandomPopSound() {
+  if (!audioContext || popSounds.length === 0) return;
+  
+  const randomSound = popSounds[Math.floor(Math.random() * popSounds.length)];
+  const { oscillator, gainNode, frequencies } = randomSound;
+  
+  // Create a new oscillator for this sound (can't reuse the same one)
+  const newOsc = audioContext.createOscillator();
+  const newGain = audioContext.createGain();
+  
+  newOsc.connect(newGain);
+  newGain.connect(audioContext.destination);
+  
+  // Set up the pop sound
+  newOsc.frequency.setValueAtTime(frequencies[0], audioContext.currentTime);
+  newOsc.frequency.exponentialRampToValueAtTime(frequencies[1], audioContext.currentTime + 0.1);
+  newOsc.frequency.exponentialRampToValueAtTime(frequencies[2], audioContext.currentTime + 0.2);
+  
+  newGain.gain.setValueAtTime(0.1, audioContext.currentTime);
+  newGain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+  
+  // Play the sound
+  newOsc.start(audioContext.currentTime);
+  newOsc.stop(audioContext.currentTime + 0.2);
+}
+
 function initBricks() {
   bricks.length = 0;
   for (let r = 0; r < brickRows; r++) {
@@ -111,6 +174,9 @@ function popBubble(b) {
   b.popAnimation = 1;
   b.popScale = 1;
   b.popAlpha = 1;
+  
+  // Play random pop sound
+  playRandomPopSound();
   
   // Create bubble pop effect
   createBubblePop(b.x + b.w / 2, b.y + b.h / 2, b.color);
@@ -403,6 +469,8 @@ function resetGame() {
   resetBall();
 }
 
+// Initialize audio and start game
+initAudio();
 initBricks();
 draw();
 update();

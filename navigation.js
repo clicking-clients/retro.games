@@ -6,7 +6,7 @@ const gameFiles = [
     { file: "chompy.html", title: "Chompy" },
     { file: "block-stack.html", title: "Block Stack" },
     { file: "wormy.html", title: "Wormy" },
-    { file: "wall-breaker.html", title: "Wall Breaker" },
+    { file: "bubble-pop.html", title: "Bubble Pop" },
     { file: "road-dash.html", title: "Road Dash" },
     { file: "paddle-ball.html", title: "Paddle Ball" },
     { file: "number-defenders.html", title: "Number Defenders" },

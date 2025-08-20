@@ -7,7 +7,7 @@ A collection of classic retro games playable in your web browser. All games are 
 - **Dot Eater** - Classic maze game with ghosts and power pellets
 - **Block Stack** - Block-stacking puzzle game
 - **Worm Trail** - Control a growing worm to eat food
-- **Wall Breaker** - Break bricks with a bouncing ball
+- **Bubble Pop** - Pop colorful bubbles with realistic physics and sound effects
 - **Road Crosser** - Help the frog cross the road safely
 - **Paddle Ball** - Classic two-player table tennis
 - **Number Defenders** - Solve math problems while fighting aliens
@@ -46,7 +46,7 @@ A collection of classic retro games playable in your web browser. All games are 
 ├── chompy.html             # Dot Eater game
 ├── block-stack.html        # Block Stack game
 ├── wormy.html              # Worm Trail game
-├── wall-breaker.html       # Wall Breaker game
+├── bubble-pop.html         # Bubble Pop game
 ├── road-dash.html          # Road Crosser game
 ├── paddle-ball.html        # Paddle Ball game
 ├── number-defenders.html   # Number Defenders game
