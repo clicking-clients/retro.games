@@ -74,6 +74,92 @@
             transform-style: preserve-3d;
         }
 
+        /* Add connection ends to all pipes */
+        .pipe-piece::before {
+            content: '';
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: linear-gradient(135deg, #666, #888);
+            border: 2px solid #444;
+            border-radius: 50%;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 2;
+        }
+
+        .pipe-piece::after {
+            content: '';
+            position: absolute;
+            width: 90%;
+            height: 60%;
+            background: linear-gradient(135deg, #6b6b6b, #8b8b8b);
+            border-radius: 15px;
+            top: 20%;
+            left: 5%;
+            z-index: -1;
+        }
+
+        /* Left connection end */
+        .pipe-piece .left-connector,
+        .placed-pipe .left-connector {
+            position: absolute;
+            left: -6px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 12px;
+            height: 12px;
+            background: linear-gradient(135deg, #666, #888);
+            border: 2px solid #444;
+            border-radius: 50%;
+            z-index: 2;
+        }
+
+        /* Right connection end */
+        .pipe-piece .right-connector,
+        .placed-pipe .right-connector {
+            position: absolute;
+            right: -6px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 12px;
+            height: 12px;
+            background: linear-gradient(135deg, #666, #888);
+            border: 2px solid #444;
+            border-radius: 50%;
+            z-index: 2;
+        }
+
+        /* Top connection end */
+        .pipe-piece .top-connector,
+        .placed-pipe .top-connector {
+            position: absolute;
+            top: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 12px;
+            height: 12px;
+            background: linear-gradient(135deg, #666, #888);
+            border: 2px solid #444;
+            border-radius: 50%;
+            z-index: 2;
+        }
+
+        /* Bottom connection end */
+        .pipe-piece .bottom-connector,
+        .placed-pipe .bottom-connector {
+            position: absolute;
+            bottom: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 12px;
+            height: 12px;
+            background: linear-gradient(135deg, #666, #888);
+            border: 2px solid #444;
+            border-radius: 50%;
+            z-index: 2;
+        }
+
         .pipe-piece::before {
             content: '';
             position: absolute;
@@ -562,6 +648,62 @@
                 font-size: 1.5rem;
             }
         }
+
+        @keyframes sparkEffect {
+            0% { 
+                transform: scale(0) rotate(0deg);
+                opacity: 1;
+                box-shadow: 0 0 0px #FFD700;
+            }
+            25% { 
+                transform: scale(2) rotate(90deg);
+                opacity: 1;
+                box-shadow: 0 0 20px #FFD700;
+            }
+            50% { 
+                transform: scale(1.5) rotate(180deg);
+                opacity: 0.8;
+                box-shadow: 0 0 15px #FFD700;
+            }
+            100% { 
+                transform: scale(0) rotate(360deg);
+                opacity: 0;
+                box-shadow: 0 0 0px #FFD700;
+            }
+        }
+
+        .connection-line {
+            background: linear-gradient(90deg, #4FC3F7, #29B6F6);
+            border-radius: 4px;
+            box-shadow: 0 0 8px #4FC3F7;
+            animation: connectionGlow 2s ease-in-out infinite;
+        }
+
+        @keyframes connectionGlow {
+            0%, 100% { 
+                box-shadow: 0 0 8px #4FC3F7;
+                opacity: 0.8;
+            }
+            50% { 
+                box-shadow: 0 0 15px #4FC3F7, 0 0 25px rgba(79, 195, 247, 0.5);
+                opacity: 1;
+            }
+        }
+
+        .placed-pipe.flowing {
+            animation: waterFlow 3s ease-in-out infinite;
+        }
+
+        @keyframes waterFlow {
+            0%, 100% { 
+                transform: scale(1);
+                filter: brightness(1);
+            }
+            50% { 
+                transform: scale(1.02);
+                filter: brightness(1.2);
+            }
+        }
     </style>
 </head>
 <body>
@@ -796,24 +938,25 @@
                     { symbol: '9', value: 9, type: 'number', connections: ['top', 'bottom', 'left', 'right'] },
                     
                     // Operators
-                    { symbol: '+', value: 0, type: 'operator', operation: '+', connections: ['top', 'bottom', 'left', 'right'] },
-                    { symbol: '−', value: 0, type: 'operator', operation: '-', connections: ['top', 'bottom', 'left', 'right'] },
-                    { symbol: '×', value: 0, type: 'operator', operation: '×', connections: ['top', 'bottom', 'left', 'right'] },
-                    { symbol: '÷', value: 0, type: 'operator', operation: '÷', connections: ['top', 'bottom', 'left', 'right'] },
+                    { symbol: '●', value: 0, type: 'operator', operation: '+', connections: ['top', 'bottom', 'left', 'right'] },
+                    { symbol: '●', value: 0, type: 'operator', operation: '-', connections: ['top', 'bottom', 'left', 'right'] },
+                    { symbol: '●', value: 0, type: 'operator', operation: '×', connections: ['top', 'bottom', 'left', 'right'] },
+                    { symbol: '●', value: 0, type: 'operator', operation: '÷', connections: ['top', 'bottom', 'left', 'right'] },
                     
-                    // Connectors
-                    { symbol: '┌', value: 0, type: 'connector', connections: ['top', 'right'] },
-                    { symbol: '┐', value: 0, type: 'connector', connections: ['top', 'left'] },
-                    { symbol: '└', value: 0, type: 'connector', connections: ['bottom', 'right'] },
-                    { symbol: '┘', value: 0, type: 'connector', connections: ['bottom', 'left'] },
-                    { symbol: '─', value: 0, type: 'connector', connections: ['left', 'right'] },
-                    { symbol: '│', value: 0, type: 'connector', connections: ['top', 'bottom'] }
+                    // Connectors - make them look more like actual pipe segments
+                    { symbol: '╋', value: 0, type: 'connector', connections: ['top', 'bottom', 'left', 'right'] }, // cross
+                    { symbol: '╱', value: 0, type: 'connector', connections: ['top', 'right'] }, // top-right elbow
+                    { symbol: '╲', value: 0, type: 'connector', connections: ['top', 'left'] }, // top-left elbow
+                    { symbol: '╱', value: 0, type: 'connector', connections: ['bottom', 'right'] }, // bottom-right elbow
+                    { symbol: '╲', value: 0, type: 'connector', connections: ['bottom', 'left'] }, // bottom-left elbow
+                    { symbol: '━', value: 0, type: 'connector', connections: ['left', 'right'] }, // horizontal pipe
+                    { symbol: '┃', value: 0, type: 'connector', connections: ['top', 'bottom'] } // vertical pipe
                 ];
                 
                 // Add special pieces for medium+ difficulty
                 if (this.difficulty !== 'easy') {
                     basePipes.push(
-                        { symbol: 'Y', value: 0, type: 'splitter', connections: ['top', 'bottom', 'left', 'right'] },
+                        { symbol: '╬', value: 0, type: 'splitter', connections: ['top', 'bottom', 'left', 'right'] },
                         { symbol: '▶', value: 0, type: 'valve', connections: ['left', 'right'] }
                     );
                 }
@@ -1172,11 +1315,41 @@
                     pipeElement.draggable = true;
                     pipeElement.dataset.pipeType = JSON.stringify(pipe);
                     
+                    // Add connection elements based on pipe type
+                    this.addConnectionElements(pipeElement, pipe);
+                    
                     pipeElement.addEventListener('dragstart', (e) => this.handleDragStart(e, pipe));
                     pipeElement.addEventListener('dragend', () => this.handleDragEnd());
                     
                     inventory.appendChild(pipeElement);
                 });
+            }
+            
+            addConnectionElements(pipeElement, pipe) {
+                // Add connection ends based on pipe connections
+                if (pipe.connections.includes('left')) {
+                    const leftConnector = document.createElement('div');
+                    leftConnector.className = 'left-connector';
+                    pipeElement.appendChild(leftConnector);
+                }
+                
+                if (pipe.connections.includes('right')) {
+                    const rightConnector = document.createElement('div');
+                    rightConnector.className = 'right-connector';
+                    pipeElement.appendChild(rightConnector);
+                }
+                
+                if (pipe.connections.includes('top')) {
+                    const topConnector = document.createElement('div');
+                    topConnector.className = 'top-connector';
+                    pipeElement.appendChild(topConnector);
+                }
+                
+                if (pipe.connections.includes('bottom')) {
+                    const bottomConnector = document.createElement('div');
+                    bottomConnector.className = 'bottom-connector';
+                    pipeElement.appendChild(bottomConnector);
+                }
             }
             
             setupEventListeners() {
@@ -1293,6 +1466,9 @@
                 pipeElement.dataset.x = x;
                 pipeElement.dataset.y = y;
                 
+                // Add connection elements based on pipe type
+                this.addConnectionElements(pipeElement, pipeData);
+                
                 // Remove click event - pipes will connect automatically when placed correctly
                 
                 playArea.appendChild(pipeElement);
@@ -1319,9 +1495,17 @@
                 // Clear all previous connections and connecting states
                 this.pipes.forEach(pipe => {
                     pipe.connected = false;
-                    pipe.element.classList.remove('connected', 'connecting');
+                    pipe.element.classList.remove('connected');
                 });
                 this.connectedPipes = [];
+                
+                // Clear previous connection lines
+                if (this.connectionLines) {
+                    this.connectionLines.forEach(line => {
+                        if (line.parentNode) line.parentNode.removeChild(line);
+                    });
+                    this.connectionLines = [];
+                }
                 
                 // Create a grid-based connection system for more logical gameplay
                 const gridSize = 80; // Match pipe width
@@ -1370,6 +1554,11 @@
                     });
                 });
                 
+                // Apply water flow effect if pipes are connected
+                if (this.connectedPipes.length > 0) {
+                    setTimeout(() => this.applyWaterFlowEffect(), 100);
+                }
+                
                 // Update undo button state
                 this.updateUndoButton();
             }
@@ -1413,6 +1602,9 @@
                 // Add satisfying "click" effect
                 this.createConnectionEffect(pipe1, pipe2);
                 
+                // Create visual connection line between pipes
+                this.createConnectionLine(pipe1, pipe2);
+                
                 this.connectedPipes.push(pipe1, pipe2);
                 this.animateWaterFlow(pipe1, pipe2);
             }
@@ -1433,6 +1625,66 @@
                         spark.parentNode.removeChild(spark);
                     }
                 }, 600);
+            }
+            
+            createConnectionLine(pipe1, pipe2) {
+                const playArea = document.getElementById('playArea');
+                
+                // Calculate connection line position
+                const x1 = pipe1.x + 40; // center of pipe1
+                const y1 = pipe1.y + 20;
+                const x2 = pipe2.x + 40; // center of pipe2
+                const y2 = pipe2.y + 20;
+                
+                const connectionLine = document.createElement('div');
+                connectionLine.className = 'connection-line';
+                connectionLine.style.position = 'absolute';
+                connectionLine.style.left = Math.min(x1, x2) + 'px';
+                connectionLine.style.top = Math.min(y1, y2) + 'px';
+                connectionLine.style.width = Math.abs(x2 - x1) + 'px';
+                connectionLine.style.height = Math.abs(y2 - y1) + 'px';
+                connectionLine.style.zIndex = '1';
+                
+                // Determine if it's horizontal or vertical connection
+                if (Math.abs(x2 - x1) > Math.abs(y2 - y1)) {
+                    // Horizontal connection
+                    connectionLine.style.height = '8px';
+                    connectionLine.style.top = (Math.min(y1, y2) + 16) + 'px';
+                } else {
+                    // Vertical connection
+                    connectionLine.style.width = '8px';
+                    connectionLine.style.left = (Math.min(x1, x2) + 36) + 'px';
+                }
+                
+                playArea.appendChild(connectionLine);
+                
+                // Store reference for later removal
+                if (!this.connectionLines) this.connectionLines = [];
+                this.connectionLines.push(connectionLine);
+            }
+            
+            // Method to apply gradual blue water flow effect
+            applyWaterFlowEffect() {
+                if (this.connectedPipes.length === 0) return;
+                
+                // Find the path from start to end
+                const path = this.findFlowPath();
+                if (!path) return;
+                
+                // Apply gradual blue effect along the path
+                path.forEach((pipe, index) => {
+                    const progress = index / (path.length - 1);
+                    const blueIntensity = Math.floor(progress * 255);
+                    const color = `rgb(0, ${blueIntensity}, 255)`;
+                    
+                    // Add water flow class with custom color
+                    pipe.element.style.background = `linear-gradient(135deg, ${color}, ${color}dd)`;
+                    pipe.element.style.borderColor = color;
+                    pipe.element.style.boxShadow = `0 0 20px ${color}`;
+                    
+                    // Add flowing water animation
+                    pipe.element.classList.add('flowing');
+                });
             }
             
             animateWaterFlow(pipe1, pipe2) {
@@ -1522,6 +1774,15 @@
                 this.connectedPipes = [];
                 this.pipeHistory = [];
                 this.answerPipes = [];
+                
+                // Clear connection lines
+                if (this.connectionLines) {
+                    this.connectionLines.forEach(line => {
+                        if (line.parentNode) line.parentNode.removeChild(line);
+                    });
+                    this.connectionLines = [];
+                }
+                
                 this.createNewPuzzle();
                 this.startPressureTimer();
                 this.updateUndoButton();
@@ -1565,6 +1826,15 @@
                 this.connectedPipes = [];
                 this.pipeHistory = [];
                 this.answerPipes = [];
+                
+                // Clear connection lines
+                if (this.connectionLines) {
+                    this.connectionLines.forEach(line => {
+                        if (line.parentNode) line.parentNode.removeChild(line);
+                    });
+                    this.connectionLines = [];
+                }
+                
                 this.createNewPuzzle();
                 this.startPressureTimer();
                 this.updateUndoButton();
