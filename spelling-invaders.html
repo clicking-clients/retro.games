@@ -104,7 +104,7 @@ input[type=range] { width:100%; }
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 let W = canvas.width, H = canvas.height;
-let lanes = 4, playerLane = Math.floor(lanes/2);
+let lanes = 4, playerLane = 0; // Start in leftmost lane
 let laneW = W/lanes, floorY = H-48;
 
 let score=0, lives=3, running=true, gameOver=false;
@@ -645,11 +645,19 @@ splashBtn.onclick = ()=>{
 
 /* ===== UI Events ===== */
 speedSlider.oninput=()=>{ speedValue=parseFloat(speedSlider.value)/4; speedVal.textContent=speedSlider.value; };
-laneSlider.oninput=()=>{ lanes=parseInt(laneSlider.value); laneW=W/lanes; laneVal.textContent=lanes; };
+laneSlider.oninput=()=>{ 
+  lanes=parseInt(laneSlider.value); 
+  laneW=W/lanes; 
+  laneVal.textContent=lanes; 
+  // Ensure player lane is within new lane count
+  playerLane = Math.min(playerLane, lanes-1);
+  draw(); // Redraw to show updated lane indicator
+};
 timerSlider.oninput=()=>{ timerDuration=parseInt(timerSlider.value)*60*1000; timerVal.textContent=timerSlider.value+" min"; };
 
 /* ===== init ===== */
 resetLevel(false);
+draw(); // Draw immediately to show player lane indicator
 step();
 })();
 </script>

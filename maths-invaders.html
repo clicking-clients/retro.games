@@ -100,7 +100,7 @@ input[type=range] { width:100%; }
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 let W = canvas.width, H = canvas.height;
-let lanes = 4, playerLane = Math.floor(lanes/2);
+let lanes = 4, playerLane = 0; // Start in leftmost lane
 let laneW = W/lanes, floorY = H-48;
 
 let score=0, lives=3, running=true, gameOver=false;
@@ -320,7 +320,14 @@ document.addEventListener('keydown',(e)=>{
 
 /* ===== sliders ===== */
 speedSlider.addEventListener('input',()=>{ speedValue=parseFloat(speedSlider.value)/4; speedVal.textContent=speedSlider.value; });
-laneSlider.addEventListener('input',()=>{ lanes=parseInt(laneSlider.value); laneW=W/lanes; laneVal.textContent=lanes; });
+laneSlider.addEventListener('input',()=>{ 
+  lanes=parseInt(laneSlider.value); 
+  laneW=W/lanes; 
+  laneVal.textContent=lanes; 
+  // Ensure player lane is within new lane count
+  playerLane = Math.min(playerLane, lanes-1);
+  draw(); // Redraw to show updated lane indicator
+});
 
 /* ===== splash ===== */
 splashBtn.addEventListener('click',()=>{ splashScreen.style.display='none'; startNextLevel(); });
@@ -330,6 +337,7 @@ function splashLevelOver(success){
 }
 
 resetLevel();
+draw(); // Draw immediately to show player lane indicator
 step();
 })();
 </script>
