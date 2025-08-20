@@ -13,6 +13,67 @@ const gameFiles = [
     { file: "word-defenders.html", title: "Word Defenders" }
 ];
 
+// Add mobile navigation styles
+function addMobileNavStyles() {
+    if (!document.getElementById('mobile-nav-styles')) {
+        const style = document.createElement('style');
+        style.id = 'mobile-nav-styles';
+        style.textContent = `
+            .mobile-nav-toggle {
+                display: none;
+                background: var(--green, #0f0);
+                color: var(--bg, #000);
+                border: none;
+                padding: 10px 15px;
+                border-radius: 5px;
+                font-size: 1.2rem;
+                cursor: pointer;
+                margin-bottom: 10px;
+                font-family: monospace;
+                transition: all 0.2s;
+            }
+            
+            .mobile-nav-toggle:hover,
+            .mobile-nav-toggle:focus {
+                background: var(--yellow, #ff0);
+                color: var(--bg, #000);
+            }
+            
+            .mobile-nav-content {
+                display: block;
+            }
+            
+            @media (max-width: 767px) {
+                .mobile-nav-toggle {
+                    display: block;
+                }
+                
+                .mobile-nav-content {
+                    display: none;
+                }
+                
+                .mobile-nav-content.open {
+                    display: block;
+                }
+                
+                #gameNav {
+                    flex-direction: column;
+                    align-items: center;
+                }
+                
+                #gameNav a {
+                    width: 100%;
+                    text-align: center;
+                    padding: 12px;
+                    margin: 2px 0;
+                    border-radius: 5px;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // Find existing navigation elements
     const existingNav = document.getElementById('gameNav');
@@ -33,10 +94,32 @@ function updateExistingNavigation(navElement) {
     // Clear existing content
     navElement.innerHTML = '';
     
-    // Add new navigation structure
+    // Add mobile navigation styles
+    addMobileNavStyles();
+    
+    // Add mobile toggle button
+    const toggleBtn = document.createElement('button');
+    toggleBtn.className = 'mobile-nav-toggle';
+    toggleBtn.textContent = '☰ Games Menu';
+    toggleBtn.setAttribute('aria-label', 'Toggle games menu');
+    
+    // Add toggle functionality
+    toggleBtn.addEventListener('click', () => {
+        const content = navElement.querySelector('.mobile-nav-content');
+        content.classList.toggle('open');
+        toggleBtn.textContent = content.classList.contains('open') ? '✕ Close' : '☰ Games Menu';
+    });
+    
+    navElement.appendChild(toggleBtn);
+    
+    // Create navigation content wrapper
+    const contentWrapper = document.createElement('div');
+    contentWrapper.className = 'mobile-nav-content';
+    
+    // Add navigation structure
     const strong = document.createElement('strong');
     strong.textContent = 'Games:';
-    navElement.appendChild(strong);
+    contentWrapper.appendChild(strong);
     
     // Add navigation links
     gameFiles.forEach(game => {
@@ -53,8 +136,10 @@ function updateExistingNavigation(navElement) {
             link.style.textDecoration = 'none';
         });
         
-        navElement.appendChild(link);
+        contentWrapper.appendChild(link);
     });
+    
+    navElement.appendChild(contentWrapper);
     
     // Highlight current page
     highlightCurrentPage();
@@ -71,10 +156,32 @@ function createNewNavigation() {
         nav.className = 'game-nav';
         nav.style.cssText = 'padding:15px; background:#111; color:#0f0; font-family:monospace; border-radius:5px; margin-bottom:20px; border:1px solid #0f0;';
         
+        // Add mobile navigation styles
+        addMobileNavStyles();
+        
+        // Add mobile toggle button
+        const toggleBtn = document.createElement('button');
+        toggleBtn.className = 'mobile-nav-toggle';
+        toggleBtn.textContent = '☰ Games Menu';
+        toggleBtn.setAttribute('aria-label', 'Toggle games menu');
+        
+        // Add toggle functionality
+        toggleBtn.addEventListener('click', () => {
+            const content = nav.querySelector('.mobile-nav-content');
+            content.classList.toggle('open');
+            toggleBtn.textContent = content.classList.contains('open') ? '✕ Close' : '☰ Games Menu';
+        });
+        
+        nav.appendChild(toggleBtn);
+        
+        // Create navigation content wrapper
+        const contentWrapper = document.createElement('div');
+        contentWrapper.className = 'mobile-nav-content';
+        
         // Add navigation content
         const strong = document.createElement('strong');
         strong.textContent = 'Games:';
-        nav.appendChild(strong);
+        contentWrapper.appendChild(strong);
         
         gameFiles.forEach(game => {
             const link = document.createElement('a');
@@ -92,8 +199,10 @@ function createNewNavigation() {
                 link.style.textDecoration = 'none';
             });
             
-            nav.appendChild(link);
+            contentWrapper.appendChild(link);
         });
+        
+        nav.appendChild(contentWrapper);
         
         // Insert navigation at the beginning
         body.insertBefore(nav, firstElement);

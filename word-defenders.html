@@ -244,6 +244,85 @@ input[type=range] {
   transform: scale(1.05);
 }
 
+/* Directional controls */
+.directional-controls {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin: 15px 0;
+}
+
+.dir-row {
+  display: flex;
+  gap: 20px;
+}
+
+.dir-btn {
+  background: rgba(0, 255, 0, 0.2);
+  border: 2px solid var(--green);
+  color: var(--green);
+  padding: 20px;
+  border-radius: 50%;
+  font-size: 1.5rem;
+  font-family: monospace;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.dir-btn:hover,
+.dir-btn:focus,
+.dir-btn:active {
+  background: rgba(0, 255, 0, 0.4);
+  transform: scale(1.1);
+}
+
+/* Mobile input area */
+.mobile-input-area {
+  display: none;
+  margin-top: 15px;
+  padding: 15px;
+  border: 2px solid var(--green);
+  border-radius: 8px;
+  background: rgba(0, 255, 0, 0.05);
+}
+
+.mobile-input-area .section-title {
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+#mobileWordInput {
+  width: 100%;
+  padding: 12px;
+  background: var(--bg);
+  color: var(--green);
+  border: 2px solid var(--green);
+  border-radius: 6px;
+  font-family: monospace;
+  font-size: 1rem;
+  margin-bottom: 10px;
+}
+
+#mobileWordInput:focus {
+  border-color: var(--focus-outline);
+  outline: none;
+}
+
+.input-help {
+  font-size: 0.9rem;
+  color: var(--yellow);
+  text-align: center;
+  font-style: italic;
+}
+
 /* Responsive breakpoints */
 @media (min-width: 768px) {
   #container {
@@ -270,6 +349,14 @@ input[type=range] {
 @media (max-width: 767px) {
   .mobile-controls {
     display: flex;
+  }
+  
+  .directional-controls {
+    display: flex;
+  }
+  
+  .mobile-input-area {
+    display: block;
   }
   
   #container {
@@ -347,6 +434,16 @@ input[type=range] {
   </nav>
     <script src="navigation.js"></script>
   <canvas id="game" width="540" height="640" role="img" aria-label="Word Defenders game area" tabindex="0"></canvas>
+  
+  <!-- Directional Controls (Mobile) -->
+  <div class="directional-controls">
+    <button class="dir-btn" id="dirUpBtn" aria-label="Move Up">↑</button>
+    <div class="dir-row">
+      <button class="dir-btn" id="dirLeftBtn" aria-label="Move Left">←</button>
+      <button class="dir-btn" id="dirRightBtn" aria-label="Move Right">→</button>
+    </div>
+  </div>
+  
   <div id="sidebar">
       <h1 id="title">WORD DEFENDERS</h1>
   <div id="scoreboard" role="region" aria-label="Game Score">
@@ -394,13 +491,21 @@ input[type=range] {
   </div>
   <div id="quotes" role="status" aria-live="polite"></div>
   
-  <!-- Mobile Controls -->
-  <div class="mobile-controls">
-    <button class="mobile-btn" id="leftBtn" aria-label="Move Left">←</button>
-    <button class="mobile-btn" id="rightBtn" aria-label="Move Right">→</button>
-    <button class="mobile-btn" id="pauseBtn" aria-label="Pause/Resume">⏸</button>
-    <button class="mobile-btn" id="resetBtn" aria-label="Reset Level">🔄</button>
-  </div>
+      <!-- Mobile Controls -->
+    <div class="mobile-controls">
+      <button class="mobile-btn" id="leftBtn" aria-label="Move Left">←</button>
+      <button class="mobile-btn" id="rightBtn" aria-label="Move Right">→</button>
+      <button class="mobile-btn" id="pauseBtn" aria-label="Pause/Resume">⏸</button>
+      <button class="mobile-btn" id="resetBtn" aria-label="Reset Level">🔄</button>
+    </div>
+    
+    <!-- Mobile Input Area -->
+    <div class="mobile-input-area">
+      <div class="section-title">TYPE WORDS</div>
+      <input type="text" id="mobileWordInput" placeholder="Type letters here..." maxlength="20" />
+      <button class="mobile-btn" id="submitWordBtn" aria-label="Submit Word">Submit</button>
+      <div class="input-help">Type letters to shoot words in your lane</div>
+    </div>
   </div>
   <canvas id="rocketOverlay" width="1200" height="720"></canvas>
 </div>
@@ -695,6 +800,11 @@ const leftBtn = document.getElementById('leftBtn');
 const rightBtn = document.getElementById('rightBtn');
 const pauseBtn = document.getElementById('pauseBtn');
 const resetBtn = document.getElementById('resetBtn');
+const mobileWordInput = document.getElementById('mobileWordInput');
+const submitWordBtn = document.getElementById('submitWordBtn');
+const dirUpBtn = document.getElementById('dirUpBtn');
+const dirLeftBtn = document.getElementById('dirLeftBtn');
+const dirRightBtn = document.getElementById('dirRightBtn');
 
 // Mobile button handlers
 leftBtn.addEventListener('click', () => {
@@ -707,6 +817,24 @@ rightBtn.addEventListener('click', () => {
   playerLane = Math.min(lanes - 1, playerLane + 1);
   beep(300, 0.02);
   draw();
+});
+
+// Directional control handlers
+dirLeftBtn.addEventListener('click', () => {
+  playerLane = Math.max(0, playerLane - 1);
+  beep(300, 0.02);
+  draw();
+});
+
+dirRightBtn.addEventListener('click', () => {
+  playerLane = Math.min(lanes - 1, playerLane + 1);
+  beep(300, 0.02);
+  draw();
+});
+
+dirUpBtn.addEventListener('click', () => {
+  // Could be used for special actions or just visual feedback
+  beep(400, 0.02);
 });
 
 pauseBtn.addEventListener('click', () => {
@@ -723,6 +851,52 @@ resetBtn.addEventListener('click', () => {
   gameOver = false;
   rocketLaunched = false;
   pauseBtn.textContent = '⏸';
+});
+
+// Mobile input functionality
+submitWordBtn.addEventListener('click', () => {
+  const input = mobileWordInput.value.trim();
+  if (input) {
+    // Process each character as if typed
+    for (let char of input) {
+      if (/[a-z]/i.test(char)) {
+        // Simulate key press for this character
+        const target = wordInPlayerLane();
+        if (target) {
+          const expected = target.text[target.progress] || '';
+          if (char.toLowerCase() === expected) {
+            target.progress++;
+            beep(520, 0.03);
+            if (target.progress >= target.text.length) {
+              target.fly = true;
+              target.done = true;
+              wordsLeft = Math.max(0, wordsLeft - 1);
+              score += target.text.length;
+              updateScore();
+              beep(800, 0.05); // Success sound when word is completed
+              rocket && rocket.grow();
+              if (wordsLeft === 0 && !gameOver) {
+                running = false;
+                lastOutcomeSuccess = (lives > 0);
+                if (lastOutcomeSuccess && !rocketLaunched) {
+                  rocketLaunched = true;
+                  rocket && rocket.launch();
+                } else if (!lastOutcomeSuccess) {
+                  splashLevelOver(false);
+                }
+              }
+            }
+          } else {
+            beep(180, 0.03);
+          }
+        } else {
+          beep(180, 0.03);
+        }
+      }
+    }
+    mobileWordInput.value = '';
+    mobileWordInput.focus();
+  }
 });
 
 // Touch support for mobile

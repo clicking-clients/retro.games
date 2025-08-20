@@ -206,6 +206,46 @@ input[type=range] {
   line-height: 1.4;
 }
 
+/* Directional controls */
+.directional-controls {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin: 15px 0;
+}
+
+.dir-row {
+  display: flex;
+  gap: 20px;
+}
+
+.dir-btn {
+  background: rgba(0, 255, 0, 0.2);
+  border: 2px solid var(--green);
+  color: var(--green);
+  padding: 20px;
+  border-radius: 50%;
+  font-size: 1.5rem;
+  font-family: monospace;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.dir-btn:hover,
+.dir-btn:focus,
+.dir-btn:active {
+  background: rgba(0, 255, 0, 0.4);
+  transform: scale(1.1);
+}
+
 /* Mobile controls */
 .mobile-controls {
   display: none;
@@ -236,6 +276,45 @@ input[type=range] {
   transform: scale(1.05);
 }
 
+/* Mobile input area */
+.mobile-input-area {
+  display: none;
+  margin-top: 15px;
+  padding: 15px;
+  border: 2px solid var(--green);
+  border-radius: 8px;
+  background: rgba(0, 255, 0, 0.05);
+}
+
+.mobile-input-area .section-title {
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+#mobileNumberInput {
+  width: 100%;
+  padding: 12px;
+  background: var(--bg);
+  color: var(--green);
+  border: 2px solid var(--green);
+  border-radius: 6px;
+  font-family: monospace;
+  font-size: 1rem;
+  margin-bottom: 10px;
+}
+
+#mobileNumberInput:focus {
+  border-color: var(--focus-outline);
+  outline: none;
+}
+
+.input-help {
+  font-size: 0.9rem;
+  color: var(--yellow);
+  text-align: center;
+  font-style: italic;
+}
+
 /* Responsive breakpoints */
 @media (min-width: 768px) {
   #container {
@@ -262,6 +341,14 @@ input[type=range] {
 @media (max-width: 767px) {
   .mobile-controls {
     display: flex;
+  }
+  
+  .directional-controls {
+    display: flex;
+  }
+  
+  .mobile-input-area {
+    display: block;
   }
   
   #container {
@@ -339,6 +426,16 @@ input[type=range] {
   </nav>
   <script src="navigation.js"></script>
   <canvas id="game" width="540" height="640" role="img" aria-label="Number Defenders game area" tabindex="0"></canvas>
+  
+  <!-- Directional Controls (Mobile) -->
+  <div class="directional-controls">
+    <button class="dir-btn" id="dirUpBtn" aria-label="Move Up">↑</button>
+    <div class="dir-row">
+      <button class="dir-btn" id="dirLeftBtn" aria-label="Move Left">←</button>
+      <button class="dir-btn" id="dirRightBtn" aria-label="Move Right">→</button>
+    </div>
+  </div>
+  
   <div id="sidebar">
       <h1 id="title">NUMBER DEFENDERS</h1>
   <div id="scoreboard" role="region" aria-label="Game Score">
@@ -389,13 +486,21 @@ input[type=range] {
 
     <div id="quotes" role="status" aria-live="polite"></div>
   
-  <!-- Mobile Controls -->
-  <div class="mobile-controls">
-    <button class="mobile-btn" id="leftBtn" aria-label="Move Left">←</button>
-    <button class="mobile-btn" id="rightBtn" aria-label="Move Right">→</button>
-    <button class="mobile-btn" id="pauseBtn" aria-label="Pause/Resume">⏸</button>
-    <button class="mobile-btn" id="resetBtn" aria-label="Reset Level">🔄</button>
-  </div>
+      <!-- Mobile Controls -->
+    <div class="mobile-controls">
+      <button class="mobile-btn" id="leftBtn" aria-label="Move Left">←</button>
+      <button class="mobile-btn" id="rightBtn" aria-label="Move Right">→</button>
+      <button class="mobile-btn" id="pauseBtn" aria-label="Pause/Resume">⏸</button>
+      <button class="mobile-btn" id="resetBtn" aria-label="Reset Level">🔄</button>
+    </div>
+    
+    <!-- Mobile Input Area -->
+    <div class="mobile-input-area">
+      <div class="section-title">SOLVE PROBLEMS</div>
+      <input type="text" id="mobileNumberInput" placeholder="Type numbers here..." maxlength="10" />
+      <button class="mobile-btn" id="submitNumberBtn" aria-label="Submit Answer">Submit</button>
+      <div class="input-help">Type numbers to solve math problems in your lane</div>
+    </div>
   </div>
   <canvas id="rocketOverlay" width="1200" height="720"></canvas>
 </div>
@@ -599,6 +704,11 @@ const leftBtn = document.getElementById('leftBtn');
 const rightBtn = document.getElementById('rightBtn');
 const pauseBtn = document.getElementById('pauseBtn');
 const resetBtn = document.getElementById('resetBtn');
+const mobileNumberInput = document.getElementById('mobileNumberInput');
+const submitNumberBtn = document.getElementById('submitNumberBtn');
+const dirUpBtn = document.getElementById('dirUpBtn');
+const dirLeftBtn = document.getElementById('dirLeftBtn');
+const dirRightBtn = document.getElementById('dirRightBtn');
 
 // Mobile button handlers
 leftBtn.addEventListener('click', () => {
@@ -609,6 +719,22 @@ leftBtn.addEventListener('click', () => {
 rightBtn.addEventListener('click', () => {
   playerLane = Math.min(lanes - 1, playerLane + 1);
   draw();
+});
+
+// Directional control handlers
+dirLeftBtn.addEventListener('click', () => {
+  playerLane = Math.max(0, playerLane - 1);
+  draw();
+});
+
+dirRightBtn.addEventListener('click', () => {
+  playerLane = Math.min(lanes - 1, playerLane + 1);
+  draw();
+});
+
+dirUpBtn.addEventListener('click', () => {
+  // Could be used for special actions or just visual feedback
+  beep(400, 0.02);
 });
 
 pauseBtn.addEventListener('click', () => {
@@ -624,6 +750,41 @@ resetBtn.addEventListener('click', () => {
   gameOver = false;
   rocketLaunched = false;
   pauseBtn.textContent = '⏸';
+});
+
+// Mobile input functionality
+submitNumberBtn.addEventListener('click', () => {
+  const input = mobileNumberInput.value.trim();
+  if (input) {
+    // Process the input as if typed
+    const target = words.find(w => !w.done && !w.fly && w.lane === playerLane);
+    if (target) {
+      // Simulate typing the input
+      target.input = input;
+      
+      // Check if answer is correct
+      if (parseInt(target.input) === target.answer) {
+        target.fly = true;
+        target.done = true;
+        wordsLeft = Math.max(0, wordsLeft - 1);
+        updateScore();
+        score += 1;
+        rocket && rocket.grow();
+        beep(800, 0.05); // Success sound when problem is solved
+        if (wordsLeft === 0 && !gameOver) {
+          rocketLaunched = true;
+          rocket && rocket.launch();
+        }
+      } else if (!target.answer.toString().startsWith(target.input)) {
+        beep(180, 0.03);
+        target.input = '';
+      }
+    } else {
+      beep(180, 0.03);
+    }
+    mobileNumberInput.value = '';
+    mobileNumberInput.focus();
+  }
 });
 
 // Touch support for mobile

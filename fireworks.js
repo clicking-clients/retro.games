@@ -31,9 +31,17 @@ export class Fireworks {
 
     // Create multiple firework bursts
     for (let b = 0; b < numBursts; b++) {
+      // Scale the base position to match the fireworks canvas
+      const scaleX = this.width / 1200; // Scale from game width to fireworks canvas
+      const scaleY = this.height / 720;  // Scale from game height to fireworks canvas
+      
+      // Convert game coordinates to fireworks canvas coordinates
+      const scaledX = baseX * scaleX;
+      const scaledY = baseY * scaleY;
+      
       // Ensure fireworks stay within canvas bounds
-      const bx = Math.max(50, Math.min(this.width - 50, baseX + (Math.random() * 60 - 30)));
-      const by = Math.max(50, Math.min(this.height - 50, baseY + (Math.random() * 40 - 20)));
+      const bx = Math.max(50, Math.min(this.width - 50, scaledX + (Math.random() * 60 - 30)));
+      const by = Math.max(50, Math.min(this.height - 50, scaledY + (Math.random() * 40 - 20)));
       const count = 25 + Math.floor(Math.random() * 20);
       const parts = [];
       
