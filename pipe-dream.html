@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pipe Dream - Retro Games Collection</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .game-container {
+            background: #1a1a2e;
+            border: 3px solid #0f0;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px auto;
+            max-width: 800px;
+            text-align: center;
+        }
+
+        .game-header {
+            margin-bottom: 20px;
+        }
+
+        .level-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(0, 255, 0, 0.1);
+            border-radius: 10px;
+            border: 2px solid #0f0;
+        }
+
+        .math-problem {
+            font-size: 2rem;
+            color: #ffd700;
+            text-shadow: 0 0 10px #ffd700;
+            margin: 20px 0;
+        }
+
+        .pipe-inventory {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+            padding: 20px;
+            background: rgba(0, 255, 0, 0.05);
+            border-radius: 10px;
+            border: 1px solid #0f0;
+        }
+
+        .pipe-piece {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #4a4a8a, #6a6a9a);
+            border: 3px solid #0f0;
+            border-radius: 15px;
+            cursor: grab;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: #fff;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px #000;
+            transition: all 0.3s ease;
+            user-select: none;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            touch-action: manipulation;
+        }
+
+        .pipe-piece:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px #0f0;
+        }
+
+        .pipe-piece.dragging {
+            opacity: 0.7;
+            transform: rotate(5deg);
+        }
+
+        .play-area {
+            width: 100%;
+            height: 400px;
+            background: #16213e;
+            border: 3px solid #0f0;
+            border-radius: 15px;
+            position: relative;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .placed-pipe {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #4a4a8a, #6a6a9a);
+            border: 3px solid #0f0;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: #fff;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px #000;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .placed-pipe.connected {
+            background: #0f0;
+            box-shadow: 0 0 20px #0f0;
+        }
+
+        .placed-pipe.filled {
+            background: linear-gradient(45deg, #0066cc, #0099ff);
+            border-color: #0099ff;
+            box-shadow: 0 0 20px #0099ff;
+        }
+
+        .water-flow {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #0099ff;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: waterFlow 2s linear infinite;
+        }
+
+        @keyframes waterFlow {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(0.5); opacity: 0; }
+        }
+
+        .splash {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle, #0099ff, transparent);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: splash 1s ease-out forwards;
+        }
+
+        @keyframes splash {
+            0% { transform: scale(0); opacity: 1; }
+            100% { transform: scale(3); opacity: 0; }
+        }
+
+        .game-controls {
+            margin: 20px 0;
+        }
+
+        .control-btn {
+            background: transparent;
+            color: #0f0;
+            border: 2px solid #0f0;
+            padding: 12px 25px;
+            margin: 0 10px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .control-btn:hover {
+            background: #0f0;
+            color: #000;
+            box-shadow: 0 0 20px #0f0;
+        }
+
+        .control-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .score-display {
+            font-size: 1.2rem;
+            color: #ffd700;
+            margin: 15px 0;
+        }
+
+        .timer {
+            font-size: 1.5rem;
+            color: #ff6b6b;
+            font-weight: bold;
+        }
+
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: #ffd700;
+            padding: 30px;
+            border-radius: 15px;
+            border: 3px solid #ffd700;
+            text-align: center;
+            z-index: 1000;
+        }
+
+        .success-message {
+            color: #0f0;
+            font-size: 1.5rem;
+            margin: 20px 0;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            .game-container {
+                margin: 10px;
+                padding: 15px;
+            }
+            
+            .play-area {
+                height: 300px;
+            }
+            
+            .pipe-inventory {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 10px;
+            }
+            
+            .pipe-piece {
+                width: 50px;
+                height: 50px;
+                font-size: 1.2rem;
+            }
+            
+            .math-problem {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-nav">
+        <strong>🎮 Pipe Dream</strong>
+        <a href="index.html">← Back to Games</a>
+        <a href="chompy.html">Chompy</a>
+        <a href="block-stack.html">Block Stack</a>
+        <a href="wormy.html">Wormy</a>
+        <a href="bubble-pop.html">Bubble Pop</a>
+        <a href="road-dash.html">Road Dash</a>
+        <a href="paddle-ball.html">Paddle Ball</a>
+        <a href="number-defenders.html">Number Defenders</a>
+        <a href="word-defenders.html">Word Defenders</a>
+    </div>
+
+    <div class="game-container">
+        <div class="game-header">
+            <h1>🚰 Pipe Dream</h1>
+            <p>Connect pipes to solve math problems and watch the water flow!</p>
+            <div style="background: rgba(0, 255, 0, 0.1); padding: 15px; border-radius: 10px; margin: 15px 0; border: 1px solid #0f0;">
+                <strong>How to Play:</strong><br>
+                • Drag number pipes to the play area<br>
+                • Connect pipes by placing them close together<br>
+                • Use connector pipes (┌, ┐, └, ┘, ─, │) to create paths<br>
+                • Solve the math problem to advance to the next level!
+            </div>
+        </div>
+
+        <div class="level-info">
+            <div class="score-display">
+                <strong>Level:</strong> <span id="level">1</span>
+                <strong>Score:</strong> <span id="score">0</span>
+            </div>
+            <div class="timer">
+                <span id="time">60</span>s
+            </div>
+        </div>
+
+        <div class="math-problem" id="mathProblem" role="heading" aria-level="2">
+            5 + 3 = ?
+        </div>
+
+        <div class="pipe-inventory" id="pipeInventory">
+            <!-- Pipe pieces will be generated here -->
+        </div>
+
+        <div class="play-area" id="playArea">
+            <!-- Placed pipes will appear here -->
+        </div>
+
+        <div class="game-controls">
+            <button class="control-btn" id="newLevelBtn" aria-label="Start new level">New Level</button>
+            <button class="control-btn" id="resetBtn" aria-label="Reset current level">Reset</button>
+            <button class="control-btn" id="hintBtn" aria-label="Get a hint for current problem">Hint</button>
+        </div>
+    </div>
+
+    <script>
+        class PipeDream {
+            constructor() {
+                this.level = 1;
+                this.score = 0;
+                this.timeLeft = 60;
+                this.gameActive = true;
+                this.pipes = [];
+                this.connectedPipes = [];
+                this.draggedPipe = null;
+                this.timer = null;
+                
+                this.pipeTypes = [
+                    { symbol: '1', value: 1, connections: ['top', 'bottom', 'left', 'right'] },
+                    { symbol: '2', value: 2, connections: ['top', 'bottom', 'left', 'right'] },
+                    { symbol: '3', value: 3, connections: ['top', 'bottom', 'left', 'right'] },
+                    { symbol: '4', value: 4, connections: ['top', 'bottom', 'left', 'right'] },
+                    { symbol: '5', value: 5, connections: ['top', 'bottom', 'left', 'right'] },
+                    { symbol: '6', value: 6, connections: ['top', 'bottom', 'left', 'right'] },
+                    { symbol: '7', value: 7, connections: ['top', 'bottom', 'left', 'right'] },
+                    { symbol: '8', value: 8, connections: ['top', 'bottom', 'left', 'right'] },
+                    { symbol: '9', value: 9, connections: ['top', 'bottom', 'left', 'right'] },
+                    { symbol: '┌', value: 0, connections: ['top', 'right'] },
+                    { symbol: '┐', value: 0, connections: ['top', 'left'] },
+                    { symbol: '└', value: 0, connections: ['bottom', 'right'] },
+                    { symbol: '┘', value: 0, connections: ['bottom', 'left'] },
+                    { symbol: '─', value: 0, connections: ['left', 'right'] },
+                    { symbol: '│', value: 0, connections: ['top', 'bottom'] }
+                ];
+                
+                this.currentProblem = { num1: 5, num2: 3, operator: '+', answer: 8 };
+                
+                this.init();
+            }
+            
+            init() {
+                this.generatePipes();
+                this.setupEventListeners();
+                this.startTimer();
+                this.updateDisplay();
+            }
+            
+            generatePipes() {
+                const inventory = document.getElementById('pipeInventory');
+                inventory.innerHTML = '';
+                
+                // Generate pipes that can solve the current problem
+                const numPipes = Math.min(5 + this.level, 10);
+                const pipes = [];
+                
+                // Always include the numbers needed to solve the problem
+                if (this.currentProblem.operator === '+') {
+                    pipes.push(this.pipeTypes.find(p => p.value === this.currentProblem.num1));
+                    pipes.push(this.pipeTypes.find(p => p.value === this.currentProblem.num2));
+                } else if (this.currentProblem.operator === '-') {
+                    pipes.push(this.pipeTypes.find(p => p.value === this.currentProblem.num1));
+                    pipes.push(this.pipeTypes.find(p => p.value === this.currentProblem.num2));
+                } else if (this.currentProblem.operator === '×') {
+                    pipes.push(this.pipeTypes.find(p => p.value === this.currentProblem.num1));
+                    pipes.push(this.pipeTypes.find(p => p.value === this.currentProblem.num2));
+                }
+                
+                // Add some connector pipes
+                const connectors = this.pipeTypes.filter(p => p.value === 0);
+                for (let i = 0; i < Math.min(3, connectors.length); i++) {
+                    pipes.push(connectors[i]);
+                }
+                
+                // Add some random number pipes to make it interesting
+                const numbers = this.pipeTypes.filter(p => p.value > 0 && p.value <= 9);
+                const randomNumbers = numbers.sort(() => Math.random() - 0.5).slice(0, 2);
+                pipes.push(...randomNumbers);
+                
+                // Shuffle and limit to numPipes
+                const shuffledPipes = pipes.sort(() => Math.random() - 0.5).slice(0, numPipes);
+                
+                for (let i = 0; i < shuffledPipes.length; i++) {
+                    const pipe = shuffledPipes[i];
+                    const pipeElement = document.createElement('div');
+                    pipeElement.className = 'pipe-piece';
+                    pipeElement.textContent = pipe.symbol;
+                    pipeElement.draggable = true;
+                    pipeElement.dataset.pipeType = JSON.stringify(pipe);
+                    
+                    pipeElement.addEventListener('dragstart', (e) => this.handleDragStart(e, pipe));
+                    pipeElement.addEventListener('dragend', () => this.handleDragEnd());
+                    
+                    inventory.appendChild(pipeElement);
+                }
+            }
+            
+            setupEventListeners() {
+                const playArea = document.getElementById('playArea');
+                
+                // Desktop drag and drop
+                playArea.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'copy';
+                });
+                
+                playArea.addEventListener('drop', (e) => this.handleDrop(e));
+                
+                // Mobile touch support
+                let touchStartX, touchStartY;
+                let currentPipe = null;
+                
+                playArea.addEventListener('touchstart', (e) => {
+                    const touch = e.touches[0];
+                    touchStartX = touch.clientX;
+                    touchStartY = touch.clientY;
+                    
+                    // Check if touching a pipe piece in inventory
+                    const element = document.elementFromPoint(touchStartX, touchStartY);
+                    if (element && element.classList.contains('pipe-piece')) {
+                        currentPipe = JSON.parse(element.dataset.pipeType);
+                        element.style.opacity = '0.7';
+                    }
+                });
+                
+                playArea.addEventListener('touchend', (e) => {
+                    if (currentPipe) {
+                        const touch = e.changedTouches[0];
+                        const rect = playArea.getBoundingClientRect();
+                        const x = touch.clientX - rect.left - 30;
+                        const y = touch.clientY - rect.top - 30;
+                        
+                        if (x >= 0 && y >= 0 && x <= rect.width - 60 && y <= rect.height - 60) {
+                            this.placePipe(currentPipe, x, y);
+                        }
+                        
+                        // Reset inventory pipe opacity
+                        document.querySelectorAll('.pipe-piece').forEach(p => p.style.opacity = '1');
+                        currentPipe = null;
+                    }
+                });
+                
+                document.getElementById('newLevelBtn').addEventListener('click', () => this.nextLevel());
+                document.getElementById('resetBtn').addEventListener('click', () => this.resetLevel());
+                document.getElementById('hintBtn').addEventListener('click', () => this.showHint());
+            }
+            
+            handleDragStart(e, pipe) {
+                this.draggedPipe = pipe;
+                e.target.classList.add('dragging');
+                e.dataTransfer.setData('text/plain', JSON.stringify(pipe));
+            }
+            
+            handleDragEnd() {
+                document.querySelectorAll('.pipe-piece').forEach(p => p.classList.remove('dragging'));
+                this.draggedPipe = null;
+            }
+            
+            handleDrop(e) {
+                e.preventDefault();
+                if (!this.draggedPipe) return;
+                
+                const rect = e.currentTarget.getBoundingClientRect();
+                const x = e.clientX - rect.left - 30;
+                const y = e.clientY - rect.top - 30;
+                
+                this.placePipe(this.draggedPipe, x, y);
+            }
+            
+            placePipe(pipeData, x, y) {
+                const playArea = document.getElementById('playArea');
+                const pipeElement = document.createElement('div');
+                
+                pipeElement.className = 'placed-pipe';
+                pipeElement.textContent = pipeData.symbol;
+                pipeElement.style.left = x + 'px';
+                pipeElement.style.top = y + 'px';
+                pipeElement.dataset.pipeData = JSON.stringify(pipeData);
+                pipeElement.dataset.x = x;
+                pipeElement.dataset.y = y;
+                
+                pipeElement.addEventListener('click', () => this.connectPipe(pipeElement));
+                
+                playArea.appendChild(pipeElement);
+                this.pipes.push({
+                    element: pipeElement,
+                    data: pipeData,
+                    x: x,
+                    y: y,
+                    connected: false
+                });
+                
+                this.checkConnections();
+            }
+            
+            checkConnections() {
+                // Simple proximity-based connection logic
+                this.pipes.forEach((pipe, index) => {
+                    this.pipes.forEach((otherPipe, otherIndex) => {
+                        if (index !== otherIndex && !pipe.connected && !otherPipe.connected) {
+                            const distance = Math.sqrt(
+                                Math.pow(pipe.x - otherPipe.x, 2) + 
+                                Math.pow(pipe.y - otherPipe.y, 2)
+                            );
+                            
+                            if (distance < 80) {
+                                this.connectPipes(pipe, otherPipe);
+                            }
+                        }
+                    });
+                });
+            }
+            
+            connectPipes(pipe1, pipe2) {
+                pipe1.connected = true;
+                pipe2.connected = true;
+                pipe1.element.classList.add('connected');
+                pipe2.element.classList.add('connected');
+                
+                this.connectedPipes.push(pipe1, pipe2);
+                this.animateWaterFlow(pipe1, pipe2);
+            }
+            
+            animateWaterFlow(pipe1, pipe2) {
+                // Create water flow animation between connected pipes
+                const playArea = document.getElementById('playArea');
+                
+                // Create multiple water droplets for better effect
+                for (let i = 0; i < 5; i++) {
+                    setTimeout(() => {
+                        const flow = document.createElement('div');
+                        flow.className = 'water-flow';
+                        flow.style.left = (pipe1.x + 30 + (Math.random() - 0.5) * 20) + 'px';
+                        flow.style.top = (pipe1.y + 30 + (Math.random() - 0.5) * 20) + 'px';
+                        
+                        playArea.appendChild(flow);
+                        
+                        // Animate water flow towards pipe2
+                        const startX = parseFloat(flow.style.left);
+                        const startY = parseFloat(flow.style.top);
+                        const endX = pipe2.x + 30;
+                        const endY = pipe2.y + 30;
+                        
+                        let progress = 0;
+                        const animate = () => {
+                            progress += 0.02;
+                            if (progress <= 1) {
+                                flow.style.left = (startX + (endX - startX) * progress) + 'px';
+                                flow.style.top = (startY + (endY - startY) * progress) + 'px';
+                                requestAnimationFrame(animate);
+                            } else {
+                                flow.remove();
+                            }
+                        };
+                        animate();
+                    }, i * 200);
+                }
+                
+                // Check win condition after animation
+                setTimeout(() => {
+                    this.checkWinCondition();
+                }, 1500);
+            }
+            
+            checkWinCondition() {
+                if (this.connectedPipes.length >= 2) {
+                    // Check if the connected pipes form a valid path to the answer
+                    const totalValue = this.connectedPipes.reduce((sum, pipe) => {
+                        return sum + pipe.data.value;
+                    }, 0);
+                    
+                    // Check if we have the right numbers connected
+                    if (this.currentProblem.operator === '+') {
+                        if (totalValue === this.currentProblem.answer) {
+                            this.celebrateWin();
+                        }
+                    } else if (this.currentProblem.operator === '-') {
+                        // For subtraction, we need to check if the larger number minus smaller equals answer
+                        const larger = Math.max(this.currentProblem.num1, this.currentProblem.num2);
+                        const smaller = Math.min(this.currentProblem.num1, this.currentProblem.num2);
+                        if (larger - smaller === this.currentProblem.answer && 
+                            this.connectedPipes.some(p => p.data.value === larger) &&
+                            this.connectedPipes.some(p => p.data.value === smaller)) {
+                            this.celebrateWin();
+                        }
+                    } else if (this.currentProblem.operator === '×') {
+                        if (totalValue === this.currentProblem.answer) {
+                            this.celebrateWin();
+                        }
+                    }
+                }
+            }
+            
+            celebrateWin() {
+                this.score += 100 * this.level;
+                this.updateDisplay();
+                
+                // Create splash effect
+                const playArea = document.getElementById('playArea');
+                const splash = document.createElement('div');
+                splash.className = 'splash';
+                splash.style.left = '50%';
+                splash.style.top = '50%';
+                splash.style.transform = 'translate(-50%, -50%)';
+                
+                playArea.appendChild(splash);
+                
+                // Show success message
+                const success = document.createElement('div');
+                success.className = 'success-message';
+                success.textContent = '🎉 Water flowing! 🎉';
+                success.style.position = 'absolute';
+                success.style.top = '20%';
+                success.style.left = '50%';
+                success.style.transform = 'translateX(-50%)';
+                success.style.zIndex = '1000';
+                
+                playArea.appendChild(success);
+                
+                setTimeout(() => {
+                    splash.remove();
+                    success.remove();
+                    this.nextLevel();
+                }, 2000);
+            }
+            
+            nextLevel() {
+                this.level++;
+                this.timeLeft = 60 + (this.level * 10);
+                this.pipes = [];
+                this.connectedPipes = [];
+                this.generateNewProblem();
+                this.clearPlayArea();
+                this.generatePipes();
+                this.updateDisplay();
+                this.startTimer();
+            }
+            
+            generateNewProblem() {
+                const operators = ['+', '-', '×'];
+                const operator = operators[Math.floor(Math.random() * operators.length)];
+                let num1, num2, answer;
+                
+                switch (operator) {
+                    case '+':
+                        num1 = Math.floor(Math.random() * 10) + 1;
+                        num2 = Math.floor(Math.random() * 10) + 1;
+                        answer = num1 + num2;
+                        break;
+                    case '-':
+                        num1 = Math.floor(Math.random() * 15) + 5;
+                        num2 = Math.floor(Math.random() * num1) + 1;
+                        answer = num1 - num2;
+                        break;
+                    case '×':
+                        num1 = Math.floor(Math.random() * 6) + 2;
+                        num2 = Math.floor(Math.random() * 6) + 2;
+                        answer = num1 * num2;
+                        break;
+                }
+                
+                this.currentProblem = { num1, num2, operator, answer };
+                document.getElementById('mathProblem').textContent = 
+                    `${num1} ${operator} ${num2} = ?`;
+            }
+            
+            clearPlayArea() {
+                document.getElementById('playArea').innerHTML = '';
+            }
+            
+            resetLevel() {
+                this.pipes = [];
+                this.connectedPipes = [];
+                this.clearPlayArea();
+                this.generatePipes();
+                this.timeLeft = 60 + (this.level * 10);
+                this.updateDisplay();
+                this.startTimer();
+            }
+            
+            showHint() {
+                // Simple hint system
+                const hint = `Try connecting pipes that add up to ${this.currentProblem.answer}`;
+                alert(hint);
+            }
+            
+            startTimer() {
+                if (this.timer) clearInterval(this.timer);
+                
+                this.timer = setInterval(() => {
+                    this.timeLeft--;
+                    this.updateDisplay();
+                    
+                    if (this.timeLeft <= 0) {
+                        this.gameOver();
+                    }
+                }, 1000);
+            }
+            
+            gameOver() {
+                clearInterval(this.timer);
+                this.gameActive = false;
+                
+                const gameOver = document.createElement('div');
+                gameOver.className = 'game-over';
+                gameOver.innerHTML = `
+                    <h2>Game Over!</h2>
+                    <p>Final Score: ${this.score}</p>
+                    <p>Level Reached: ${this.level}</p>
+                    <button class="control-btn" onclick="location.reload()">Play Again</button>
+                `;
+                
+                document.getElementById('playArea').appendChild(gameOver);
+            }
+            
+            updateDisplay() {
+                document.getElementById('level').textContent = this.level;
+                document.getElementById('score').textContent = this.score;
+                document.getElementById('time').textContent = this.timeLeft;
+            }
+        }
+        
+        // Initialize the game when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new PipeDream();
+        });
+    </script>
+</body>
+</html>
