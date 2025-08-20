@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Pac-Man</title>
+<style>
+:root{
+  --wall:#0bb;
+  --bg:#000;
+  --score:#0f0;
+  --title:#ffd700;
+}
+html,body{height:100%;margin:0;background:var(--bg);font-family:system-ui,monospace;color:var(--score);}
+.app{ height: 80%;display:flex;gap:20px;align-items:flex-start;justify-content:center;padding:18px;}
+#gameNav, 
+#gameNav a {
+  display: block;
+  margin-top: 5px;
+  text-transform: uppercase;
+  color: #0f0;
+  text-decoration: none;
+}
+
+#gameNav a.active {
+  color: #ff0;       /* highlight color */
+  font-weight: bold;  /* optional emphasis */
+  text-decoration: underline;
+}
+#game{image-rendering:pixelated;border:6px solid var(--score);background:#000;display:block;outline:none;}
+#sidebar{width:220px;color:var(--score);display:flex;flex-direction:column;gap:14px}
+#title { text-transform: uppercase; font-size: 2rem; color: #ff0; text-shadow: 0 0 8px #f00; text-align: center; }
+.section-title{color:var(--title);font-weight:700;margin-bottom:6px}
+#map-buttons{display:flex;gap:6px;flex-wrap:wrap}
+#map-buttons button{background:transparent;border:1px solid var(--score);color:var(--score);padding:6px 8px;cursor:pointer}
+#map-buttons button.selected{background:var(--score);color:#000}
+#scoreboard{border:2px solid var(--score);padding:10px;display:grid;grid-template-columns:1fr 1fr;gap:6px;align-items:center;}
+#scoreboard .section-title{text-align:left;margin:0}
+#scoreboard div.value{text-align:right}
+#instructions{font-size:13px;line-height:1.2}
+.quote-wrap{position:relative;width:100%;display:flex;justify-content:flex-start;margin-top:8px}
+#quote-banner{
+  min-width:320px;
+  max-width:560px;
+  text-align:left;
+  padding:8px 12px;
+  border:2px solid var(--score);
+  background:rgba(0,0,0,0.75);
+  color:var(--title);
+  font-weight:600;
+  opacity:0;
+  transition:opacity 650ms ease-in-out;
+  transform:translateY(0.25rem);
+  pointer-events:none;
+}
+#quote-banner.visible{opacity:1}
+.game-wrap{position:relative;}
+#share-message{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  color:var(--title);font-size:28px;font-weight:bold;text-shadow:0 0 8px #f00;
+  text-align:center;
+  opacity:0;
+  transition:opacity 0.8s ease-in-out;
+  background:rgba(0,0,0,0.6);padding:12px 20px;border-radius:8px;
+  cursor:pointer;
+}
+#share-message.visible{opacity:1;}
+#timer-controls{display:flex;gap:6px;align-items:center;margin-top:6px;}
+#cancel-timer{padding:4px 6px;border:1px solid var(--score);background:transparent;color:var(--score);cursor:pointer}
+</style>
+</head>
+<body>
+<div class="app">
+  <nav id="gameNav" style="padding:10px; background:#111; color:#0f0; font-family:monospace;">
+    <strong>Games:</strong>
+  </nav>
+  <div class="game-wrap">
+    <canvas id="game" width="560" height="640" tabindex="0"></canvas>
+    <div id="share-message">Share Time!<br>Let your sibling have a turn!</div>
+  </div>
+
+  <div id="sidebar">
+    <div id="title">Pac-Man</div>
+
+    <div>
+      <div class="section-title">SELECT MAP</div>
+      <div id="map-buttons">
+        <button data-map="0" class="selected">Classic</button>
+        <button data-map="1">Maze 1</button>
+        <button data-map="2">Maze 2</button>
+      </div>
+    </div>
+
+    <div id="scoreboard">
+      <div class="section-title">SCORE</div><div class="value" id="score">0</div>
+      <div class="section-title">LIVES</div><div class="value" id="lives">3</div>
+      <div class="section-title">LEVEL</div><div class="value" id="level">1</div>
+      <div class="section-title">TIME LEFT</div><div class="value" id="time-left">5:00</div>
+    </div>
+
+    <div id="instructions">
+      <div class="section-title">CONTROLS</div>
+      Arrow keys / WASD — move<br>P: Pause • R: Reset
+      <div style="margin-top:8px" class="section-title">RULES</div>
+      Eat dots for points. Power pellets scare ghosts. Clear the board to advance.
+    </div>
+
+    <div>
+      <div class="section-title">TIMER</div>
+      <div id="timer-controls">
+        <select id="timer-minutes">
+          <option value="1">1 min</option>
+          <option value="2">2 min</option>
+          <option value="3">3 min</option>
+          <option value="4">4 min</option>
+          <option value="5" selected>5 min</option>
+        </select>
+        <button id="cancel-timer">Cancel</button>
+      </div>
+    </div>
+
+    <div class="quote-wrap">
+      <div id="quote-banner"></div>
+    </div>
+  </div>
+</div>
+
+<script src="navigation.js"></script>
+<script>
+/* -----------------------
+   TILE, MAP & RENDER SETUP
+----------------------- */
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+
+const TILE = 20;
+const COLS = 28;
+const ROWS = 32;
+canvas.width = COLS*TILE;
+canvas.height = ROWS*TILE;
+
+const MAPS=[
+  // Classic (unchanged)
+  ["############################",
+"#............##............#",
+"#.####.#####.##.#####.####.#",
+"#o####.#####.##.#####.####o#",
+"#.####.#####.##.#####.####.#",
+"#..........................#",
+"#.####.##.########.##.####.#",
+"#.####.##.########.##.####.#",
+"#......##....##....##......#",
+"######.##### ## #####.######",
+"     #.##### ## #####.#     ",
+"     #.##          ##.#     ",
+"######.## ###HH### ##.######",
+"      .   #HHHHHH#   .      ",
+"######.## ######## ##.######",
+"     #.##          ##.#     ",
+"     #.## ######## ##.#     ",
+"######.## ######## ##.######",
+"#............##............#",
+"#.####.#####.##.#####.####.#",
+"#o..##.....o..##..o.....##o#",
+"###.##.##.########.##.##.###",
+"#......##....##....##......#",
+"#.##########.##.##########.#",
+"#..........................#",
+"#.####.#####.##.#####.####.#",
+"#o####.#####.##.#####.####o#",
+"#.####.#####.##.#####.####.#",
+"#..........................#",
+"#............##............#",
+"############################"],
+
+  // Maze1 - fixed alignment and stray spaces
+  ["############################",
+"#............##............#",
+"#.#.##......##......##.#..#",
+"#o#..#.####.##.####.#..#o#",
+"#.####.####.##.####.####.#",
+"#..........................#",
+"#.##.##.########.##.##.##.#",
+"#.##.##.########.##.##.#..#",
+"#.........##.....#.....#.#",
+"######.#### ## ####.######",
+"     #.##        #..#     #",
+"     #.##  # #  ##.#     #",
+"######.##  # ##  ##.######",
+"      .   #HHHH#   .      ",
+"######.##  ####  ##.######",
+"     #.##        ##.#     #",
+"     #.##  ####  ##.#     #",
+"######.##  ####  ##.######",
+"#............##............#",
+"#.####.#####.##.#####.####.#",
+"#o..##...o..####..o...##..o#",
+"###.##.##..#...##.##.#..##.#",
+"#......##..#.##...#....##..#",
+"#.#########..#.##########..#",
+"#........##....##......#...#",
+"#.##.#####.##.#####.####.##",
+"#o####..##..##..##..####.o#",
+"#.####.####.##.####.####.#",
+"#..........................#",
+"#...####.....##.....####...#",
+"############################"],
+
+  // Maze2 - fixed alignment and stray spaces
+  ["############################",
+"#............##............#",
+"#.####.##.#####.##.####.##.#",
+"#o#..#.##.#####.##.#..#..o#",
+"#.##.#.##.##.##.##.#.##.##.#",
+"#..........................#",
+"#.##.##.########.##.##.##.#",
+"#.##.##.########.##.##.##.#",
+"#....##....##....##....##.#",
+"######.#### ## ####.######",
+"     #.##        ##.#     #",
+"     #.##  # ##  ##.#     #",
+"######.##  #HH#  ##.######",
+"      .   #HHHH#   .      ",
+"######.##  ####  ##.######",
+"     #.##        ##.#     #",
+"     #.##  ####  ##.#     #",
+"######.##  ####  ##.######",
+"#............##............#",
+"#.####.#####.##.#####.###.#",
+"#o..##.....o..##..o....##o#",
+"###.##.##.##..#.##.##.##.###",
+"#....##....##.##....##....#",
+"#.######.###..#.###.#####.#",
+"#..##.......#..#.......##..#",
+"#.##.####.####.####.##.#..#",
+"#o##..##..##......##..##o#",
+"#.##.#.#####.#..#####.##..#",
+"#.##.#.####..#..#####.##..#",
+"#............##............#",
+"############################"]
+];
+
+
+
+// --- Ensure all maps are exactly ROWS x COLS ---
+for(let m=0;m<MAPS.length;m++){
+  while(MAPS[m].length<ROWS) MAPS[m].push('#'.repeat(COLS));
+  MAPS[m] = MAPS[m].map(r=>(r+' '.repeat(COLS)).slice(0,COLS));
+}
+
+/* -----------------------
+   GAME STATE
+----------------------- */
+let currentMapIndex = 0;
+let board = [];
+let score = 0, level=1, lives=3;
+let paused=false;
+let frightenedTimer=0;
+
+const quoteBanner=document.getElementById('quote-banner');
+const shareMessage=document.getElementById('share-message');
+const timerSelect=document.getElementById('timer-minutes');
+const timeLeft=document.getElementById('time-left');
+
+// Timer vars (improved handling)
+let timerDurationMs = parseInt(timerSelect.value) * 60000; // ms configured by select
+let timerEnd = null;       // absolute timestamp ms when timer should end
+let timerTimeout = null;
+
+let lastFrame = performance.now();
+
+/* Pac */
+const pac = {x:13,y:23,vx:0,vy:0,nextVX:0,nextVY:0,baseSpeed:0.12,speed:0.12,mouth:0};
+
+/* Ghosts */
+const ghostTemplate=(name,color,homeX,homeY,baseSpeed)=>({name,color,x:homeX,y:homeY,homeX,homeY,vx:0,vy:0,baseSpeed,speed:baseSpeed,scatterTimer:0});
+let ghosts=[
+  ghostTemplate('Blinky','#ff0000',13,11,0.10),
+  ghostTemplate('Pinky','#ffb8ff',14,11,0.095),
+  ghostTemplate('Inky','#00ffff',12,13,0.09),
+  ghostTemplate('Clyde','#ffb852',15,13,0.09)
+];
+
+let ghostExplosions=[];
+let tunnelRows=new Set();
+let gameEnded=false; // when true, share-message is visible for end condition
+
+/* -----------------------
+   QUOTES
+----------------------- */
+const QUOTES=[
+  "You are brave and strong!",
+  "Trust yourself—you can do it!",
+  "Your kindness makes magic!",
+  "Every step shows courage!",
+  "You are unstoppable!",
+  "Believe in yourself!",
+  "Your heart is full of power!",
+  "You are wise and brave!",
+  "Shine with your own light!",
+  "You make the world brighter!"
+];
+let quoteIndex=0;
+function showQuoteImmediate(){
+  const text = QUOTES[quoteIndex];
+  quoteIndex = (quoteIndex+1)%QUOTES.length;
+  quoteBanner.textContent=text;
+  quoteBanner.classList.add('visible');
+  setTimeout(()=>quoteBanner.classList.remove('visible'),4800);
+}
+setTimeout(()=>{ showQuoteImmediate(); setInterval(showQuoteImmediate,6000); },400);
+
+/* -----------------------
+   TIMER HELPERS
+----------------------- */
+function startTimer(){
+  // cancel any prior
+  if(timerTimeout){ clearTimeout(timerTimeout); timerTimeout = null; }
+  if(timerDurationMs > 0){
+    timerEnd = Date.now() + timerDurationMs;
+    timerTimeout = setTimeout(()=> {
+      // timer finished: stop game and show message
+      timerDurationMs = 0;
+      timerEnd = null;
+      stopGame(); // will pause and show message
+    }, timerDurationMs);
+  } else {
+    timerEnd = null;
+  }
+}
+
+function pauseTimerAndPreserveRemaining(){
+  if(timerTimeout){ clearTimeout(timerTimeout); timerTimeout = null; }
+  if(timerEnd){
+    timerDurationMs = Math.max(0, timerEnd - Date.now());
+    timerEnd = null;
+  }
+}
+
+function resumeTimerIfNeeded(){
+  if(timerDurationMs > 0 && !timerTimeout && !timerEnd){
+    startTimer();
+  }
+}
+
+/* -----------------------
+   BOARD & MAP HANDLING
+----------------------- */
+function loadBoard(){
+  board=[];
+  const raw=MAPS[currentMapIndex];
+  for(let y=0;y<ROWS;y++){
+    const row = raw[y] || '#'.repeat(COLS); // fallback
+    board[y] = row.split('');
+  }
+
+  // place dots/pellets
+  for(let y=0;y<ROWS;y++){
+    for(let x=0;x<COLS;x++){
+      if(board[y][x]===' ') board[y][x]='.';
+      if(board[y][x]==='H'){} // house floor
+    }
+  }
+
+  // power pellets
+  [[1,3],[26,3],[1,ROWS-4],[26,ROWS-4]].forEach(([x,y])=>{
+    if(board[y] && board[y][x]==='.') board[y][x]='o';
+  });
+
+  // tunnels
+  tunnelRows.clear();
+  for(let y=0;y<ROWS;y++){
+    if(board[y][0]!=='#' && board[y][COLS-1]!=='#') tunnelRows.add(y);
+  }
+
+  resetEntitiesToSpawn();
+}
+
+function resetEntitiesToSpawn(){
+  // --- Pac spawn: find a pellet spot near bottom center ---
+  outer:for(let y=ROWS-6;y<ROWS-1;y++){
+    for(let x=1;x<COLS-1;x++){
+      if(board[y][x]==='.'){
+        pac.x = x; pac.y = y;
+        pac.vx = pac.vy = pac.nextVX = pac.nextVY = 0;
+        break outer;
+      }
+    }
+  }
+
+  // --- Gather valid ghost spawn tiles ---
+  let homeTiles = [];
+  for(let y=0; y<ROWS; y++){
+    for(let x=0; x<COLS; x++){
+      if(MAPS[currentMapIndex][y][x] === 'H'){
+        // must have at least one adjacent non-wall tile
+        if(!isWallTile(x+1,y) || !isWallTile(x-1,y) || !isWallTile(x,y+1) || !isWallTile(x,y-1)){
+          homeTiles.push({x, y});
+        }
+      }
+    }
+  }
+
+  // --- Ghost spawn: pick randomly among valid home tiles ---
+  ghosts.forEach(g=>{
+    g.vx = 0;
+    g.vy = 0;
+    g.speed = g.baseSpeed;
+
+    if(homeTiles.length > 0){
+      let spot = homeTiles[Math.floor(Math.random() * homeTiles.length)];
+      g.x = g.homeX = spot.x;
+      g.y = g.homeY = spot.y;
+    } else {
+      // fallback if no valid H tiles found
+      g.x = g.homeX;
+      g.y = g.homeY;
+    }
+  });
+}
+
+
+
+/* -----------------------
+   DRAW
+----------------------- */
+function draw(){
+  ctx.fillStyle='#000'; ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.save();
+  ctx.scale(TILE, TILE);
+
+  // tiles
+  for(let y=0;y<ROWS;y++){
+    for(let x=0;x<COLS;x++){
+      const t=board[y][x];
+      if(t==='#'){ ctx.fillStyle='#0bb'; ctx.fillRect(x+0.05,y+0.05,0.9,0.9); }
+      else if(t==='.'){ ctx.fillStyle='#fff'; ctx.fillRect(x+0.45,y+0.45,0.1,0.1); }
+      else if(t==='o'){ ctx.beginPath(); ctx.lineWidth=0.07; ctx.strokeStyle='#ffd700'; ctx.arc(x+0.5,y+0.5,0.28,0,Math.PI*2); ctx.stroke(); }
+      else if(t==='H'){ ctx.fillStyle='rgba(255,255,255,0.03)'; ctx.fillRect(x,y,1,1); }
+    }
+  }
+
+  // ghosts
+  ghosts.forEach(g=>{
+    const gx=g.x,gy=g.y;
+    ctx.save();
+    const frightened = frightenedTimer>0;
+    ctx.fillStyle = frightened ? '#1f66ff' : g.color;
+    ctx.fillRect(gx,gy+0.1,1,0.7);
+    ctx.beginPath(); ctx.moveTo(gx,gy+0.3); ctx.arc(gx+0.5,gy+0.3,0.35,Math.PI,0); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  });
+
+  // pac
+  ctx.save();
+  ctx.fillStyle='#ffd700';
+  const px=pac.x+0.5,py=pac.y+0.5;
+  let radius=0.48,start=0,end=Math.PI*2;
+  if(pac.vx!==0 || pac.vy!==0){
+    const angle=Math.atan2(pac.vy,pac.vx);
+    const mouthOpen=0.25+0.12*Math.sin(pac.mouth);
+    start=angle+mouthOpen; end=angle-mouthOpen+Math.PI*2;
+  }
+  ctx.beginPath(); ctx.moveTo(px,py); ctx.arc(px,py,radius,start,end,false); ctx.fill();
+  ctx.restore();
+
+  ctx.restore();
+
+  // HUD
+  document.getElementById('score').textContent=score;
+  document.getElementById('lives').textContent=lives;
+  document.getElementById('level').textContent=level;
+
+  // time-left display uses timerEnd if present else timerDurationMs
+  if(timerDurationMs > 0 || timerEnd){
+    const remaining = timerEnd ? Math.max(0, timerEnd - Date.now()) : Math.max(0, timerDurationMs);
+    let secs = Math.floor(remaining / 1000);
+    let mins = Math.floor(secs / 60);
+    secs %= 60;
+    timeLeft.textContent = `${mins}:${secs.toString().padStart(2,'0')}`;
+  } else {
+    timeLeft.textContent = `0:00`;
+  }
+}
+
+/* -----------------------
+   DRAW EXPLOSIONS
+----------------------- */
+function drawGhostExplosions(){
+  ctx.save(); ctx.scale(TILE,TILE);
+  for(let i=ghostExplosions.length-1;i>=0;i--){
+    const ex=ghostExplosions[i];
+    const alpha=ex.life/18;
+    ctx.fillStyle=`rgba(255,255,255,${alpha})`;
+    ctx.fillRect(ex.x,ex.y,1,1);
+  }
+  ctx.restore();
+}
+
+/* -----------------------
+   UTILS & MOVEMENT
+----------------------- */
+function inBounds(x,y){ return x>=0 && x<COLS && y>=0 && y<ROWS; }
+function tileAt(x,y){ if(y<0 || y>=ROWS) return '#'; x=(x%COLS+COLS)%COLS; return board[y][Math.floor(x)]; }
+function isWallTile(x,y){ return tileAt(x,y)==='#'; }
+function isHouseTile(x,y){ return tileAt(x,y)==='H'; }
+function isCenter(e){ return Math.abs(e.x-Math.round(e.x))<0.06 && Math.abs(e.y-Math.round(e.y))<0.06; }
+function canMoveInt(cx,cy,vx,vy,entityIsPac=true){
+  const nx=cx+vx, ny=cy+vy;
+  if(isWallTile(nx,ny)) return false;
+  if(entityIsPac && isHouseTile(nx,ny)) return false;
+  return true;
+}
+function moveEntity(e,entityIsPac=true){
+  const sp=e.speed;
+  // horizontal
+  let nx = e.x + e.vx * sp;
+  if(!isWallTile(Math.round(nx), Math.round(e.y)) && !(entityIsPac && isHouseTile(Math.round(nx), Math.round(e.y)))){
+    e.x = nx;
+  } else {
+    e.x = Math.round(e.x);
+  }
+  // vertical
+  let ny = e.y + e.vy * sp;
+  if(!isWallTile(Math.round(e.x), Math.round(ny)) && !(entityIsPac && isHouseTile(Math.round(e.x), Math.round(ny)))){
+    e.y = ny;
+  } else {
+    e.y = Math.round(e.y);
+  }
+  // wrapping
+  if(e.x < 0) e.x += COLS;
+  else if(e.x >= COLS) e.x -= COLS;
+}
+
+/* -----------------------
+   STOP / START GAME
+----------------------- */
+function stopGame(){
+  // Pause game, preserve remaining time (so timer doesn't tick)
+  pauseTimerAndPreserveRemaining();
+  paused = true;
+  gameEnded = true;
+  shareMessage.classList.add('visible');
+}
+
+function resumeFromShareMessage(){
+  // hide message and resume if game not ended by lives==0 or time==0
+  shareMessage.classList.remove('visible');
+  gameEnded = false;
+  paused = false;
+  resumeTimerIfNeeded();
+}
+
+/* -----------------------
+   UPDATE LOOP & AI
+----------------------- */
+function update(){
+  if(paused){ requestAnimationFrame(loop); return; }
+
+  const now = performance.now();
+  const dt = Math.min(50, now - lastFrame); // clamp dt for stability
+  lastFrame = now;
+
+  pac.speed = Math.min(0.22,pac.baseSpeed+(level-1)*0.01);
+  ghosts.forEach(g=>g.speed=Math.min(0.28,g.baseSpeed*(1+(level-1)*0.04)));
+
+  pac.mouth += 0.28 * (dt/16);
+
+  // Align Pac input direction only at centers
+  if(isCenter(pac) && canMoveInt(Math.round(pac.x),Math.round(pac.y),pac.nextVX,pac.nextVY,true)){
+    pac.vx = pac.nextVX; pac.vy = pac.nextVY;
+  }
+
+  moveEntity(pac,true);
+
+  // Eat pellets if centered on tile
+  if(isCenter(pac)){
+    const cx=Math.round(pac.x), cy=Math.round(pac.y);
+    const t = board[cy][cx];
+    if(t === '.'){ board[cy][cx] = ' '; score += 10; }
+    if(t === 'o'){ board[cy][cx] = ' '; score += 50; frightenedTimer = Math.max(frightenedTimer, 60*6); }
+  }
+
+  // Ghost AI: improved tie-breakers and prefer continuing direction if possible
+  ghosts.forEach(g=>{
+    // tunnel slowing
+    const inTunnelRow = tunnelRows.has(Math.round(g.y));
+    let tunnelSlow = 1;
+    if(inTunnelRow && (g.x < 1.2 || g.x > COLS-1.2)) tunnelSlow = 0.45;
+
+    // effective speed for this update step
+    const baseEff = (frightenedTimer > 0 ? g.speed * 0.6 : g.speed) * tunnelSlow;
+    const prevSpeed = g.speed;
+    g.speed = baseEff;
+
+    // --- FIX: house exit with some side wandering ---
+    if (isCenter(g) && isHouseTile(Math.round(g.x), Math.round(g.y))) {
+        const cx = Math.round(g.x), cy = Math.round(g.y);
+
+        // possible moves: up, left, right (never down deeper into house)
+        const DIRS = [
+          {vx:0, vy:-1}, // up
+          {vx:-1, vy:0}, // left
+          {vx:1, vy:0}   // right
+        ];
+        let valid = DIRS.filter(d => canMoveInt(cx,cy,d.vx,d.vy,false));
+
+        if (valid.length > 0) {
+          // 70% bias to go upward, 30% chance to go sideways
+          if (Math.random() < 0.7 && valid.some(d=>d.vy === -1)) {
+            g.vx = 0; g.vy = -1; // go up
+          } else {
+            const sideways = valid.filter(d=>d.vy === 0);
+            if (sideways.length > 0) {
+              const pick = sideways[Math.floor(Math.random()*sideways.length)];
+              g.vx = pick.vx; g.vy = pick.vy;
+            } else {
+              // fallback: just go up
+              g.vx = 0; g.vy = -1;
+            }
+          }
+        }
+      } else if(isCenter(g)){
+      const cx = Math.round(g.x), cy = Math.round(g.y);
+      const DIRS = [{vx:1,vy:0},{vx:-1,vy:0},{vx:0,vy:1},{vx:0,vy:-1}];
+      let valid = DIRS.filter(d => canMoveInt(cx,cy,d.vx,d.vy,false));
+
+      // prefer continuing direction if valid
+      let preferred = valid.find(d => d.vx === Math.sign(g.vx) && d.vy === Math.sign(g.vy));
+      if(preferred){
+        g.vx = preferred.vx; g.vy = preferred.vy;
+      } else {
+        // avoid reversing direction unless no other choice
+        const revX = -Math.sign(g.vx), revY = -Math.sign(g.vy);
+        let choices = valid.filter(d => !(d.vx === revX && d.vy === revY));
+        if(choices.length === 0) choices = valid.slice();
+
+        // frightened -> random, else chase with some randomness
+        if(frightenedTimer > 0){
+          const pick = choices[Math.floor(Math.random()*choices.length)];
+          g.vx = pick.vx; g.vy = pick.vy;
+        } else {
+          // greedy chase but add slight bias to keep corridors smooth:
+          choices.sort((a,b)=>{
+            const ax = cx + a.vx - pac.x, ay = cy + a.vy - pac.y;
+            const bx = cx + b.vx - pac.x, by = cy + b.vy - pac.y;
+            const da = ax*ax + ay*ay, db = bx*bx + by*by;
+            // tie-break: prefer direction that keeps same axis movement (less turning)
+            const preferA = (a.vx === Math.sign(g.vx) || a.vy === Math.sign(g.vy)) ? -0.1 : 0;
+            const preferB = (b.vx === Math.sign(g.vx) || b.vy === Math.sign(g.vy)) ? -0.1 : 0;
+            return (da + preferA) - (db + preferB);
+          });
+          // with small chance choose random to keep it lively
+          if(Math.random() > 0.92){
+            const pick = choices[Math.floor(Math.random()*choices.length)];
+            g.vx = pick.vx; g.vy = pick.vy;
+          } else {
+            g.vx = choices[0].vx; g.vy = choices[0].vy;
+          }
+        }
+      }
+    }
+
+    // move ghost using current g.speed (already set)
+    moveEntity(g,false);
+
+    // collision
+    if(Math.abs(g.x - pac.x) < 0.6 && Math.abs(g.y - pac.y) < 0.6){
+      if(frightenedTimer > 0){
+        score += 200;
+        ghostExplosions.push({x: Math.round(g.x), y: Math.round(g.y), life: 18});
+        g.x = g.homeX; g.y = g.homeY; g.vx = 0; g.vy = 0;
+      } else {
+        // lose life
+        lives--;
+        if(lives <= 0){
+          // game over
+          stopGame();
+        } else {
+          // respawn pac & ghosts without resetting the board
+          resetEntitiesToSpawn();
+        }
+      }
+    }
+
+    // restore original base speed record (we stored it in prevSpeed if needed)
+    g.speed = prevSpeed;
+  });
+
+  // ghost explosion fade
+  for(let i=ghostExplosions.length-1;i>=0;i--){
+    ghostExplosions[i].life--;
+    if(ghostExplosions[i].life <= 0) ghostExplosions.splice(i,1);
+  }
+
+  // frightened countdown
+  if(frightenedTimer > 0) frightenedTimer--;
+
+  // level clear check
+  if(!board.some(row => row.includes('.') || row.includes('o'))){
+    level++;
+    loadBoard();
+  }
+
+  draw();
+  drawGhostExplosions();
+
+  requestAnimationFrame(loop);
+}
+function loop(){ update(); }
+
+/* -----------------------
+   INPUT
+----------------------- */
+document.addEventListener('keydown',e=>{
+  // respect uppercase/lowercase and common keys
+  const k = e.key;
+  if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','a','d','w','s','A','D','W','S'].includes(k)) e.preventDefault();
+  switch(k){
+    case 'ArrowUp': case 'w': case 'W': pac.nextVX=0; pac.nextVY=-1; break;
+    case 'ArrowDown': case 's': case 'S': pac.nextVX=0; pac.nextVY=1; break;
+    case 'ArrowLeft': case 'a': case 'A': pac.nextVX=-1; pac.nextVY=0; break;
+    case 'ArrowRight': case 'd': case 'D': pac.nextVX=1; pac.nextVY=0; break;
+    case 'p': case 'P':
+      // toggle pause, but don't unpause if game ended
+      if(!gameEnded){
+        paused = !paused;
+        // If unpausing, ensure timer resumes if needed
+        if(!paused) resumeTimerIfNeeded();
+      }
+      break;
+    case 'r': case 'R':
+      // Reset entire game, hide share-message, restart timer
+      score = 0; level = 1; lives = 3; paused = false; gameEnded = false;
+      shareMessage.classList.remove('visible');
+      loadBoard();
+      // restart timer from selected value
+      timerDurationMs = parseInt(timerSelect.value) * 60000;
+      startTimer();
+      // ensure focus returns to canvas
+      canvas.focus();
+      break;
+  }
+});
+
+/* -----------------------
+   MAP BUTTONS
+----------------------- */
+document.querySelectorAll('#map-buttons button').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('#map-buttons button').forEach(b=>b.classList.remove('selected'));
+    btn.classList.add('selected');
+    currentMapIndex=parseInt(btn.dataset.map);
+    loadBoard();
+    // don't change pause/timer state
+    canvas.focus();
+  });
+});
+
+/* -----------------------
+   TIMER UI
+----------------------- */
+document.getElementById('cancel-timer').addEventListener('click',()=>{
+  // cancel timer (no timer)
+  if(timerTimeout){ clearTimeout(timerTimeout); timerTimeout = null; }
+  timerEnd = null;
+  timerDurationMs = 0;
+  timeLeft.textContent = "0:00";
+  // keep gameplay unaffected
+  canvas.focus();
+});
+timerSelect.addEventListener('change',()=>{
+  timerDurationMs = parseInt(timerSelect.value) * 60000;
+  // start/reset timer from new selection
+  startTimer();
+  // ensure canvas receives focus for keyboard input
+  canvas.focus();
+});
+
+/* -----------------------
+   SHARE MESSAGE CLICK (hide)
+----------------------- */
+shareMessage.addEventListener('click',()=>{
+  // If user clicks the share message, hide it and resume (unless lives==0 -> keep ended)
+  if(lives <= 0) {
+    // If no lives left, clicking will simply hide the message but won't resume the game
+    shareMessage.classList.remove('visible');
+    gameEnded = true;
+    paused = true;
+    // keep timer paused (preserve remaining)
+    pauseTimerAndPreserveRemaining();
+  } else {
+    // resume play and timer
+    resumeFromShareMessage();
+    canvas.focus();
+  }
+});
+
+/* -----------------------
+   MOUSE/TOUCH: click canvas to unpause (if game not ended)
+----------------------- */
+canvas.addEventListener('click',()=>{
+  if(!gameEnded) paused = false;
+  canvas.focus();
+});
+
+/* -----------------------
+   BOOT
+----------------------- */
+loadBoard();
+// initialize timer and start
+startTimer();
+// set initial focus
+canvas.focus();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
