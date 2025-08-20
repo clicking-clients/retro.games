@@ -301,9 +301,9 @@ else if(type==='Z')return[[7,7,0],[0,7,7],[0,0,0]];}
 
 function drawMatrix(matrix,offset){matrix.forEach((row,y)=>{row.forEach((value,x)=>{if(value!==0){context.fillStyle=value===8?'#fff':colors[value];context.fillRect(x+offset.x,y+offset.y,1,1);}});});}
 
-function draw(){context.fillStyle='#000';context.fillRect(0,0,canvas.width,canvas.height);drawMatrix(arena,{x:0,y:0});drawMatrix(player.matrix,player.pos);drawFloor();}
+function draw(){context.fillStyle='#000';context.fillRect(0,0,canvas.width,canvas.height);drawMatrix(arena,{x:0,y:0});drawMatrix(player.matrix,player.pos);}
 
-function drawFloor(){context.fillStyle='#0f0';context.fillRect(0,arena.length,arena[0].length,0.1);}
+
 
 function merge(arena,player){player.matrix.forEach((row,y)=>{row.forEach((value,x)=>{if(value!==0)arena[y+player.pos.y][x+player.pos.x]=value;});});}
 
