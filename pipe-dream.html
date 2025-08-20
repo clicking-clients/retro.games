@@ -50,16 +50,16 @@
         }
 
         .pipe-piece {
-            width: 60px;
-            height: 60px;
+            width: 80px;
+            height: 40px;
             background: linear-gradient(135deg, #4a4a8a, #6a6a9a);
             border: 3px solid #0f0;
-            border-radius: 15px;
+            border-radius: 20px;
             cursor: grab;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.5rem;
+            font-size: 1.2rem;
             color: #fff;
             font-weight: bold;
             text-shadow: 1px 1px 2px #000;
@@ -67,6 +67,22 @@
             user-select: none;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
             touch-action: manipulation;
+            position: relative;
+        }
+
+        .pipe-piece::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent 0%, rgba(0, 255, 0, 0.3) 50%, transparent 100%);
+            border-radius: 20px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .pipe-piece:hover::before {
+            opacity: 1;
         }
 
         .pipe-piece:hover {
@@ -92,15 +108,15 @@
 
         .placed-pipe {
             position: absolute;
-            width: 60px;
-            height: 60px;
+            width: 80px;
+            height: 40px;
             background: linear-gradient(135deg, #4a4a8a, #6a6a9a);
             border: 3px solid #0f0;
-            border-radius: 15px;
+            border-radius: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.5rem;
+            font-size: 1.2rem;
             color: #fff;
             font-weight: bold;
             text-shadow: 1px 1px 2px #000;
@@ -110,8 +126,17 @@
         }
 
         .placed-pipe.connected {
-            background: #0f0;
+            background: linear-gradient(135deg, #0f0, #00ff80);
+            border-color: #00ff80;
             box-shadow: 0 0 20px #0f0;
+            transform: scale(1.05);
+        }
+
+        .placed-pipe.connecting {
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            border-color: #ffd700;
+            box-shadow: 0 0 15px #ffd700;
+            animation: pulse 1s infinite;
         }
 
         .placed-pipe.filled {
@@ -263,12 +288,32 @@
         <div class="game-header">
             <h1>🚰 Pipe Dream</h1>
             <p>Connect pipes to solve math problems and watch the water flow!</p>
-            <div style="background: rgba(0, 255, 0, 0.1); padding: 15px; border-radius: 10px; margin: 15px 0; border: 1px solid #0f0;">
-                <strong>How to Play:</strong><br>
-                • Drag number pipes to the play area<br>
-                • Connect pipes by placing them close together<br>
-                • Use connector pipes (┌, ┐, └, ┘, ─, │) to create paths<br>
-                • Solve the math problem to advance to the next level!
+            
+            <div style="background: rgba(0, 255, 0, 0.1); padding: 20px; border-radius: 15px; margin: 20px 0; border: 2px solid #0f0;">
+                <h3 style="color: #ffd700; margin-bottom: 15px;">🎯 Game Objective</h3>
+                <p style="margin-bottom: 15px; line-height: 1.6;">
+                    <strong>Your goal:</strong> Create a pipe network that connects the numbers needed to solve the math problem at the top of the screen.
+                </p>
+                
+                <h4 style="color: #0f0; margin: 15px 0 10px 0;">📋 How to Play:</h4>
+                <ol style="text-align: left; margin-left: 20px; line-height: 1.8;">
+                    <li><strong>Look at the math problem</strong> (e.g., "5 + 3 = ?")</li>
+                    <li><strong>Drag number pipes</strong> from the bottom inventory to the play area</li>
+                    <li><strong>Place them strategically</strong> so they can connect to form the answer</li>
+                    <li><strong>Use connector pipes</strong> (┌, ┐, └, ┘, ─, │) to create paths between numbers</li>
+                    <li><strong>When pipes are close enough</strong>, they automatically connect and turn green</li>
+                    <li><strong>Water flows</strong> through connected pipes when you solve the puzzle!</li>
+                </ol>
+                
+                <h4 style="color: #0f0; margin: 15px 0 10px 0;">🔧 Pipe Types:</h4>
+                <ul style="text-align: left; margin-left: 20px; line-height: 1.8;">
+                    <li><strong>Number pipes (1-9):</strong> These have values you need to connect</li>
+                    <li><strong>Connector pipes:</strong> ┌ (top-right), ┐ (top-left), └ (bottom-right), ┘ (bottom-left), ─ (horizontal), │ (vertical)</li>
+                </ul>
+                
+                <div style="background: rgba(255, 215, 0, 0.1); padding: 15px; border-radius: 10px; margin: 15px 0; border: 1px solid #ffd700;">
+                    <strong>💡 Example:</strong> For "5 + 3 = ?", you need to connect pipes with values 5 and 3, plus connector pipes to create a path between them. When connected, the total value should equal 8!
+                </div>
             </div>
         </div>
 
@@ -297,6 +342,7 @@
         <div class="game-controls">
             <button class="control-btn" id="newLevelBtn" aria-label="Start new level">New Level</button>
             <button class="control-btn" id="resetBtn" aria-label="Reset current level">Reset</button>
+            <button class="control-btn" id="undoBtn" aria-label="Undo last pipe placement">Undo</button>
             <button class="control-btn" id="hintBtn" aria-label="Get a hint for current problem">Hint</button>
         </div>
     </div>
@@ -337,10 +383,12 @@
             }
             
             init() {
+                this.pipeHistory = [];
                 this.generatePipes();
                 this.setupEventListeners();
                 this.startTimer();
                 this.updateDisplay();
+                this.updateUndoButton();
             }
             
             generatePipes() {
@@ -424,11 +472,17 @@
                     if (currentPipe) {
                         const touch = e.changedTouches[0];
                         const rect = playArea.getBoundingClientRect();
-                        const x = touch.clientX - rect.left - 30;
-                        const y = touch.clientY - rect.top - 30;
+                        const x = touch.clientX - rect.left - 40; // Adjusted for new pipe width
+                        const y = touch.clientY - rect.top - 20;  // Adjusted for new pipe height
                         
-                        if (x >= 0 && y >= 0 && x <= rect.width - 60 && y <= rect.height - 60) {
-                            this.placePipe(currentPipe, x, y);
+                        // Ensure pipe stays within bounds
+                        const maxX = rect.width - 80;
+                        const maxY = rect.height - 40;
+                        const clampedX = Math.max(0, Math.min(x, maxX));
+                        const clampedY = Math.max(0, Math.min(y, maxY));
+                        
+                        if (clampedX >= 0 && clampedY >= 0 && clampedX <= maxX && clampedY <= maxY) {
+                            this.placePipe(currentPipe, clampedX, clampedY);
                         }
                         
                         // Reset inventory pipe opacity
@@ -439,6 +493,7 @@
                 
                 document.getElementById('newLevelBtn').addEventListener('click', () => this.nextLevel());
                 document.getElementById('resetBtn').addEventListener('click', () => this.resetLevel());
+                document.getElementById('undoBtn').addEventListener('click', () => this.undoLastPipe());
                 document.getElementById('hintBtn').addEventListener('click', () => this.showHint());
             }
             
@@ -458,10 +513,16 @@
                 if (!this.draggedPipe) return;
                 
                 const rect = e.currentTarget.getBoundingClientRect();
-                const x = e.clientX - rect.left - 30;
-                const y = e.clientY - rect.top - 30;
+                const x = e.clientX - rect.left - 40; // Adjusted for new pipe width
+                const y = e.clientY - rect.top - 20;  // Adjusted for new pipe height
                 
-                this.placePipe(this.draggedPipe, x, y);
+                // Ensure pipe stays within bounds
+                const maxX = rect.width - 80;
+                const maxY = rect.height - 40;
+                const clampedX = Math.max(0, Math.min(x, maxX));
+                const clampedY = Math.max(0, Math.min(y, maxY));
+                
+                this.placePipe(this.draggedPipe, clampedX, clampedY);
             }
             
             placePipe(pipeData, x, y) {
@@ -479,33 +540,56 @@
                 pipeElement.addEventListener('click', () => this.connectPipe(pipeElement));
                 
                 playArea.appendChild(pipeElement);
-                this.pipes.push({
+                
+                const pipeInfo = {
                     element: pipeElement,
                     data: pipeData,
                     x: x,
                     y: y,
-                    connected: false
-                });
+                    connected: false,
+                    timestamp: Date.now()
+                };
+                
+                this.pipes.push(pipeInfo);
+                
+                // Store in history for undo
+                if (!this.pipeHistory) this.pipeHistory = [];
+                this.pipeHistory.push(pipeInfo);
                 
                 this.checkConnections();
             }
             
             checkConnections() {
-                // Simple proximity-based connection logic
+                // Clear all previous connections and connecting states
+                this.pipes.forEach(pipe => {
+                    pipe.connected = false;
+                    pipe.element.classList.remove('connected', 'connecting');
+                });
+                this.connectedPipes = [];
+                
+                // Check for new connections based on proximity
                 this.pipes.forEach((pipe, index) => {
                     this.pipes.forEach((otherPipe, otherIndex) => {
-                        if (index !== otherIndex && !pipe.connected && !otherPipe.connected) {
+                        if (index !== otherIndex) {
                             const distance = Math.sqrt(
                                 Math.pow(pipe.x - otherPipe.x, 2) + 
                                 Math.pow(pipe.y - otherPipe.y, 2)
                             );
                             
-                            if (distance < 80) {
+                            // Pipes connect when they're close enough (adjusted for new pipe dimensions)
+                            if (distance < 100) {
                                 this.connectPipes(pipe, otherPipe);
+                            } else if (distance < 120) {
+                                // Show connecting state for pipes that are close but not quite connected
+                                pipe.element.classList.add('connecting');
+                                otherPipe.element.classList.add('connecting');
                             }
                         }
                     });
                 });
+                
+                // Update undo button state
+                this.updateUndoButton();
             }
             
             connectPipes(pipe1, pipe2) {
@@ -527,16 +611,16 @@
                     setTimeout(() => {
                         const flow = document.createElement('div');
                         flow.className = 'water-flow';
-                        flow.style.left = (pipe1.x + 30 + (Math.random() - 0.5) * 20) + 'px';
-                        flow.style.top = (pipe1.y + 30 + (Math.random() - 0.5) * 20) + 'px';
+                        flow.style.left = (pipe1.x + 40 + (Math.random() - 0.5) * 20) + 'px';
+                        flow.style.top = (pipe1.y + 20 + (Math.random() - 0.5) * 20) + 'px';
                         
                         playArea.appendChild(flow);
                         
                         // Animate water flow towards pipe2
                         const startX = parseFloat(flow.style.left);
                         const startY = parseFloat(flow.style.top);
-                        const endX = pipe2.x + 30;
-                        const endY = pipe2.y + 30;
+                        const endX = pipe2.x + 40;
+                        const endY = pipe2.y + 20;
                         
                         let progress = 0;
                         const animate = () => {
@@ -626,11 +710,13 @@
                 this.timeLeft = 60 + (this.level * 10);
                 this.pipes = [];
                 this.connectedPipes = [];
+                this.pipeHistory = [];
                 this.generateNewProblem();
                 this.clearPlayArea();
                 this.generatePipes();
                 this.updateDisplay();
                 this.startTimer();
+                this.updateUndoButton();
             }
             
             generateNewProblem() {
@@ -668,16 +754,68 @@
             resetLevel() {
                 this.pipes = [];
                 this.connectedPipes = [];
+                this.pipeHistory = [];
                 this.clearPlayArea();
                 this.generatePipes();
                 this.timeLeft = 60 + (this.level * 10);
                 this.updateDisplay();
                 this.startTimer();
+                this.updateUndoButton();
+            }
+            
+            undoLastPipe() {
+                if (!this.pipeHistory || this.pipeHistory.length === 0) {
+                    alert('No pipes to undo!');
+                    return;
+                }
+                
+                const lastPipe = this.pipeHistory.pop();
+                
+                // Remove from pipes array
+                const index = this.pipes.findIndex(p => p.timestamp === lastPipe.timestamp);
+                if (index > -1) {
+                    this.pipes.splice(index, 1);
+                }
+                
+                // Remove from connected pipes if it was connected
+                const connectedIndex = this.connectedPipes.findIndex(p => p.timestamp === lastPipe.timestamp);
+                if (connectedIndex > -1) {
+                    this.connectedPipes.splice(connectedIndex, 1);
+                }
+                
+                // Remove the DOM element
+                if (lastPipe.element && lastPipe.element.parentNode) {
+                    lastPipe.element.parentNode.removeChild(lastPipe.element);
+                }
+                
+                // Recheck connections since we removed a pipe
+                this.checkConnections();
+                
+                // Update undo button state
+                this.updateUndoButton();
+            }
+            
+            updateUndoButton() {
+                const undoBtn = document.getElementById('undoBtn');
+                if (this.pipeHistory && this.pipeHistory.length > 0) {
+                    undoBtn.disabled = false;
+                    undoBtn.style.opacity = '1';
+                } else {
+                    undoBtn.disabled = true;
+                    undoBtn.style.opacity = '0.5';
+                }
             }
             
             showHint() {
-                // Simple hint system
-                const hint = `Try connecting pipes that add up to ${this.currentProblem.answer}`;
+                // More helpful hint system
+                let hint = '';
+                if (this.currentProblem.operator === '+') {
+                    hint = `You need to connect pipes with values ${this.currentProblem.num1} and ${this.currentProblem.num2}. The total should equal ${this.currentProblem.answer}.`;
+                } else if (this.currentProblem.operator === '-') {
+                    hint = `You need pipes with values ${this.currentProblem.num1} and ${this.currentProblem.num2}. Place them close together and use connector pipes to create a path.`;
+                } else if (this.currentProblem.operator === '×') {
+                    hint = `You need pipes with values ${this.currentProblem.num1} and ${this.currentProblem.num2}. Connect them to form the product ${this.currentProblem.answer}.`;
+                }
                 alert(hint);
             }
             
