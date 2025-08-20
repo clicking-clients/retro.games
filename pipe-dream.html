@@ -93,6 +93,22 @@
         .pipe-inner { stroke: rgba(255,255,255,.22); stroke-width: 6; }
         .pipe-endcap { fill: #86a7b8; opacity: .7; }
 
+        /* Pipe type indicators */
+        .pipe-piece .number-pipe {
+            background: linear-gradient(135deg, #4CAF50, #66BB6A) !important;
+            border-color: #2E7D32 !important;
+        }
+
+        .pipe-piece .operator-pipe {
+            background: linear-gradient(135deg, #FF9800, #FFB74D) !important;
+            border-color: #F57C00 !important;
+        }
+
+        .pipe-piece .connector-pipe {
+            background: transparent !important;
+            border: none !important;
+        }
+
         .pipe-piece.dragging {
             opacity: 0.7;
             transform: rotate(5deg);
@@ -1182,25 +1198,97 @@
                     
                     // Decide what kind of pipe it is and render SVG
                     let type = 'straight-h'; let rot = 0;
-                    switch(pipe.symbol) {
-                        case '━': type = 'straight-h'; break;
-                        case '┃': type = 'straight-v'; break;
-                        case '╭': type = 'elbow'; rot = 0; break;      // top-right
-                        case '╮': type = 'elbow'; rot = 90; break;     // top-left
-                        case '╰': type = 'elbow'; rot = 270; break;    // bottom-right
-                        case '╯': type = 'elbow'; rot = 180; break;    // bottom-left
-                        case '┣': type = 'tee'; rot = 180; break;
-                        case '┫': type = 'tee'; rot = 0; break;
-                        case '┻': type = 'tee'; rot = 90; break;
-                        case '┳': type = 'tee'; rot = 270; break;
-                        case '╋': type = 'cross'; break;
-                        default: 
-                            // For number and operator pipes, use straight-h
-                            if (pipe.type === 'number' || pipe.type === 'operator') {
-                                type = 'straight-h';
-                            }
+                    
+                    if (pipe.type === 'number') {
+                        // Number pipes get a special number display
+                        pipeElement.innerHTML = `
+                            <div style="
+                                width: 100%; 
+                                height: 100%; 
+                                display: flex; 
+                                align-items: center; 
+                                justify-content: center; 
+                                background: linear-gradient(135deg, #4CAF50, #66BB6A);
+                                border: 3px solid #2E7D32;
+                                border-radius: 15px;
+                                color: white;
+                                font-size: 1.5rem;
+                                font-weight: bold;
+                                text-shadow: 1px 1px 2px #000;
+                                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+                                position: relative;
+                            ">
+                                ${pipe.symbol}
+                                <div style="
+                                    position: absolute;
+                                    bottom: -25px;
+                                    left: 50%;
+                                    transform: translateX(-50%);
+                                    background: rgba(0,0,0,0.8);
+                                    color: white;
+                                    padding: 2px 6px;
+                                    border-radius: 4px;
+                                    font-size: 0.7rem;
+                                    white-space: nowrap;
+                                ">
+                                    Number
+                                </div>
+                            </div>
+                        `;
+                    } else if (pipe.type === 'operator') {
+                        // Operator pipes get a special operator display
+                        pipeElement.innerHTML = `
+                            <div style="
+                                width: 100%; 
+                                height: 100%; 
+                                display: flex; 
+                                align-items: center; 
+                                justify-content: center; 
+                                background: linear-gradient(135deg, #FF9800, #FFB74D);
+                                border: 3px solid #F57C00;
+                                border-radius: 15px;
+                                color: white;
+                                font-size: 1.8rem;
+                                font-weight: bold;
+                                text-shadow: 1px 1px 2px #000;
+                                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+                                position: relative;
+                            ">
+                                ${pipe.operation}
+                                <div style="
+                                    position: absolute;
+                                    bottom: -25px;
+                                    left: 50%;
+                                    transform: translateX(-50%);
+                                    background: rgba(0,0,0,0.8);
+                                    color: white;
+                                    padding: 2px 6px;
+                                    border-radius: 4px;
+                                    font-size: 0.7rem;
+                                    white-space: nowrap;
+                                ">
+                                    Operator
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        // Connector pipes use SVG rendering
+                        switch(pipe.symbol) {
+                            case '━': type = 'straight-h'; break;
+                            case '┃': type = 'straight-v'; break;
+                            case '╭': type = 'elbow'; rot = 0; break;      // top-right
+                            case '╮': type = 'elbow'; rot = 90; break;     // top-left
+                            case '╰': type = 'elbow'; rot = 270; break;    // bottom-right
+                            case '╯': type = 'elbow'; rot = 180; break;    // bottom-left
+                            case '┣': type = 'tee'; rot = 180; break;
+                            case '┫': type = 'tee'; rot = 0; break;
+                            case '┻': type = 'tee'; rot = 90; break;
+                            case '┳': type = 'tee'; rot = 270; break;
+                            case '╋': type = 'cross'; break;
+                            default: type = 'straight-h';
+                        }
+                        renderPipeInto(pipeElement, type, rot);
                     }
-                    renderPipeInto(pipeElement, type, rot);
                     
 
                     
@@ -1328,25 +1416,67 @@
                 
                 // Decide what kind of pipe it is and render SVG
                 let type = 'straight-h'; let rot = 0;
-                switch(pipeData.symbol) {
-                    case '━': type = 'straight-h'; break;
-                    case '┃': type = 'straight-v'; break;
-                    case '╭': type = 'elbow'; rot = 0; break;      // top-right
-                    case '╮': type = 'elbow'; rot = 90; break;     // top-left
-                    case '╰': type = 'elbow'; rot = 270; break;    // bottom-right
-                    case '╯': type = 'elbow'; rot = 180; break;    // bottom-left
-                    case '┣': type = 'tee'; rot = 180; break;
-                    case '┫': type = 'tee'; rot = 0; break;
-                    case '┻': type = 'tee'; rot = 90; break;
-                    case '┳': type = 'tee'; rot = 270; break;
-                    case '╋': type = 'cross'; break;
-                    default: 
-                        // For number and operator pipes, use straight-h
-                        if (pipeData.type === 'number' || pipeData.type === 'operator') {
-                            type = 'straight-h';
-                        }
+                
+                if (pipeData.type === 'number') {
+                    // Number pipes get a special number display
+                    pipeElement.innerHTML = `
+                        <div style="
+                            width: 100%; 
+                            height: 100%; 
+                            display: flex; 
+                            align-items: center; 
+                            justify-content: center; 
+                            background: linear-gradient(135deg, #4CAF50, #66BB6A);
+                            border: 3px solid #2E7D32;
+                            border-radius: 15px;
+                            color: white;
+                            font-size: 1.5rem;
+                            font-weight: bold;
+                            text-shadow: 1px 1px 2px #000;
+                            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+                        ">
+                            ${pipeData.symbol}
+                        </div>
+                    `;
+                } else if (pipeData.type === 'operator') {
+                    // Operator pipes get a special operator display
+                    pipeElement.innerHTML = `
+                        <div style="
+                            width: 100%; 
+                            height: 100%; 
+                            display: flex; 
+                            align-items: center; 
+                            justify-content: center; 
+                            background: linear-gradient(135deg, #FF9800, #FFB74D);
+                            border: 3px solid #F57C00;
+                            border-radius: 15px;
+                            color: white;
+                            font-size: 1.8rem;
+                            font-weight: bold;
+                            text-shadow: 1px 1px 2px #000;
+                            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+                        ">
+                            ${pipeData.operation}
+                        </div>
+                    `;
+                } else {
+                    // Connector pipes use SVG rendering
+                    switch(pipeData.symbol) {
+                        case '━': type = 'straight-h'; break;
+                        case '┃': type = 'straight-v'; break;
+                        case '╭': type = 'elbow'; rot = 0; break;      // top-right
+                        case '╮': type = 'elbow'; rot = 90; break;     // top-left
+                        case '╰': type = 'elbow'; rot = 270; break;    // bottom-right
+                        case '╯': type = 'elbow'; rot = 180; break;    // bottom-left
+                        case '┣': type = 'tee'; rot = 180; break;
+                        case '┫': type = 'tee'; rot = 0; break;
+                        case '┻': type = 'tee'; rot = 90; break;
+                        case '┳': type = 'tee'; rot = 270; break;
+                        case '╋': type = 'cross'; break;
+                        default: type = 'straight-h';
+                    }
+                    renderPipeInto(pipeElement, type, rot);
                 }
-                renderPipeInto(pipeElement, type, rot);
                 
 
                 
