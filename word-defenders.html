@@ -597,7 +597,7 @@ const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 let W = canvas.width, H = canvas.height;
 let lanes = 4, playerLane = 0; // Start in leftmost lane
-let laneW = W/lanes, floorY = H-48;
+let laneW = W/lanes, floorY = H-24;
 
 let score=0, lives=3, running=true, gameOver=false;
 let speedValue=parseFloat(document.getElementById('speedSlider').value)/4;
@@ -754,7 +754,6 @@ function draw(){
   ctx.fillStyle="#000"; ctx.fillRect(0,0,W,H);
   ctx.strokeStyle="#0f0"; ctx.lineWidth=1;
   for(let l=1;l<lanes;l++){ ctx.beginPath(); ctx.moveTo(l*laneW+0.5,0); ctx.lineTo(l*laneW+0.5,H); ctx.stroke(); }
-  ctx.beginPath(); ctx.moveTo(0,floorY+12); ctx.lineTo(W,floorY+12); ctx.stroke();
   for(const w of words) drawWord(w);
   ctx.fillStyle="#0f0"; ctx.font='16px monospace'; ctx.textAlign='left'; ctx.fillText(`LIVES: ${lives}`,8,16);
   ctx.textAlign='center';
