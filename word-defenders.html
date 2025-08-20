@@ -10,9 +10,43 @@
   --yellow: #ff0;
   --red: #f00;
   --bg: #000;
+  --focus-outline: #0ff;
 }
-html, body { height: 100%; margin:0; padding:0; background: var(--bg); font-family: monospace; color: var(--green); overflow:hidden; }
-#container { display: flex; justify-content: center; align-items: flex-start; gap: 20px; padding:20px; position:relative; }
+
+/* Accessibility and mobile improvements */
+* {
+  box-sizing: border-box;
+}
+
+html, body { 
+  height: 100%; 
+  margin: 0; 
+  padding: 0; 
+  background: var(--bg); 
+  font-family: monospace; 
+  color: var(--green); 
+  overflow-x: hidden;
+  font-size: 16px; /* Prevent zoom on mobile */
+}
+
+/* Focus styles for accessibility */
+*:focus {
+  outline: 2px solid var(--focus-outline);
+  outline-offset: 2px;
+}
+
+/* Mobile-first responsive design */
+#container { 
+  display: flex; 
+  flex-direction: column;
+  justify-content: flex-start; 
+  align-items: center; 
+  gap: 15px; 
+  padding: 15px; 
+  position: relative;
+  min-height: 100vh;
+}
+
 #gameNav, 
 #gameNav a {
   display: block;
@@ -20,82 +54,353 @@ html, body { height: 100%; margin:0; padding:0; background: var(--bg); font-fami
   text-transform: uppercase;
   color: #0f0;
   text-decoration: none;
+  padding: 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+#gameNav a:hover,
+#gameNav a:focus {
+  background-color: rgba(0, 255, 0, 0.1);
 }
 
 #gameNav a.active {
-  color: #ff0;       /* highlight color */
-  font-weight: bold;  /* optional emphasis */
+  color: #ff0;
+  font-weight: bold;
   text-decoration: underline;
+  background-color: rgba(255, 255, 0, 0.1);
 }
-#game { border: 4px solid var(--green); width: 540px; height: 640px; background: var(--bg); image-rendering: pixelated; display: block; position:relative; z-index:1; }
-#sidebar { width:450px; display:flex; flex-direction:column; gap:10px; }
-#title { text-transform: uppercase; font-size: 2rem; color: #ff0; text-shadow: 0 0 8px #f00; text-align: center; }
-#scoreboard { border: 2px solid var(--green); padding:8px; font-size:0.9rem; }
-.section-title { color: var(--yellow); font-weight:bold; margin-bottom:4px; }
-#controls { font-size:0.9rem; }
-.pill { border:1px solid var(--green); padding:6px 8px; display:inline-block; cursor:pointer; margin-right:4px; user-select:none; }
-.toggle input { accent-color: var(--green); }
-#wordList { width:100%; height:80px; background:#001100; color: var(--green); border:1px solid var(--green); padding:6px; font-family:monospace; }
-input[type=range] { width:100%; }
-#quotes { margin-top:8px; font-size:0.9rem; height:24px; text-align:center; }
 
-/* Full-screen rocket/fireworks overlay on top of everything */
-#rocketOverlay { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:999; }
+#game { 
+  border: 4px solid var(--green); 
+  width: 100%;
+  max-width: 540px;
+  height: auto;
+  aspect-ratio: 540/640;
+  background: var(--bg); 
+  image-rendering: pixelated; 
+  display: block; 
+  position: relative; 
+  z-index: 1;
+}
+
+#sidebar { 
+  width: 100%;
+  max-width: 450px;
+  display: flex;
+  flex-direction: column; 
+  gap: 15px;
+}
+
+#title { 
+  text-transform: uppercase; 
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  color: #ff0; 
+  text-shadow: 0 0 8px #f00; 
+  text-align: center;
+  margin: 0;
+}
+
+#scoreboard { 
+  border: 2px solid var(--green); 
+  padding: 12px; 
+  font-size: 0.9rem;
+  border-radius: 6px;
+}
+
+.section-title { 
+  color: var(--yellow); 
+  font-weight: bold; 
+  margin-bottom: 8px;
+}
+
+#controls { 
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.pill { 
+  border: 1px solid var(--green); 
+  padding: 8px 12px; 
+  display: inline-block; 
+  cursor: pointer; 
+  margin: 4px 4px 4px 0; 
+  user-select: none;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+  background: transparent;
+}
+
+.pill:hover,
+.pill:focus {
+  background-color: rgba(0, 255, 0, 0.1);
+}
+
+.toggle input { 
+  accent-color: var(--green);
+  margin-right: 8px;
+}
+
+#wordList { 
+  width: 100%; 
+  height: 80px; 
+  background: #001100; 
+  color: var(--green); 
+  border: 1px solid var(--green); 
+  padding: 8px; 
+  font-family: monospace;
+  border-radius: 4px;
+  resize: vertical;
+}
+
+input[type=range] { 
+  width: 100%;
+  margin: 8px 0;
+}
+
+#quotes { 
+  margin-top: 12px; 
+  font-size: 0.9rem; 
+  min-height: 24px; 
+  text-align: center;
+  font-style: italic;
+}
+
+/* Full-screen rocket/fireworks overlay */
+#rocketOverlay { 
+  position: absolute; 
+  top: 0; 
+  left: 0; 
+  width: 100%; 
+  height: 100%; 
+  pointer-events: none; 
+  z-index: 999; 
+}
 
 /* Splash screen */
-#splashScreen { position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); color:#fff; font-size:2rem; display:none; justify-content:center; align-items:center; flex-direction:column; text-align:center; z-index:1000; }
-#splashScreen button { margin-top:20px; padding:10px 20px; font-size:1rem; cursor:pointer; }
+#splashScreen { 
+  position: absolute; 
+  top: 0; 
+  left: 0; 
+  width: 100%; 
+  height: 100%; 
+  background: rgba(0,0,0,0.9); 
+  color: #fff; 
+  font-size: clamp(1.5rem, 5vw, 2rem);
+  display: none; 
+  justify-content: center; 
+  align-items: center; 
+  flex-direction: column; 
+  text-align: center; 
+  z-index: 1000;
+  padding: 20px;
+}
+
+#splashScreen button { 
+  margin-top: 20px; 
+  padding: 12px 24px; 
+  font-size: 1rem; 
+  cursor: pointer;
+  background: var(--green);
+  color: var(--bg);
+  border: none;
+  border-radius: 6px;
+  font-family: monospace;
+  transition: background-color 0.2s;
+}
+
+#splashScreen button:hover,
+#splashScreen button:focus {
+  background: #0a0;
+}
+
+/* Mobile controls */
+.mobile-controls {
+  display: none;
+  gap: 10px;
+  margin-top: 15px;
+  justify-content: center;
+}
+
+.mobile-btn {
+  background: rgba(0, 255, 0, 0.2);
+  border: 2px solid var(--green);
+  color: var(--green);
+  padding: 15px;
+  border-radius: 8px;
+  font-size: 1.2rem;
+  font-family: monospace;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  min-width: 60px;
+  transition: all 0.2s;
+}
+
+.mobile-btn:hover,
+.mobile-btn:focus,
+.mobile-btn:active {
+  background: rgba(0, 255, 0, 0.3);
+  transform: scale(1.05);
+}
+
+/* Responsive breakpoints */
+@media (min-width: 768px) {
+  #container {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 20px;
+  }
+  
+  #game {
+    width: 540px;
+    height: 640px;
+  }
+  
+  #sidebar {
+    width: 450px;
+  }
+  
+  .mobile-controls {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .mobile-controls {
+    display: flex;
+  }
+  
+  #container {
+    padding: 10px;
+  }
+  
+  #game {
+    max-width: 100vw;
+    margin: 0 auto;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --green: #00ff00;
+    --yellow: #ffff00;
+    --red: #ff0000;
+    --focus-outline: #ffffff;
+  }
+}
+
+/* Skip link for accessibility */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 6px;
+  background: var(--green);
+  color: var(--bg);
+  padding: 8px;
+  text-decoration: none;
+  border-radius: 4px;
+  z-index: 1001;
+  transition: top 0.3s;
+}
+
+.skip-link:focus {
+  top: 6px;
+}
+
+/* Screen reader support */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
 </style>
 </head>
 <body>
-<div id="splashScreen"><div id="splashText">Level Complete!</div><button id="splashBtn">Next Level</button></div>
+<!-- Skip to main content link for accessibility -->
+<a href="#game" class="skip-link">Skip to game</a>
+
+<div id="splashScreen" role="dialog" aria-labelledby="splashText" aria-describedby="splashBtn">
+  <div id="splashText" role="heading" aria-level="2">Level Complete!</div>
+  <button id="splashBtn">Next Level</button>
+</div>
 <div id="container">
   <nav id="gameNav" style="padding:10px; background:#111; color:#0f0; font-family:monospace;">
     <strong>Games:</strong>
   </nav>
     <script src="navigation.js"></script>
-  <canvas id="game" width="540" height="640"></canvas>
+  <canvas id="game" width="540" height="640" role="img" aria-label="Word Defenders game area" tabindex="0"></canvas>
   <div id="sidebar">
-    <div id="title">WORD DEFENDERS</div>
-    <div id="scoreboard">
-      <div class="section-title">SCORE</div>
-      <div>Score: <span id="score">0</span> | Words Left: <span id="wordsLeft">0</span> | WPM: <span id="wpm">0</span></div>
-      <div>Timer: <span id="timerDisplay">0:00</span></div>
+      <h1 id="title">WORD DEFENDERS</h1>
+  <div id="scoreboard" role="region" aria-label="Game Score">
+    <div class="section-title">SCORE</div>
+    <div>Score: <span id="score" aria-live="polite">0</span> | Words Left: <span id="wordsLeft" aria-live="polite">0</span> | WPM: <span id="wpm" aria-live="polite">0</span></div>
+    <div>Timer: <span id="timerDisplay" aria-live="polite">0:00</span></div>
+  </div>
+  <div id="controls" role="region" aria-label="Game Controls">
+    <div class="section-title">CONTROLS</div>
+    <div role="list">
+      <div role="listitem">1 / ←: Move Left</div>
+      <div role="listitem">2 / →: Move Right</div>
+      <div role="listitem">Type letters: Shoot word in lane</div>
+      <div role="listitem">Space: Start / Pause</div>
+      <div role="listitem">0: Reset</div>
     </div>
-    <div id="controls">
-      <div class="section-title">CONTROLS</div>
-      1 / ←: Move Left<br>
-      2 / →: Move Right<br>
-      Type letters: Shoot word in lane<br>
-      Space: Start / Pause<br>
-      0: Reset
-    </div>
-    <div style="display:flex; gap:10px;">
-      <div>
-        <div class="section-title">SPEED</div>
-        <input type="range" id="speedSlider" min="1" max="10" step="1" value="2">
-        <div id="speedVal">2</div>
-      </div>
-      <div>
-        <div class="section-title">LANES</div>
-        <input type="range" id="laneSlider" min="1" max="8" step="1" value="4">
-        <div id="laneVal">4</div>
-      </div>
+  </div>
+  <div style="display:flex; gap:10px;">
+    <div>
+      <label for="speedSlider" class="section-title">SPEED</label>
+      <input type="range" id="speedSlider" min="1" max="10" step="1" value="2" aria-describedby="speedVal">
+      <div id="speedVal" aria-live="polite">2</div>
     </div>
     <div>
-      <div class="section-title">WORD LIST</div>
-      <select id="wordListSelect"></select>
-      <textarea id="wordList"></textarea><br>
-      <button class="pill" id="applyWords">Apply</button>
-      <button class="pill" id="resetWords">Default</button>
+      <label for="laneSlider" class="section-title">LANES</label>
+      <input type="range" id="laneSlider" min="1" max="8" step="1" value="4" aria-describedby="laneVal">
+      <div id="laneVal" aria-live="polite">4</div>
     </div>
-    <div>
-      <div class="section-title">TIMER</div>
-      <label class="pill"><input type="checkbox" id="timerToggle"> Timer Mode</label>
-      <input type="range" id="timerSlider" min="1" max="5" step="1" value="3">
-      <div id="timerVal">3 min</div>
-    </div>
-    <div id="quotes"></div>
+  </div>
+  <div role="region" aria-label="Word List Settings">
+    <div class="section-title">WORD LIST</div>
+    <label for="wordListSelect">Difficulty Level:</label>
+    <select id="wordListSelect" aria-describedby="wordList"></select>
+    <label for="wordList">Custom Words:</label>
+    <textarea id="wordList" aria-describedby="applyWords resetWords" placeholder="Enter custom words, one per line"></textarea><br>
+    <button class="pill" id="applyWords" aria-describedby="wordList">Apply</button>
+    <button class="pill" id="resetWords">Default</button>
+  </div>
+  <div role="region" aria-label="Timer Settings">
+    <div class="section-title">TIMER</div>
+    <label class="pill"><input type="checkbox" id="timerToggle"> Timer Mode</label>
+    <label for="timerSlider">Duration:</label>
+    <input type="range" id="timerSlider" min="1" max="5" step="1" value="3" aria-describedby="timerVal">
+    <div id="timerVal" aria-live="polite">3 min</div>
+  </div>
+  <div id="quotes" role="status" aria-live="polite"></div>
+  
+  <!-- Mobile Controls -->
+  <div class="mobile-controls">
+    <button class="mobile-btn" id="leftBtn" aria-label="Move Left">←</button>
+    <button class="mobile-btn" id="rightBtn" aria-label="Move Right">→</button>
+    <button class="mobile-btn" id="pauseBtn" aria-label="Pause/Resume">⏸</button>
+    <button class="mobile-btn" id="resetBtn" aria-label="Reset Level">🔄</button>
+  </div>
   </div>
   <canvas id="rocketOverlay" width="1200" height="720"></canvas>
 </div>
@@ -337,6 +642,7 @@ document.addEventListener('keydown',(e)=>{
         target.fly=true; target.done=true; wordsLeft = Math.max(0, wordsLeft-1);
         score+=target.text.length;
         updateScore();
+        beep(800,0.05); // Success sound when word is completed
 
         // GROW ROCKET on each completed word
         rocket && rocket.grow();
@@ -383,6 +689,79 @@ laneSlider.oninput=()=>{
   draw(); // Redraw to show updated lane indicator
 };
 timerSlider.oninput=()=>{ timerDuration=parseInt(timerSlider.value)*60*1000; timerVal.textContent=timerSlider.value+" min"; };
+
+/* ===== Mobile Controls ===== */
+const leftBtn = document.getElementById('leftBtn');
+const rightBtn = document.getElementById('rightBtn');
+const pauseBtn = document.getElementById('pauseBtn');
+const resetBtn = document.getElementById('resetBtn');
+
+// Mobile button handlers
+leftBtn.addEventListener('click', () => {
+  playerLane = Math.max(0, playerLane - 1);
+  beep(300, 0.02);
+  draw();
+});
+
+rightBtn.addEventListener('click', () => {
+  playerLane = Math.min(lanes - 1, playerLane + 1);
+  beep(300, 0.02);
+  draw();
+});
+
+pauseBtn.addEventListener('click', () => {
+  running = !running;
+  if (running) audio.resume();
+  pauseBtn.textContent = running ? '⏸' : '▶';
+  draw();
+});
+
+resetBtn.addEventListener('click', () => {
+  splashScreen.style.display = 'none';
+  resetLevel(false);
+  running = true;
+  gameOver = false;
+  rocketLaunched = false;
+  pauseBtn.textContent = '⏸';
+});
+
+// Touch support for mobile
+let touchStartX = 0;
+let touchStartY = 0;
+
+canvas.addEventListener('touchstart', (e) => {
+  e.preventDefault();
+  const touch = e.touches[0];
+  touchStartX = touch.clientX;
+  touchStartY = touch.clientY;
+}, { passive: false });
+
+canvas.addEventListener('touchend', (e) => {
+  e.preventDefault();
+  const touch = e.changedTouches[0];
+  const deltaX = touch.clientX - touchStartX;
+  const deltaY = touch.clientY - touchStartY;
+  
+  // Swipe threshold
+  if (Math.abs(deltaX) > 30 || Math.abs(deltaY) > 30) {
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+      // Horizontal swipe
+      if (deltaX > 0) {
+        playerLane = Math.min(lanes - 1, playerLane + 1);
+        beep(300, 0.02);
+      } else {
+        playerLane = Math.max(0, playerLane - 1);
+        beep(300, 0.02);
+      }
+    } else {
+      // Vertical swipe - pause/resume
+      running = !running;
+      if (running) audio.resume();
+      pauseBtn.textContent = running ? '⏸' : '▶';
+    }
+    draw();
+  }
+}, { passive: false });
 
 /* ===== init ===== */
 resetLevel(false);
