@@ -104,6 +104,10 @@
             position: relative;
             margin: 20px 0;
             overflow: hidden;
+            background-image: 
+                linear-gradient(rgba(0, 255, 0, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 0, 0.1) 1px, transparent 1px);
+            background-size: 80px 80px;
         }
 
         .placed-pipe {
@@ -137,6 +141,22 @@
             border-color: #ffd700;
             box-shadow: 0 0 15px #ffd700;
             animation: pulse 1s infinite;
+        }
+
+        .grid-highlight {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            border: 2px dashed #0f0;
+            background: rgba(0, 255, 0, 0.1);
+            pointer-events: none;
+            z-index: 1;
+            animation: gridPulse 2s infinite;
+        }
+
+        @keyframes gridPulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.7; }
         }
 
         .placed-pipe.filled {
@@ -299,9 +319,10 @@
                 <ol style="text-align: left; margin-left: 20px; line-height: 1.8;">
                     <li><strong>Look at the math problem</strong> (e.g., "5 + 3 = ?")</li>
                     <li><strong>Drag number pipes</strong> from the bottom inventory to the play area</li>
-                    <li><strong>Place them strategically</strong> so they can connect to form the answer</li>
+                    <li><strong>Pipes snap to a grid</strong> - you'll see the green grid lines to help you</li>
+                    <li><strong>Place pipes adjacent to each other</strong> on the grid to create connections</li>
                     <li><strong>Use connector pipes</strong> (┌, ┐, └, ┘, ─, │) to create paths between numbers</li>
-                    <li><strong>When pipes are close enough</strong>, they automatically connect and turn green</li>
+                    <li><strong>Pipes automatically connect</strong> when placed correctly and turn green</li>
                     <li><strong>Water flows</strong> through connected pipes when you solve the puzzle!</li>
                 </ol>
                 
@@ -311,8 +332,16 @@
                     <li><strong>Connector pipes:</strong> ┌ (top-right), ┐ (top-left), └ (bottom-right), ┘ (bottom-left), ─ (horizontal), │ (vertical)</li>
                 </ul>
                 
+                <h4 style="color: #0f0; margin: 15px 0 10px 0;">🎮 Grid System:</h4>
+                <ul style="text-align: left; margin-left: 20px; line-height: 1.8;">
+                    <li><strong>Pipes snap to grid positions</strong> for precise placement</li>
+                    <li><strong>Adjacent grid cells</strong> automatically connect compatible pipes</li>
+                    <li><strong>Number pipes only connect</strong> when they form a valid math expression</li>
+                    <li><strong>Connector pipes</strong> can connect to any adjacent pipe</li>
+                </ul>
+                
                 <div style="background: rgba(255, 215, 0, 0.1); padding: 15px; border-radius: 10px; margin: 15px 0; border: 1px solid #ffd700;">
-                    <strong>💡 Example:</strong> For "5 + 3 = ?", you need to connect pipes with values 5 and 3, plus connector pipes to create a path between them. When connected, the total value should equal 8!
+                    <strong>💡 Example:</strong> For "5 + 3 = ?", place a pipe with value 5 and a pipe with value 3 in adjacent grid cells. Add connector pipes to create a path between them. When connected, the total value equals 8!
                 </div>
             </div>
         </div>
@@ -472,12 +501,17 @@
                     if (currentPipe) {
                         const touch = e.changedTouches[0];
                         const rect = playArea.getBoundingClientRect();
-                        const x = touch.clientX - rect.left - 40; // Adjusted for new pipe width
-                        const y = touch.clientY - rect.top - 20;  // Adjusted for new pipe height
+                        const rawX = touch.clientX - rect.left;
+                        const rawY = touch.clientY - rect.top;
+                        
+                        // Snap to grid
+                        const gridSize = 80;
+                        const x = Math.floor(rawX / gridSize) * gridSize;
+                        const y = Math.floor(rawY / gridSize) * gridSize;
                         
                         // Ensure pipe stays within bounds
-                        const maxX = rect.width - 80;
-                        const maxY = rect.height - 40;
+                        const maxX = rect.width - gridSize;
+                        const maxY = rect.height - gridSize;
                         const clampedX = Math.max(0, Math.min(x, maxX));
                         const clampedY = Math.max(0, Math.min(y, maxY));
                         
@@ -501,11 +535,17 @@
                 this.draggedPipe = pipe;
                 e.target.classList.add('dragging');
                 e.dataTransfer.setData('text/plain', JSON.stringify(pipe));
+                
+                // Show grid highlights
+                this.showGridHighlights();
             }
             
             handleDragEnd() {
                 document.querySelectorAll('.pipe-piece').forEach(p => p.classList.remove('dragging'));
                 this.draggedPipe = null;
+                
+                // Clear grid highlights
+                this.clearGridHighlights();
             }
             
             handleDrop(e) {
@@ -513,12 +553,17 @@
                 if (!this.draggedPipe) return;
                 
                 const rect = e.currentTarget.getBoundingClientRect();
-                const x = e.clientX - rect.left - 40; // Adjusted for new pipe width
-                const y = e.clientY - rect.top - 20;  // Adjusted for new pipe height
+                const rawX = e.clientX - rect.left;
+                const rawY = e.clientY - rect.top;
+                
+                // Snap to grid
+                const gridSize = 80;
+                const x = Math.floor(rawX / gridSize) * gridSize;
+                const y = Math.floor(rawY / gridSize) * gridSize;
                 
                 // Ensure pipe stays within bounds
-                const maxX = rect.width - 80;
-                const maxY = rect.height - 40;
+                const maxX = rect.width - gridSize;
+                const maxY = rect.height - gridSize;
                 const clampedX = Math.max(0, Math.min(x, maxX));
                 const clampedY = Math.max(0, Math.min(y, maxY));
                 
@@ -537,7 +582,7 @@
                 pipeElement.dataset.x = x;
                 pipeElement.dataset.y = y;
                 
-                pipeElement.addEventListener('click', () => this.connectPipe(pipeElement));
+                // Remove click event - pipes will connect automatically when placed correctly
                 
                 playArea.appendChild(pipeElement);
                 
@@ -567,29 +612,85 @@
                 });
                 this.connectedPipes = [];
                 
-                // Check for new connections based on proximity
-                this.pipes.forEach((pipe, index) => {
-                    this.pipes.forEach((otherPipe, otherIndex) => {
-                        if (index !== otherIndex) {
-                            const distance = Math.sqrt(
-                                Math.pow(pipe.x - otherPipe.x, 2) + 
-                                Math.pow(pipe.y - otherPipe.y, 2)
-                            );
+                // Create a grid-based connection system for more logical gameplay
+                const gridSize = 80; // Match pipe width
+                const tolerance = 20; // Allow some positioning flexibility
+                
+                // Group pipes by grid position
+                const gridPipes = {};
+                this.pipes.forEach(pipe => {
+                    const gridX = Math.floor(pipe.x / gridSize);
+                    const gridY = Math.floor(pipe.y / gridSize);
+                    const key = `${gridX},${gridY}`;
+                    
+                    if (!gridPipes[key]) gridPipes[key] = [];
+                    gridPipes[key].push(pipe);
+                });
+                
+                // Check for logical connections based on grid adjacency
+                Object.keys(gridPipes).forEach(key => {
+                    const [gridX, gridY] = key.split(',').map(Number);
+                    const currentPipes = gridPipes[key];
+                    
+                    // Check adjacent grid cells
+                    const adjacentKeys = [
+                        `${gridX-1},${gridY}`, // left
+                        `${gridX+1},${gridY}`, // right
+                        `${gridX},${gridY-1}`, // top
+                        `${gridX},${gridY+1}`  // bottom
+                    ];
+                    
+                    adjacentKeys.forEach(adjKey => {
+                        if (gridPipes[adjKey]) {
+                            const adjacentPipes = gridPipes[adjKey];
                             
-                            // Pipes connect when they're close enough (adjusted for new pipe dimensions)
-                            if (distance < 100) {
-                                this.connectPipes(pipe, otherPipe);
-                            } else if (distance < 120) {
-                                // Show connecting state for pipes that are close but not quite connected
-                                pipe.element.classList.add('connecting');
-                                otherPipe.element.classList.add('connecting');
-                            }
+                            // Try to connect pipes between adjacent cells
+                            currentPipes.forEach(pipe => {
+                                adjacentPipes.forEach(adjPipe => {
+                                    if (!pipe.connected && !adjPipe.connected) {
+                                        // Check if these pipes can logically connect
+                                        if (this.canPipesConnect(pipe, adjPipe)) {
+                                            this.connectPipes(pipe, adjPipe);
+                                        }
+                                    }
+                                });
+                            });
                         }
                     });
                 });
                 
                 // Update undo button state
                 this.updateUndoButton();
+            }
+            
+            canPipesConnect(pipe1, pipe2) {
+                // Only number pipes can connect to other number pipes
+                // Connector pipes can connect to any pipe
+                if (pipe1.data.value > 0 && pipe2.data.value > 0) {
+                    // Two number pipes - check if they can form a valid math expression
+                    return this.isValidMathConnection(pipe1, pipe2);
+                } else if (pipe1.data.value === 0 || pipe2.data.value === 0) {
+                    // At least one connector pipe - always allow connection
+                    return true;
+                }
+                return false;
+            }
+            
+            isValidMathConnection(pipe1, pipe2) {
+                // Check if connecting these two number pipes would help solve the problem
+                const total = pipe1.data.value + pipe2.data.value;
+                
+                if (this.currentProblem.operator === '+') {
+                    return total === this.currentProblem.answer;
+                } else if (this.currentProblem.operator === '×') {
+                    return total === this.currentProblem.answer;
+                } else if (this.currentProblem.operator === '-') {
+                    // For subtraction, we need the larger number minus smaller
+                    const larger = Math.max(pipe1.data.value, pipe2.data.value);
+                    const smaller = Math.min(pipe1.data.value, pipe2.data.value);
+                    return (larger - smaller) === this.currentProblem.answer;
+                }
+                return false;
             }
             
             connectPipes(pipe1, pipe2) {
@@ -644,30 +745,29 @@
             }
             
             checkWinCondition() {
-                if (this.connectedPipes.length >= 2) {
-                    // Check if the connected pipes form a valid path to the answer
-                    const totalValue = this.connectedPipes.reduce((sum, pipe) => {
-                        return sum + pipe.data.value;
-                    }, 0);
+                // Check if we have a valid solution
+                const numberPipes = this.connectedPipes.filter(p => p.data.value > 0);
+                
+                if (numberPipes.length >= 2) {
+                    let isValid = false;
                     
-                    // Check if we have the right numbers connected
                     if (this.currentProblem.operator === '+') {
-                        if (totalValue === this.currentProblem.answer) {
-                            this.celebrateWin();
-                        }
+                        const totalValue = numberPipes.reduce((sum, pipe) => sum + pipe.data.value, 0);
+                        isValid = totalValue === this.currentProblem.answer;
+                    } else if (this.currentProblem.operator === '×') {
+                        const totalValue = numberPipes.reduce((sum, pipe) => sum + pipe.data.value, 0);
+                        isValid = totalValue === this.currentProblem.answer;
                     } else if (this.currentProblem.operator === '-') {
-                        // For subtraction, we need to check if the larger number minus smaller equals answer
+                        // For subtraction, we need the larger number minus smaller
                         const larger = Math.max(this.currentProblem.num1, this.currentProblem.num2);
                         const smaller = Math.min(this.currentProblem.num1, this.currentProblem.num2);
-                        if (larger - smaller === this.currentProblem.answer && 
-                            this.connectedPipes.some(p => p.data.value === larger) &&
-                            this.connectedPipes.some(p => p.data.value === smaller)) {
-                            this.celebrateWin();
-                        }
-                    } else if (this.currentProblem.operator === '×') {
-                        if (totalValue === this.currentProblem.answer) {
-                            this.celebrateWin();
-                        }
+                        isValid = (larger - smaller) === this.currentProblem.answer &&
+                                 numberPipes.some(p => p.data.value === larger) &&
+                                 numberPipes.some(p => p.data.value === smaller);
+                    }
+                    
+                    if (isValid) {
+                        this.celebrateWin();
                     }
                 }
             }
@@ -804,6 +904,31 @@
                     undoBtn.disabled = true;
                     undoBtn.style.opacity = '0.5';
                 }
+            }
+            
+            showGridHighlights() {
+                const playArea = document.getElementById('playArea');
+                const rect = playArea.getBoundingClientRect();
+                const gridSize = 80;
+                
+                // Clear existing highlights
+                this.clearGridHighlights();
+                
+                // Create grid highlights
+                for (let x = 0; x < rect.width; x += gridSize) {
+                    for (let y = 0; y < rect.height; y += gridSize) {
+                        const highlight = document.createElement('div');
+                        highlight.className = 'grid-highlight';
+                        highlight.style.left = x + 'px';
+                        highlight.style.top = y + 'px';
+                        playArea.appendChild(highlight);
+                    }
+                }
+            }
+            
+            clearGridHighlights() {
+                const highlights = document.querySelectorAll('.grid-highlight');
+                highlights.forEach(h => h.remove());
             }
             
             showHint() {
