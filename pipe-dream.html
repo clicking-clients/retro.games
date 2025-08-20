@@ -51,166 +51,47 @@
 
         .pipe-piece {
             width: 80px;
-            height: 40px;
-            background: linear-gradient(135deg, #8b8b8b, #a0a0a0);
-            border: 4px solid #666;
-            border-radius: 20px;
-            cursor: grab;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            color: #333;
-            font-weight: bold;
-            text-shadow: 1px 1px 2px #fff;
-            transition: all 0.3s ease;
+            height: 80px;
+            display: grid;
+            place-items: center;
+            background: transparent;
+            border: none;
+            box-shadow: none;
             user-select: none;
-            box-shadow: 
-                0 4px 8px rgba(0, 0, 0, 0.4),
-                inset 0 2px 4px rgba(255, 255, 255, 0.3),
-                inset 0 -2px 4px rgba(0, 0, 0, 0.2);
+            cursor: grab;
+            transition: all 0.3s ease;
             touch-action: manipulation;
             position: relative;
             transform-style: preserve-3d;
         }
 
-        /* Add connection ends to all pipes */
-        .pipe-piece::before {
-            content: '';
-            position: absolute;
-            width: 12px;
-            height: 12px;
-            background: linear-gradient(135deg, #666, #888);
-            border: 2px solid #444;
-            border-radius: 50%;
-            top: 50%;
-            transform: translateY(-50%);
-            z-index: 2;
-        }
 
-        .pipe-piece::after {
-            content: '';
-            position: absolute;
-            width: 90%;
-            height: 60%;
-            background: linear-gradient(135deg, #6b6b6b, #8b8b8b);
-            border-radius: 15px;
-            top: 20%;
-            left: 5%;
-            z-index: -1;
-        }
 
-        /* Left connection end */
-        .pipe-piece .left-connector,
-        .placed-pipe .left-connector {
-            position: absolute;
-            left: -6px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 12px;
-            height: 12px;
-            background: linear-gradient(135deg, #666, #888);
-            border: 2px solid #444;
-            border-radius: 50%;
-            z-index: 2;
-        }
 
-        /* Right connection end */
-        .pipe-piece .right-connector,
-        .placed-pipe .right-connector {
-            position: absolute;
-            right: -6px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 12px;
-            height: 12px;
-            background: linear-gradient(135deg, #666, #888);
-            border: 2px solid #444;
-            border-radius: 50%;
-            z-index: 2;
-        }
 
-        /* Top connection end */
-        .pipe-piece .top-connector,
-        .placed-pipe .top-connector {
-            position: absolute;
-            top: -6px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 12px;
-            height: 12px;
-            background: linear-gradient(135deg, #666, #888);
-            border: 2px solid #444;
-            border-radius: 50%;
-            z-index: 2;
-        }
 
-        /* Bottom connection end */
-        .pipe-piece .bottom-connector,
-        .placed-pipe .bottom-connector {
-            position: absolute;
-            bottom: -6px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 12px;
-            height: 12px;
-            background: linear-gradient(135deg, #666, #888);
-            border: 2px solid #444;
-            border-radius: 50%;
-            z-index: 2;
-        }
-
-        .pipe-piece::before {
-            content: '';
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, 
-                transparent 0%, 
-                rgba(255, 255, 255, 0.4) 20%, 
-                rgba(255, 255, 255, 0.6) 50%, 
-                rgba(255, 255, 255, 0.4) 80%, 
-                transparent 100%);
-            border-radius: 20px;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .pipe-piece:hover::before {
-            opacity: 1;
-        }
-
-        .pipe-piece::after {
-            content: '';
-            position: absolute;
-            width: 90%;
-            height: 60%;
-            background: linear-gradient(135deg, #6b6b6b, #8b8b8b);
-            border-radius: 15px;
-            top: 20%;
-            left: 5%;
-            z-index: -1;
-        }
-
-        .pipe-piece::before {
-            content: '';
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent 0%, rgba(0, 255, 0, 0.3) 50%, transparent 100%);
-            border-radius: 20px;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .pipe-piece:hover::before {
-            opacity: 1;
-        }
 
         .pipe-piece:hover {
             transform: scale(1.1);
             box-shadow: 0 0 20px #0f0;
         }
+
+        .pipe-piece svg, .placed-pipe svg {
+            width: 86%;
+            height: 86%;
+            overflow: visible;
+        }
+
+        .pipe-stroke {
+            stroke: #a8c7d8;
+            stroke-width: 16;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            filter: drop-shadow(0 1px 0 rgba(0,0,0,.35));
+        }
+        .pipe-stroke.glow { stroke: #6ddcff; }
+        .pipe-inner { stroke: rgba(255,255,255,.22); stroke-width: 6; }
+        .pipe-endcap { fill: #86a7b8; opacity: .7; }
 
         .pipe-piece.dragging {
             opacity: 0.7;
@@ -235,37 +116,18 @@
         .placed-pipe {
             position: absolute;
             width: 80px;
-            height: 40px;
-            background: linear-gradient(135deg, #8b8b8b, #a0a0a0);
-            border: 4px solid #666;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            color: #333;
-            font-weight: bold;
-            text-shadow: 1px 1px 2px #fff;
+            height: 80px;
+            display: grid;
+            place-items: center;
+            background: transparent;
+            border: none;
+            box-shadow: none;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 
-                0 4px 8px rgba(0, 0, 0, 0.4),
-                inset 0 2px 4px rgba(255, 255, 255, 0.3),
-                inset 0 -2px 4px rgba(0, 0, 0, 0.2);
             transform-style: preserve-3d;
         }
 
-        .placed-pipe::after {
-            content: '';
-            position: absolute;
-            width: 90%;
-            height: 60%;
-            background: linear-gradient(135deg, #6b6b6b, #8b8b8b);
-            border-radius: 15px;
-            top: 20%;
-            left: 5%;
-            z-index: -1;
-        }
+
 
         .placed-pipe.connected {
             background: linear-gradient(135deg, #4CAF50, #66BB6A);
@@ -345,7 +207,7 @@
         .start-pipe {
             position: absolute;
             width: 80px;
-            height: 40px;
+            height: 80px;
             background: linear-gradient(135deg, #4CAF50, #66BB6A);
             border: 4px solid #2E7D32;
             border-radius: 20px;
@@ -365,17 +227,7 @@
             animation: startPipeGlow 2s ease-in-out infinite;
         }
 
-        .start-pipe::after {
-            content: '';
-            position: absolute;
-            width: 90%;
-            height: 60%;
-            background: linear-gradient(135deg, #388E3C, #4CAF50);
-            border-radius: 15px;
-            top: 20%;
-            left: 5%;
-            z-index: -1;
-        }
+
 
         @keyframes startPipeGlow {
             0%, 100% { 
@@ -389,7 +241,7 @@
         .answer-pipe {
             position: absolute;
             width: 80px;
-            height: 40px;
+            height: 80px;
             border: 4px solid #666;
             border-radius: 20px;
             display: flex;
@@ -406,17 +258,7 @@
                 inset 0 -2px 4px rgba(0, 0, 0, 0.2);
         }
 
-        .answer-pipe::after {
-            content: '';
-            position: absolute;
-            width: 90%;
-            height: 60%;
-            background: linear-gradient(135deg, #6b6b6b, #8b8b8b);
-            border-radius: 15px;
-            top: 20%;
-            left: 5%;
-            z-index: -1;
-        }
+
 
         .answer-pipe.correct {
             background: linear-gradient(135deg, #F44336, #EF5350);
@@ -1243,7 +1085,7 @@
                 startElement.className = 'start-pipe';
                 startElement.textContent = this.currentExpression.a;
                 startElement.style.left = '0px';
-                startElement.style.top = (startY * 80 + 20) + 'px'; // Center vertically in the 80px grid cell
+                startElement.style.top = (startY * 80) + 'px'; // Center vertically in the 80px grid cell
                 playArea.appendChild(startElement);
                 
                 // Place answer pipes along right and bottom edges
@@ -1278,7 +1120,7 @@
                     answerElement.className = `answer-pipe ${answer === this.correctAnswer ? 'correct' : 'decoy'}`;
                     answerElement.textContent = answer;
                     answerElement.style.left = (x * 80) + 'px';
-                    answerElement.style.top = (y * 80 + 20) + 'px'; // Center vertically in the grid cell
+                    answerElement.style.top = (y * 80) + 'px'; // Center vertically in the grid cell
                     playArea.appendChild(answerElement);
                 });
             }
@@ -1335,12 +1177,32 @@
                 shuffledPipes.forEach(pipe => {
                     const pipeElement = document.createElement('div');
                     pipeElement.className = 'pipe-piece';
-                    pipeElement.textContent = pipe.symbol;
                     pipeElement.draggable = true;
                     pipeElement.dataset.pipeType = JSON.stringify(pipe);
                     
-                    // Add connection elements based on pipe type
-                    this.addConnectionElements(pipeElement, pipe);
+                    // Decide what kind of pipe it is and render SVG
+                    let type = 'straight-h'; let rot = 0;
+                    switch(pipe.symbol) {
+                        case '━': type = 'straight-h'; break;
+                        case '┃': type = 'straight-v'; break;
+                        case '╭': type = 'elbow'; rot = 0; break;      // top-right
+                        case '╮': type = 'elbow'; rot = 90; break;     // top-left
+                        case '╰': type = 'elbow'; rot = 270; break;    // bottom-right
+                        case '╯': type = 'elbow'; rot = 180; break;    // bottom-left
+                        case '┣': type = 'tee'; rot = 180; break;
+                        case '┫': type = 'tee'; rot = 0; break;
+                        case '┻': type = 'tee'; rot = 90; break;
+                        case '┳': type = 'tee'; rot = 270; break;
+                        case '╋': type = 'cross'; break;
+                        default: 
+                            // For number and operator pipes, use straight-h
+                            if (pipe.type === 'number' || pipe.type === 'operator') {
+                                type = 'straight-h';
+                            }
+                    }
+                    renderPipeInto(pipeElement, type, rot);
+                    
+
                     
                     pipeElement.addEventListener('dragstart', (e) => this.handleDragStart(e, pipe));
                     pipeElement.addEventListener('dragend', () => this.handleDragEnd());
@@ -1349,32 +1211,7 @@
                 });
             }
             
-            addConnectionElements(pipeElement, pipe) {
-                // Add connection ends based on pipe connections
-                if (pipe.connections.includes('left')) {
-                    const leftConnector = document.createElement('div');
-                    leftConnector.className = 'left-connector';
-                    pipeElement.appendChild(leftConnector);
-                }
-                
-                if (pipe.connections.includes('right')) {
-                    const rightConnector = document.createElement('div');
-                    rightConnector.className = 'right-connector';
-                    pipeElement.appendChild(rightConnector);
-                }
-                
-                if (pipe.connections.includes('top')) {
-                    const topConnector = document.createElement('div');
-                    topConnector.className = 'top-connector';
-                    pipeElement.appendChild(topConnector);
-                }
-                
-                if (pipe.connections.includes('bottom')) {
-                    const bottomConnector = document.createElement('div');
-                    bottomConnector.className = 'bottom-connector';
-                    pipeElement.appendChild(bottomConnector);
-                }
-            }
+
             
             setupEventListeners() {
                 const playArea = document.getElementById('playArea');
@@ -1483,15 +1320,35 @@
                 const pipeElement = document.createElement('div');
                 
                 pipeElement.className = 'placed-pipe';
-                pipeElement.textContent = pipeData.symbol;
                 pipeElement.style.left = x + 'px';
-                pipeElement.style.top = y + 20 + 'px'; // Center vertically in the 80px grid cell
+                pipeElement.style.top = y + 'px'; // Center vertically in the 80px grid cell
                 pipeElement.dataset.pipeData = JSON.stringify(pipeData);
                 pipeElement.dataset.x = x;
                 pipeElement.dataset.y = y;
                 
-                // Add connection elements based on pipe type
-                this.addConnectionElements(pipeElement, pipeData);
+                // Decide what kind of pipe it is and render SVG
+                let type = 'straight-h'; let rot = 0;
+                switch(pipeData.symbol) {
+                    case '━': type = 'straight-h'; break;
+                    case '┃': type = 'straight-v'; break;
+                    case '╭': type = 'elbow'; rot = 0; break;      // top-right
+                    case '╮': type = 'elbow'; rot = 90; break;     // top-left
+                    case '╰': type = 'elbow'; rot = 270; break;    // bottom-right
+                    case '╯': type = 'elbow'; rot = 180; break;    // bottom-left
+                    case '┣': type = 'tee'; rot = 180; break;
+                    case '┫': type = 'tee'; rot = 0; break;
+                    case '┻': type = 'tee'; rot = 90; break;
+                    case '┳': type = 'tee'; rot = 270; break;
+                    case '╋': type = 'cross'; break;
+                    default: 
+                        // For number and operator pipes, use straight-h
+                        if (pipeData.type === 'number' || pipeData.type === 'operator') {
+                            type = 'straight-h';
+                        }
+                }
+                renderPipeInto(pipeElement, type, rot);
+                
+
                 
                 // Remove click event - pipes will connect automatically when placed correctly
                 
@@ -1640,7 +1497,7 @@
                 const spark = document.createElement('div');
                 spark.className = 'connection-spark';
                 spark.style.left = ((pipe1.x + pipe2.x) / 2 + 40) + 'px';
-                spark.style.top = ((pipe1.y + pipe2.y) / 2 + 20) + 'px';
+                spark.style.top = ((pipe1.y + pipe2.y) / 2 + 40) + 'px';
                 playArea.appendChild(spark);
                 
                 // Remove spark after animation
@@ -1656,9 +1513,9 @@
                 
                 // Calculate connection line position - pipes are now centered vertically
                 const x1 = pipe1.x + 40; // center of pipe1
-                const y1 = pipe1.y + 20 + 20; // center of pipe1 (grid position + 20px centering)
+                const y1 = pipe1.y + 40; // center of pipe1 (grid position + 40px centering)
                 const x2 = pipe2.x + 40; // center of pipe2
-                const y2 = pipe2.y + 20 + 20; // center of pipe2 (grid position + 20px centering)
+                const y2 = pipe2.y + 40; // center of pipe2 (grid position + 40px centering)
                 
                 const connectionLine = document.createElement('div');
                 connectionLine.className = 'connection-line';
@@ -1721,7 +1578,7 @@
                         const flow = document.createElement('div');
                         flow.className = 'water-flow';
                         flow.style.left = (pipe1.x + 40 + (Math.random() - 0.5) * 20) + 'px';
-                        flow.style.top = (pipe1.y + 20 + (Math.random() - 0.5) * 20) + 'px';
+                        flow.style.top = (pipe1.y + 40 + (Math.random() - 0.5) * 20) + 'px';
                         
                         playArea.appendChild(flow);
                         
@@ -1729,7 +1586,7 @@
                         const startX = parseFloat(flow.style.left);
                         const startY = parseFloat(flow.style.top);
                         const endX = pipe2.x + 40;
-                        const endY = pipe2.y + 20;
+                        const endY = pipe2.y + 40;
                         
                         let progress = 0;
                         const animate = () => {
@@ -2060,7 +1917,7 @@
                 const flow = document.createElement('div');
                 flow.className = 'water-flow';
                 flow.style.left = (x + 40) + 'px';
-                flow.style.top = (y + 20 + 20) + 'px'; // Account for vertical centering
+                flow.style.top = (y + 40) + 'px'; // Account for vertical centering
                 return flow;
             }
             
@@ -2130,6 +1987,52 @@
         document.addEventListener('DOMContentLoaded', () => {
             new PipeDream();
         });
+    </script>
+
+    <script>
+        function svgForPipe(type = 'straight-h', rot = 0, active = false) {
+            const strokeClass = 'pipe-stroke' + (active ? ' glow' : '');
+            const paths = {
+                'straight-h': `<path class="${strokeClass}" d="M12 50 H88"/>`,
+                'straight-v': `<path class="${strokeClass}" d="M50 12 V88"/>`,
+                'elbow': `<path class="${strokeClass}" d="M12 50 A38 38 0 0 1 50 12"/>`,
+                'tee': `
+                    <path class="${strokeClass}" d="M12 50 H88"/>
+                    <path class="${strokeClass}" d="M50 50 V12"/>`,
+                'cross': `
+                    <path class="${strokeClass}" d="M12 50 H88"/>
+                    <path class="${strokeClass}" d="M50 12 V88"/>`
+            };
+            const inner = {
+                'straight-h': `<path class="pipe-inner" d="M12 50 H88"/>`,
+                'straight-v': `<path class="pipe-inner" d="M50 12 V88"/>`,
+                'elbow': `<path class="pipe-inner" d="M12 50 A38 38 0 0 1 50 12"/>`,
+                'tee': `
+                    <path class="pipe-inner" d="M12 50 H88"/>
+                    <path class="pipe-inner" d="M50 50 V12"/>`,
+                'cross': `
+                    <path class="pipe-inner" d="M12 50 H88"/>
+                    <path class="pipe-inner" d="M50 12 V88"/>`
+            };
+            const endcaps = {
+                'straight-h': `<circle class="pipe-endcap" cx="12" cy="50" r="3"/><circle class="pipe-endcap" cx="88" cy="50" r="3"/>`,
+                'straight-v': `<circle class="pipe-endcap" cx="50" cy="12" r="3"/><circle class="pipe-endcap" cx="50" cy="88" r="3"/>`,
+                'elbow': `<circle class="pipe-endcap" cx="12" cy="50" r="3"/><circle class="pipe-endcap" cx="50" cy="12" r="3"/>`,
+                'tee': `<circle class="pipe-endcap" cx="12" cy="50" r="3"/><circle class="pipe-endcap" cx="88" cy="50" r="3"/><circle class="pipe-endcap" cx="50" cy="12" r="3"/>`,
+                'cross': `<circle class="pipe-endcap" cx="12" cy="50" r="3"/><circle class="pipe-endcap" cx="88" cy="50" r="3"/><circle class="pipe-endcap" cx="50" cy="12" r="3"/><circle class="pipe-endcap" cx="50" cy="88" r="3"/>`
+            };
+            return `
+        <svg viewBox="0 0 100 100">
+            <g transform="rotate(${rot} 50 50)">
+                ${paths[type] || paths['straight-h']}
+                ${inner[type] || ''}
+                ${endcaps[type] || ''}
+            </g>
+        </svg>`;
+        }
+        function renderPipeInto(el, type, rot = 0, active = false) {
+            el.innerHTML = svgForPipe(type, rot, active);
+        }
     </script>
 </body>
 </html>
