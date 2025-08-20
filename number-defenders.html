@@ -95,7 +95,7 @@ input[type=range] { width:100%; }
   </div>
   <canvas id="rocketOverlay" width="1200" height="720"></canvas>
 </div>
-<script>
+<script type="module">
 (() => {
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
@@ -126,42 +126,21 @@ const splashBtn=document.getElementById('splashBtn');
 const splashText=document.getElementById('splashText');
 
 const rocketOverlay=document.getElementById('rocketOverlay');
-const rocketCtx=rocketOverlay.getContext('2d');
 
 /* ===== Audio ===== */
-const AudioCtx = window.AudioContext || window.webkitAudioContext;
-const actx = new AudioCtx();
+import { GameAudio } from './audio.js';
+import { Fireworks } from './fireworks.js';
+import { Rocket } from './rocket.js';
+
+const audio = new GameAudio();
 function beep(freq=440,dur=0.07,type='square',vol=0.02){
-  const o=actx.createOscillator();
-  const g=actx.createGain();
-  o.type=type; o.frequency.value=freq;
-  o.connect(g); g.connect(actx.destination); g.gain.value=vol;
-  o.start(); o.stop(actx.currentTime+dur);
+  audio.beep(freq, dur, type, vol);
 }
 function rocketRumble(){
-  const g=actx.createGain(); g.gain.value=0.04; g.connect(actx.destination);
-  const o1=actx.createOscillator(), o2=actx.createOscillator();
-  o1.type='sawtooth'; o2.type='square';
-  o1.frequency.setValueAtTime(90, actx.currentTime);
-  o2.frequency.setValueAtTime(55, actx.currentTime);
-  o1.frequency.exponentialRampToValueAtTime(140, actx.currentTime+0.6);
-  o2.frequency.exponentialRampToValueAtTime(70, actx.currentTime+0.6);
-  o1.connect(g); o2.connect(g);
-  const end=actx.currentTime+0.7;
-  g.gain.setValueAtTime(0.045, actx.currentTime);
-  g.gain.exponentialRampToValueAtTime(0.01, end);
-  o1.start(); o2.start(); o1.stop(end); o2.stop(end);
+  audio.rocketRumble();
 }
 function fireworksPop(){
-  [900,1100,1300].forEach((f,i)=>{
-    const delay= i*0.08;
-    const o=actx.createOscillator(), g=actx.createGain();
-    o.type='triangle'; o.frequency.value=f;
-    o.connect(g); g.connect(actx.destination);
-    g.gain.setValueAtTime(0.03, actx.currentTime+delay);
-    g.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime+delay+0.2);
-    o.start(actx.currentTime+delay); o.stop(actx.currentTime+delay+0.22);
-  });
+  audio.fireworksPop();
 }
 
 /* ===== quotes ===== */
@@ -172,9 +151,7 @@ setInterval(rotateQuotes,5000); rotateQuotes();
 
 /* ===== words & lanes ===== */
 function laneX(l){ return l*laneW+laneW/2; }
-function randColor(){ const colors=["#0f0","#0ff","#ff0","#f0f","#f60","#0fa","#ff3","#f3f","#3ff","#f06","#f33","#33f","#fff"];
-  return colors[Math.floor(Math.random()*colors.length)];
-}
+// randColor function moved to fireworks.js module
 
 /* ===== Math problem generator ===== */
 function generateMathProblem(){
@@ -200,35 +177,18 @@ function spawnWord(){
   const crowded=words.some(w=>w.lane===l && w.y<80 && !w.fly);
   if(!crowded){
     const problem = generateMathProblem();
-    words.push({ text: problem.text, answer: problem.answer, lane:l, y:-10, progress:0, input:'', done:false, fly:false, alpha:1, color: randColor() });
+    words.push({ text: problem.text, answer: problem.answer, lane:l, y:-10, progress:0, input:'', done:false, fly:false, alpha:1, color: fireworks.randColor() });
     spawnedCount++;
   }
   scheduleNextSpawn();
 }
 
 /* ===== Rocket Class ===== */
-class Rocket{
-  constructor(canvas, audioFuncs, levelCompleteCb){
-    this.canvas = canvas; this.ctx = canvas.getContext('2d'); this.levelCompleteCb = levelCompleteCb;
-    this.x=60; this.y=H-80; this.height=40; this.width=20; this.audio=audioFuncs; this.flying=false;
-    this.draw();
-  }
-  draw(){
-    const ctx=this.ctx; ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
-    ctx.fillStyle='#fff'; ctx.fillRect(this.x,this.y,this.width,this.height);
-  }
-  grow(){ this.height +=6; this.y-=6; this.draw(); this.audio.rocketRumble(); }
-  launch(){
-    this.flying=true; let interval = setInterval(()=>{
-      if(this.y<-50){ clearInterval(interval); this.audio.fireworksPop(); this.levelCompleteCb(); return; }
-      this.y-=6; this.draw();
-    },16);
-  }
-  resetForLevel(){ this.height=40; this.y=H-80; this.draw(); this.flying=false; }
-}
+// Rocket class is now imported from rocket.js module
 
 /* ===== Level Reset ===== */
 let rocket;
+let fireworks; // fireworks instance for color generation
 function resetLevel(keepLevelNumber=false){
   if(!keepLevelNumber) level=1;
   score=0; lives=3; running=true; gameOver=false; words=[]; rocketLaunched=false; lastOutcomeSuccess=false;
@@ -244,9 +204,11 @@ function resetLevel(keepLevelNumber=false){
   scheduleNextSpawn();
   draw();
   if(!rocket){
+    fireworks = new Fireworks(rocketOverlay, audio);
     rocket = new Rocket(
       rocketOverlay,
-      { fireworksPop, rocketRumble, actx },
+      audio,
+      fireworks,
       ()=>{ splashLevelOver(true); level++; }
     );
   } else { rocket.resetForLevel(); }
