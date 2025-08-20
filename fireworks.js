@@ -17,7 +17,13 @@ export class Fireworks {
 
   // Show fireworks at specified position
   show(baseX, baseY, onComplete) {
-    if (this.isActive) return;
+    console.log('🎆 Fireworks.show() called with:', baseX, baseY); // Debug log
+    console.log('🎆 Canvas dimensions:', this.width, 'x', this.height); // Debug log
+    
+    if (this.isActive) {
+      console.log('🎆 Fireworks already active, returning'); // Debug log
+      return;
+    }
     
     this.isActive = true;
     const bursts = [];
@@ -25,8 +31,9 @@ export class Fireworks {
 
     // Create multiple firework bursts
     for (let b = 0; b < numBursts; b++) {
-      const bx = baseX + (Math.random() * 60 - 30); // around base position
-      const by = baseY + (Math.random() * 40 - 20);
+      // Ensure fireworks stay within canvas bounds
+      const bx = Math.max(50, Math.min(this.width - 50, baseX + (Math.random() * 60 - 30)));
+      const by = Math.max(50, Math.min(this.height - 50, baseY + (Math.random() * 40 - 20)));
       const count = 25 + Math.floor(Math.random() * 20);
       const parts = [];
       

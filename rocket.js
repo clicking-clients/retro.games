@@ -158,8 +158,11 @@ export class Rocket {
     const baseX = this._launchParams ? this._launchParams.baseX : this.baseX;
     const baseY = this.groundY - this.currentHeight - 60;
 
+    console.log('🎆 Fireworks triggered at:', baseX, baseY); // Debug log
+
     // Show fireworks and handle completion
     this.fireworks.show(baseX, baseY, () => {
+      console.log('🎆 Fireworks complete!'); // Debug log
       this.inFireworks = false;
       this.onFireworksDone && this.onFireworksDone();
     });
