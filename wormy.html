@@ -47,7 +47,7 @@ body {
   max-width: 800px;
 }
 
-#gameNav, 
+  #gameNav, 
 #gameNav a {
   display: block;
   margin-top: 5px;
@@ -378,28 +378,39 @@ function draw() {
     context.restore();
 }
 
+// Global variable to track the flash interval
+let gameOverFlashInterval = null;
+
 function update() {
     if(paused) return;
     if(!gameOver) snake.update();
     draw();
     document.getElementById('score').textContent = score;
     if(!gameOver) {
+        // Clear any existing flash interval when game is not over
+        if (gameOverFlashInterval) {
+            clearInterval(gameOverFlashInterval);
+            gameOverFlashInterval = null;
+        }
         setTimeout(update, 150);
     } else {
-        let flash = true;
-        const flashInterval = setInterval(() => {
-            draw();
-            context.save();
-            context.scale(scale, scale);
-            if(flash) {
-                context.fillStyle = '#F00';
-                context.font = '1.5px monospace';
-                context.textAlign = 'center';
-                context.fillText('GAME OVER', cols/2, rows/2);
-            }
-            context.restore();
-            flash = !flash;
-        }, 500);
+        // Only create flash interval if one doesn't exist
+        if (!gameOverFlashInterval) {
+            let flash = true;
+            gameOverFlashInterval = setInterval(() => {
+                draw();
+                context.save();
+                context.scale(scale, scale);
+                if(flash) {
+                    context.fillStyle = '#F00';
+                    context.font = '1.5px monospace';
+                    context.textAlign = 'center';
+                    context.fillText('GAME OVER', cols/2, rows/2);
+                }
+                context.restore();
+                flash = !flash;
+            }, 500);
+        }
     }
 }
 
@@ -435,6 +446,11 @@ pauseBtn.addEventListener('click', () => {
 });
 
 resetBtn.addEventListener('click', () => {
+  // Clear the flash interval when resetting
+  if (gameOverFlashInterval) {
+    clearInterval(gameOverFlashInterval);
+    gameOverFlashInterval = null;
+  }
   score = 0;
   snake = new Snake();
   spawnFruit();

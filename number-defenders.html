@@ -287,25 +287,75 @@ input[type=range] {
 }
 
 .mobile-input-area .section-title {
-  margin-bottom: 10px;
+  margin-bottom: 15px;
   text-align: center;
 }
 
-#mobileNumberInput {
-  width: 100%;
-  padding: 12px;
-  background: var(--bg);
-  color: var(--green);
-  border: 2px solid var(--green);
-  border-radius: 6px;
-  font-family: monospace;
-  font-size: 1rem;
-  margin-bottom: 10px;
+/* Mobile keypad */
+.mobile-keypad {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 15px;
 }
 
-#mobileNumberInput:focus {
-  border-color: var(--focus-outline);
-  outline: none;
+.keypad-row {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.keypad-key {
+  background: rgba(0, 255, 0, 0.1);
+  border: 2px solid var(--green);
+  color: var(--green);
+  padding: 15px 12px;
+  border-radius: 8px;
+  font-family: monospace;
+  font-size: 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  min-width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.keypad-key:hover,
+.keypad-key:focus,
+.keypad-key:active {
+  background: rgba(0, 255, 0, 0.3);
+  transform: scale(1.05);
+}
+
+.keypad-key[data-key="backspace"] {
+  background: rgba(255, 0, 0, 0.2);
+  border-color: var(--red);
+  color: var(--red);
+  min-width: 60px;
+}
+
+.keypad-key[data-key="enter"] {
+  background: rgba(0, 255, 0, 0.3);
+  border-color: var(--green);
+  color: var(--green);
+  min-width: 60px;
+}
+
+.keypad-key[data-key="backspace"]:hover,
+.keypad-key[data-key="backspace"]:focus,
+.keypad-key[data-key="backspace"]:active {
+  background: rgba(255, 0, 0, 0.4);
+}
+
+.keypad-key[data-key="enter"]:hover,
+.keypad-key[data-key="enter"]:focus,
+.keypad-key[data-key="enter"]:active {
+  background: rgba(0, 255, 0, 0.5);
 }
 
 .input-help {
@@ -432,19 +482,47 @@ input[type=range] {
     <button class="dir-btn" id="dirUpBtn" aria-label="Move Up">↑</button>
     <div class="dir-row">
       <button class="dir-btn" id="dirLeftBtn" aria-label="Move Left">←</button>
-      <button class="dir-btn" id="dirRightBtn" aria-label="Move Right">→</button>
+      <button class="keypad-key" id="dirRightBtn" aria-label="Move Right">→</button>
     </div>
+  </div>
+  
+  <!-- Mobile Input Area - Directly below game -->
+  <div class="mobile-input-area">
+    <div class="section-title">SOLVE PROBLEMS</div>
+    <div class="mobile-keypad">
+      <div class="keypad-row">
+        <button class="keypad-key" data-key="1">1</button>
+        <button class="keypad-key" data-key="2">2</button>
+        <button class="keypad-key" data-key="3">3</button>
+      </div>
+      <div class="keypad-row">
+        <button class="keypad-key" data-key="4">4</button>
+        <button class="keypad-key" data-key="5">5</button>
+        <button class="keypad-key" data-key="6">6</button>
+      </div>
+      <div class="keypad-row">
+        <button class="keypad-key" data-key="7">7</button>
+        <button class="keypad-key" data-key="8">8</button>
+        <button class="keypad-key" data-key="9">9</button>
+      </div>
+      <div class="keypad-row">
+        <button class="keypad-key" data-key="0">0</button>
+        <button class="keypad-key" data-key="backspace">⌫</button>
+        <button class="keypad-key" data-key="enter">↵</button>
+      </div>
+    </div>
+    <div class="input-help">Tap numbers to solve math problems in your lane</div>
   </div>
   
   <div id="sidebar">
       <h1 id="title">NUMBER DEFENDERS</h1>
   <div id="scoreboard" role="region" aria-label="Game Score">
-    <div class="section-title">SCORE</div>
+      <div class="section-title">SCORE</div>
     <div>Score: <span id="score" aria-live="polite">0</span> | Problems Left: <span id="wordsLeft" aria-live="polite">0</span></div>
     <div>Timer: <span id="timerDisplay" aria-live="polite">0:00</span></div>
-  </div>
+    </div>
   <div id="controls" role="region" aria-label="Game Controls">
-    <div class="section-title">CONTROLS</div>
+      <div class="section-title">CONTROLS</div>
     <div role="list">
       <div role="listitem">←: Move Left</div>
       <div role="listitem">→: Move Right</div>
@@ -452,7 +530,7 @@ input[type=range] {
       <div role="listitem">Space: Start / Pause</div>
       <div role="listitem">R: Reset Level</div>
     </div>
-  </div>
+    </div>
 
     <div style="display:flex; gap:10px;">
       <div>
@@ -477,8 +555,8 @@ input[type=range] {
       <div id="modeTitle" class="section-title">MODE</div>
       <fieldset>
         <legend class="sr-only">Operation Mode</legend>
-        <label><input type="radio" name="mode" value="both" checked> + / - </label>
-        <label><input type="radio" name="mode" value="+"> Addition </label>
+      <label><input type="radio" name="mode" value="both" checked> + / - </label>
+      <label><input type="radio" name="mode" value="+"> Addition </label>
         <label><input type="radio" name="mode" value="-"> Subtraction </label>
       </fieldset>
       <label><input type="checkbox" id="allowNeg"> Allow negative answers</label>
@@ -704,11 +782,13 @@ const leftBtn = document.getElementById('leftBtn');
 const rightBtn = document.getElementById('rightBtn');
 const pauseBtn = document.getElementById('pauseBtn');
 const resetBtn = document.getElementById('resetBtn');
-const mobileNumberInput = document.getElementById('mobileNumberInput');
-const submitNumberBtn = document.getElementById('submitNumberBtn');
 const dirUpBtn = document.getElementById('dirUpBtn');
 const dirLeftBtn = document.getElementById('dirLeftBtn');
 const dirRightBtn = document.getElementById('dirRightBtn');
+
+// Mobile keypad functionality
+let currentNumberInput = '';
+const keypadKeys = document.querySelectorAll('.keypad-key');
 
 // Mobile button handlers
 leftBtn.addEventListener('click', () => {
@@ -752,39 +832,45 @@ resetBtn.addEventListener('click', () => {
   pauseBtn.textContent = '⏸';
 });
 
-// Mobile input functionality
-submitNumberBtn.addEventListener('click', () => {
-  const input = mobileNumberInput.value.trim();
-  if (input) {
-    // Process the input as if typed
-    const target = words.find(w => !w.done && !w.fly && w.lane === playerLane);
-    if (target) {
-      // Simulate typing the input
-      target.input = input;
-      
-      // Check if answer is correct
-      if (parseInt(target.input) === target.answer) {
-        target.fly = true;
-        target.done = true;
-        wordsLeft = Math.max(0, wordsLeft - 1);
-        updateScore();
-        score += 1;
-        rocket && rocket.grow();
-        beep(800, 0.05); // Success sound when problem is solved
-        if (wordsLeft === 0 && !gameOver) {
-          rocketLaunched = true;
-          rocket && rocket.launch();
+// Mobile keypad functionality
+keypadKeys.forEach(key => {
+  key.addEventListener('click', () => {
+    const keyValue = key.dataset.key;
+    
+    if (keyValue === 'backspace') {
+      // Remove last character
+      currentNumberInput = currentNumberInput.slice(0, -1);
+    } else if (keyValue === 'enter') {
+      // Submit the answer
+      if (currentNumberInput) {
+        const target = words.find(w => !w.done && !w.fly && w.lane === playerLane);
+        if (target) {
+          // Check if answer is correct
+          if (parseInt(currentNumberInput) === target.answer) {
+            target.fly = true;
+            target.done = true;
+            wordsLeft = Math.max(0, wordsLeft - 1);
+            updateScore();
+            score += 1;
+            rocket && rocket.grow();
+            beep(800, 0.05); // Success sound when problem is solved
+            if (wordsLeft === 0 && !gameOver) {
+              rocketLaunched = true;
+              rocket && rocket.launch();
+            }
+          } else {
+            beep(180, 0.03);
+          }
+        } else {
+          beep(180, 0.03);
         }
-      } else if (!target.answer.toString().startsWith(target.input)) {
-        beep(180, 0.03);
-        target.input = '';
+        currentNumberInput = '';
       }
     } else {
-      beep(180, 0.03);
+      // Add number to current input
+      currentNumberInput += keyValue;
     }
-    mobileNumberInput.value = '';
-    mobileNumberInput.focus();
-  }
+  });
 });
 
 // Touch support for mobile

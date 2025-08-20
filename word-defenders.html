@@ -295,25 +295,62 @@ input[type=range] {
 }
 
 .mobile-input-area .section-title {
-  margin-bottom: 10px;
+  margin-bottom: 15px;
   text-align: center;
 }
 
-#mobileWordInput {
-  width: 100%;
-  padding: 12px;
-  background: var(--bg);
-  color: var(--green);
-  border: 2px solid var(--green);
-  border-radius: 6px;
-  font-family: monospace;
-  font-size: 1rem;
-  margin-bottom: 10px;
+/* Mobile keypad */
+.mobile-keypad {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 15px;
 }
 
-#mobileWordInput:focus {
-  border-color: var(--focus-outline);
-  outline: none;
+.keypad-row {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+
+.keypad-key {
+  background: rgba(0, 255, 0, 0.1);
+  border: 2px solid var(--green);
+  color: var(--green);
+  padding: 12px 8px;
+  border-radius: 6px;
+  font-family: monospace;
+  font-size: 0.9rem;
+  font-weight: bold;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  min-width: 32px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.keypad-key:hover,
+.keypad-key:focus,
+.keypad-key:active {
+  background: rgba(0, 255, 0, 0.3);
+  transform: scale(1.05);
+}
+
+.keypad-key[data-key="backspace"] {
+  background: rgba(255, 0, 0, 0.2);
+  border-color: var(--red);
+  color: var(--red);
+  min-width: 48px;
+}
+
+.keypad-key[data-key="backspace"]:hover,
+.keypad-key[data-key="backspace"]:focus,
+.keypad-key[data-key="backspace"]:active {
+  background: rgba(255, 0, 0, 0.4);
 }
 
 .input-help {
@@ -444,15 +481,56 @@ input[type=range] {
     </div>
   </div>
   
+  <!-- Mobile Input Area - Directly below game -->
+  <div class="mobile-input-area">
+    <div class="section-title">TYPE WORDS</div>
+    <div class="mobile-keypad">
+      <div class="keypad-row">
+        <button class="keypad-key" data-key="q">Q</button>
+        <button class="keypad-key" data-key="w">W</button>
+        <button class="keypad-key" data-key="e">E</button>
+        <button class="keypad-key" data-key="r">R</button>
+        <button class="keypad-key" data-key="t">T</button>
+        <button class="keypad-key" data-key="y">Y</button>
+        <button class="keypad-key" data-key="u">U</button>
+        <button class="keypad-key" data-key="i">I</button>
+        <button class="keypad-key" data-key="o">O</button>
+        <button class="keypad-key" data-key="p">P</button>
+      </div>
+      <div class="keypad-row">
+        <button class="keypad-key" data-key="a">A</button>
+        <button class="keypad-key" data-key="s">S</button>
+        <button class="keypad-key" data-key="d">D</button>
+        <button class="keypad-key" data-key="f">F</button>
+        <button class="keypad-key" data-key="g">G</button>
+        <button class="keypad-key" data-key="h">H</button>
+        <button class="keypad-key" data-key="j">J</button>
+        <button class="keypad-key" data-key="k">K</button>
+        <button class="keypad-key" data-key="l">L</button>
+      </div>
+      <div class="keypad-row">
+        <button class="keypad-key" data-key="z">Z</button>
+        <button class="keypad-key" data-key="x">X</button>
+        <button class="keypad-key" data-key="c">C</button>
+        <button class="keypad-key" data-key="v">V</button>
+        <button class="keypad-key" data-key="b">B</button>
+        <button class="keypad-key" data-key="n">N</button>
+        <button class="keypad-key" data-key="m">M</button>
+        <button class="keypad-key" data-key="backspace">⌫</button>
+      </div>
+    </div>
+    <div class="input-help">Tap letters to type words in your lane</div>
+  </div>
+  
   <div id="sidebar">
       <h1 id="title">WORD DEFENDERS</h1>
   <div id="scoreboard" role="region" aria-label="Game Score">
-    <div class="section-title">SCORE</div>
+      <div class="section-title">SCORE</div>
     <div>Score: <span id="score" aria-live="polite">0</span> | Words Left: <span id="wordsLeft" aria-live="polite">0</span> | WPM: <span id="wpm" aria-live="polite">0</span></div>
     <div>Timer: <span id="timerDisplay" aria-live="polite">0:00</span></div>
-  </div>
+    </div>
   <div id="controls" role="region" aria-label="Game Controls">
-    <div class="section-title">CONTROLS</div>
+      <div class="section-title">CONTROLS</div>
     <div role="list">
       <div role="listitem">1 / ←: Move Left</div>
       <div role="listitem">2 / →: Move Right</div>
@@ -460,9 +538,9 @@ input[type=range] {
       <div role="listitem">Space: Start / Pause</div>
       <div role="listitem">0: Reset</div>
     </div>
-  </div>
-  <div style="display:flex; gap:10px;">
-    <div>
+    </div>
+    <div style="display:flex; gap:10px;">
+      <div>
       <label for="speedSlider" class="section-title">SPEED</label>
       <input type="range" id="speedSlider" min="1" max="10" step="1" value="2" aria-describedby="speedVal">
       <div id="speedVal" aria-live="polite">2</div>
@@ -474,17 +552,17 @@ input[type=range] {
     </div>
   </div>
   <div role="region" aria-label="Word List Settings">
-    <div class="section-title">WORD LIST</div>
+      <div class="section-title">WORD LIST</div>
     <label for="wordListSelect">Difficulty Level:</label>
     <select id="wordListSelect" aria-describedby="wordList"></select>
     <label for="wordList">Custom Words:</label>
     <textarea id="wordList" aria-describedby="applyWords resetWords" placeholder="Enter custom words, one per line"></textarea><br>
     <button class="pill" id="applyWords" aria-describedby="wordList">Apply</button>
-    <button class="pill" id="resetWords">Default</button>
-  </div>
+      <button class="pill" id="resetWords">Default</button>
+    </div>
   <div role="region" aria-label="Timer Settings">
-    <div class="section-title">TIMER</div>
-    <label class="pill"><input type="checkbox" id="timerToggle"> Timer Mode</label>
+      <div class="section-title">TIMER</div>
+      <label class="pill"><input type="checkbox" id="timerToggle"> Timer Mode</label>
     <label for="timerSlider">Duration:</label>
     <input type="range" id="timerSlider" min="1" max="5" step="1" value="3" aria-describedby="timerVal">
     <div id="timerVal" aria-live="polite">3 min</div>
@@ -800,11 +878,13 @@ const leftBtn = document.getElementById('leftBtn');
 const rightBtn = document.getElementById('rightBtn');
 const pauseBtn = document.getElementById('pauseBtn');
 const resetBtn = document.getElementById('resetBtn');
-const mobileWordInput = document.getElementById('mobileWordInput');
-const submitWordBtn = document.getElementById('submitWordBtn');
 const dirUpBtn = document.getElementById('dirUpBtn');
 const dirLeftBtn = document.getElementById('dirLeftBtn');
 const dirRightBtn = document.getElementById('dirRightBtn');
+
+// Mobile keypad functionality
+let currentWordInput = '';
+const keypadKeys = document.querySelectorAll('.keypad-key');
 
 // Mobile button handlers
 leftBtn.addEventListener('click', () => {
@@ -853,50 +933,59 @@ resetBtn.addEventListener('click', () => {
   pauseBtn.textContent = '⏸';
 });
 
-// Mobile input functionality
-submitWordBtn.addEventListener('click', () => {
-  const input = mobileWordInput.value.trim();
-  if (input) {
-    // Process each character as if typed
-    for (let char of input) {
-      if (/[a-z]/i.test(char)) {
-        // Simulate key press for this character
-        const target = wordInPlayerLane();
-        if (target) {
-          const expected = target.text[target.progress] || '';
-          if (char.toLowerCase() === expected) {
-            target.progress++;
-            beep(520, 0.03);
-            if (target.progress >= target.text.length) {
-              target.fly = true;
-              target.done = true;
-              wordsLeft = Math.max(0, wordsLeft - 1);
-              score += target.text.length;
-              updateScore();
-              beep(800, 0.05); // Success sound when word is completed
-              rocket && rocket.grow();
-              if (wordsLeft === 0 && !gameOver) {
-                running = false;
-                lastOutcomeSuccess = (lives > 0);
-                if (lastOutcomeSuccess && !rocketLaunched) {
-                  rocketLaunched = true;
-                  rocket && rocket.launch();
-                } else if (!lastOutcomeSuccess) {
-                  splashLevelOver(false);
-                }
+// Mobile keypad functionality
+keypadKeys.forEach(key => {
+  key.addEventListener('click', () => {
+    const keyValue = key.dataset.key;
+    
+    if (keyValue === 'backspace') {
+      // Remove last character
+      currentWordInput = currentWordInput.slice(0, -1);
+    } else {
+      // Add letter to current input
+      currentWordInput += keyValue.toLowerCase();
+    }
+    
+    // Process the input as if typed
+    if (currentWordInput) {
+      const target = wordInPlayerLane();
+      if (target) {
+        const expected = target.text[target.progress] || '';
+        if (currentWordInput[currentWordInput.length - 1] === expected) {
+          target.progress++;
+          beep(520, 0.03);
+          if (target.progress >= target.text.length) {
+            target.fly = true;
+            target.done = true;
+            wordsLeft = Math.max(0, wordsLeft - 1);
+            score += target.text.length;
+            updateScore();
+            beep(800, 0.05); // Success sound when word is completed
+            rocket && rocket.grow();
+            if (wordsLeft === 0 && !gameOver) {
+              running = false;
+              lastOutcomeSuccess = (lives > 0);
+              if (lastOutcomeSuccess && !rocketLaunched) {
+                rocketLaunched = true;
+                rocket && rocket.launch();
+              } else if (!lastOutcomeSuccess) {
+                splashLevelOver(false);
               }
             }
-          } else {
-            beep(180, 0.03);
           }
+          // Clear input after successful character
+          currentWordInput = '';
         } else {
           beep(180, 0.03);
+          // Clear input after wrong character
+          currentWordInput = '';
         }
+      } else {
+        beep(180, 0.03);
+        currentWordInput = '';
       }
     }
-    mobileWordInput.value = '';
-    mobileWordInput.focus();
-  }
+  });
 });
 
 // Touch support for mobile
