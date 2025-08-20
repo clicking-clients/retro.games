@@ -10,35 +10,161 @@
   --bg:#000;
   --score:#0f0;
   --title:#ffd700;
+  --focus-outline: #0ff;
 }
-html,body{height:100%;margin:0;background:var(--bg);font-family:system-ui,monospace;color:var(--score);}
-.app{ height: 80%;display:flex;gap:20px;align-items:flex-start;justify-content:center;padding:18px;}
+
+/* Accessibility and mobile improvements */
+* {
+  box-sizing: border-box;
+}
+
+html,body{
+  height:100%;
+  margin:0;
+  background:var(--bg);
+  font-family:system-ui,monospace;
+  color:var(--score);
+  font-size: 16px; /* Prevent zoom on mobile */
+}
+
+/* Focus styles for accessibility */
+*:focus {
+  outline: 2px solid var(--focus-outline);
+  outline-offset: 2px;
+}
+
+/* Mobile-first responsive design */
+.app{ 
+  height: 80%;
+  display:flex;
+  flex-direction: column;
+  gap:15px;
+  align-items:center;
+  justify-content:center;
+  padding:15px;
+  width: 100%;
+  max-width: 1200px;
+}
+
 #gameNav, 
 #gameNav a {
   display: block;
   margin-top: 5px;
   text-transform: uppercase;
-  color: #0f0;
+  color: var(--score);
   text-decoration: none;
+  padding: 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+#gameNav a:hover,
+#gameNav a:focus {
+  background-color: rgba(0, 255, 0, 0.1);
 }
 
 #gameNav a.active {
-  color: #ff0;       /* highlight color */
-  font-weight: bold;  /* optional emphasis */
+  color: #ff0;
+  font-weight: bold;
   text-decoration: underline;
+  background-color: rgba(255, 255, 0, 0.1);
 }
-#game{image-rendering:pixelated;border:6px solid var(--score);background:#000;display:block;outline:none;}
-#sidebar{width:220px;color:var(--score);display:flex;flex-direction:column;gap:14px}
-#title { text-transform: uppercase; font-size: 2rem; color: #ff0; text-shadow: 0 0 8px #f00; text-align: center; }
-.section-title{color:var(--title);font-weight:700;margin-bottom:6px}
-#map-buttons{display:flex;gap:6px;flex-wrap:wrap}
-#map-buttons button{background:transparent;border:1px solid var(--score);color:var(--score);padding:6px 8px;cursor:pointer}
-#map-buttons button.selected{background:var(--score);color:#000}
-#scoreboard{border:2px solid var(--score);padding:10px;display:grid;grid-template-columns:1fr 1fr;gap:6px;align-items:center;}
-#scoreboard .section-title{text-align:left;margin:0}
-#scoreboard div.value{text-align:right}
-#instructions{font-size:13px;line-height:1.2}
-.quote-wrap{position:relative;width:100%;display:flex;justify-content:flex-start;margin-top:8px}
+
+#game{
+  image-rendering:pixelated;
+  border:6px solid var(--score);
+  background:#000;
+  display:block;
+  outline:none;
+  width: 100%;
+  max-width: 560px;
+  height: auto;
+  aspect-ratio: 560/640;
+  border-radius: 6px;
+}
+
+#sidebar{
+  width: 100%;
+  max-width: 220px;
+  color:var(--score);
+  display:flex;
+  flex-direction:column;
+  gap:14px
+}
+
+#title { 
+  text-transform: uppercase; 
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  color: var(--title); 
+  text-shadow: 0 0 8px #f00; 
+  text-align: center;
+  margin: 0;
+}
+
+.section-title{
+  color:var(--title);
+  font-weight:700;
+  margin-bottom:8px
+}
+
+#map-buttons{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap
+}
+
+#map-buttons button{
+  background:transparent;
+  border:1px solid var(--score);
+  color:var(--score);
+  padding:8px 12px;
+  cursor:pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+#map-buttons button:hover,
+#map-buttons button:focus {
+  background: rgba(0, 255, 0, 0.1);
+}
+
+#map-buttons button.selected{
+  background:var(--score);
+  color:#000
+}
+
+#scoreboard{
+  border:2px solid var(--score);
+  padding:12px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  align-items:center;
+  border-radius: 6px;
+}
+
+#scoreboard .section-title{
+  text-align:left;
+  margin:0
+}
+
+#scoreboard div.value{
+  text-align:right
+}
+
+#instructions{
+  font-size:13px;
+  line-height:1.4
+}
+
+.quote-wrap{
+  position:relative;
+  width:100%;
+  display:flex;
+  justify-content:flex-start;
+  margin-top:8px
+}
+
 #quote-banner{
   min-width:320px;
   max-width:560px;
@@ -52,24 +178,185 @@ html,body{height:100%;margin:0;background:var(--bg);font-family:system-ui,monosp
   transition:opacity 650ms ease-in-out;
   transform:translateY(0.25rem);
   pointer-events:none;
+  border-radius: 4px;
 }
-#quote-banner.visible{opacity:1}
-.game-wrap{position:relative;}
+
+#quote-banner.visible{
+  opacity:1
+}
+
+.game-wrap{
+  position:relative;
+}
+
 #share-message{
-  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-  color:var(--title);font-size:28px;font-weight:bold;text-shadow:0 0 8px #f00;
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  color:var(--title);
+  font-size: clamp(1.5rem, 5vw, 28px);
+  font-weight:bold;
+  text-shadow:0 0 8px #f00;
   text-align:center;
   opacity:0;
   transition:opacity 0.8s ease-in-out;
-  background:rgba(0,0,0,0.6);padding:12px 20px;border-radius:8px;
+  background:rgba(0,0,0,0.6);
+  padding:12px 20px;
+  border-radius:8px;
   cursor:pointer;
 }
-#share-message.visible{opacity:1;}
-#timer-controls{display:flex;gap:6px;align-items:center;margin-top:6px;}
-#cancel-timer{padding:4px 6px;border:1px solid var(--score);background:transparent;color:var(--score);cursor:pointer}
+
+#share-message.visible{
+  opacity:1;
+}
+
+#timer-controls{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  margin-top:8px;
+}
+
+#cancel-timer{
+  padding:6px 8px;
+  border:1px solid var(--score);
+  background:transparent;
+  color:var(--score);
+  cursor:pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+#cancel-timer:hover,
+#cancel-timer:focus {
+  background: rgba(0, 255, 0, 0.1);
+}
+
+/* Mobile controls */
+.mobile-controls {
+  display: none;
+  gap: 10px;
+  margin-top: 15px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.mobile-btn {
+  background: rgba(0, 255, 0, 0.2);
+  border: 2px solid var(--score);
+  color: var(--score);
+  padding: 15px;
+  border-radius: 8px;
+  font-size: 1.2rem;
+  font-family: monospace;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  min-width: 60px;
+  transition: all 0.2s;
+}
+
+.mobile-btn:hover,
+.mobile-btn:focus,
+.mobile-btn:active {
+  background: rgba(0, 255, 0, 0.3);
+  transform: scale(1.05);
+}
+
+/* Responsive breakpoints */
+@media (min-width: 768px) {
+  .app {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 18px;
+  }
+  
+  #game {
+    width: 560px;
+    height: 640px;
+  }
+  
+  #sidebar {
+    width: 220px;
+  }
+  
+  .mobile-controls {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .mobile-controls {
+    display: flex;
+  }
+  
+  .app {
+    padding: 10px;
+  }
+  
+  #game {
+    max-width: 100vw;
+    margin: 0 auto;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --score: #00ff00;
+    --title: #ffff00;
+    --wall: #00ffff;
+    --focus-outline: #ffffff;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Skip link for accessibility */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 6px;
+  background: var(--score);
+  color: var(--bg);
+  padding: 8px;
+  text-decoration: none;
+  border-radius: 4px;
+  z-index: 1001;
+  transition: top 0.3s;
+}
+
+.skip-link:focus {
+  top: 6px;
+}
+
+/* Screen reader support */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
 </style>
 </head>
 <body>
+<!-- Skip to main content link for accessibility -->
+<a href="#game" class="skip-link">Skip to game</a>
+
 <div class="app">
   <nav id="gameNav" style="padding:10px; background:#111; color:#0f0; font-family:monospace;">
     <strong>Games:</strong>
@@ -80,22 +367,22 @@ html,body{height:100%;margin:0;background:var(--bg);font-family:system-ui,monosp
   </div>
 
   <div id="sidebar">
-    <div id="title">Chompy</div>
+    <h1 id="title">Chompy</h1>
 
-    <div>
+    <div role="region" aria-label="Map Selection">
       <div class="section-title">SELECT MAP</div>
       <div id="map-buttons">
-        <button data-map="0" class="selected">Classic</button>
-        <button data-map="1">Maze 1</button>
-        <button data-map="2">Maze 2</button>
+        <button data-map="0" class="selected" aria-label="Classic Map">Classic</button>
+        <button data-map="1" aria-label="Maze 1">Maze 1</button>
+        <button data-map="2" aria-label="Maze 2">Maze 2</button>
       </div>
     </div>
 
-    <div id="scoreboard">
-      <div class="section-title">SCORE</div><div class="value" id="score">0</div>
-      <div class="section-title">LIVES</div><div class="value" id="lives">3</div>
-      <div class="section-title">LEVEL</div><div class="value" id="level">1</div>
-      <div class="section-title">TIME LEFT</div><div class="value" id="time-left">5:00</div>
+    <div id="scoreboard" role="region" aria-label="Game Score">
+      <div class="section-title">SCORE</div><div class="value" id="score" aria-live="polite">0</div>
+      <div class="section-title">LIVES</div><div class="value" id="lives" aria-live="polite">3</div>
+      <div class="section-title">LEVEL</div><div class="value" id="level" aria-live="polite">1</div>
+      <div class="section-title">TIME LEFT</div><div class="value" id="time-left" aria-live="polite">5:00</div>
     </div>
 
     <div id="instructions">
@@ -117,6 +404,16 @@ html,body{height:100%;margin:0;background:var(--bg);font-family:system-ui,monosp
         </select>
         <button id="cancel-timer">Cancel</button>
       </div>
+    </div>
+    
+    <!-- Mobile Controls -->
+    <div class="mobile-controls">
+      <button class="mobile-btn" id="upBtn" aria-label="Move Up">↑</button>
+      <button class="mobile-btn" id="leftBtn" aria-label="Move Left">←</button>
+      <button class="mobile-btn" id="rightBtn" aria-label="Move Right">→</button>
+      <button class="mobile-btn" id="downBtn" aria-label="Move Down">↓</button>
+      <button class="mobile-btn" id="pauseBtn" aria-label="Pause/Resume">⏸</button>
+      <button class="mobile-btn" id="resetBtn" aria-label="Reset Game">🔄</button>
     </div>
 
     <div class="quote-wrap">
@@ -708,6 +1005,97 @@ function update(){
   requestAnimationFrame(loop);
 }
 function loop(){ update(); }
+
+/* ===== Mobile Controls ===== */
+const upBtn = document.getElementById('upBtn');
+const leftBtn = document.getElementById('leftBtn');
+const rightBtn = document.getElementById('rightBtn');
+const downBtn = document.getElementById('downBtn');
+const pauseBtn = document.getElementById('pauseBtn');
+const resetBtn = document.getElementById('resetBtn');
+
+// Mobile button handlers
+upBtn.addEventListener('click', () => {
+  pac.nextVX = 0;
+  pac.nextVY = -1;
+});
+
+leftBtn.addEventListener('click', () => {
+  pac.nextVX = -1;
+  pac.nextVY = 0;
+});
+
+rightBtn.addEventListener('click', () => {
+  pac.nextVX = 1;
+  pac.nextVY = 0;
+});
+
+downBtn.addEventListener('click', () => {
+  pac.nextVX = 0;
+  pac.nextVY = 1;
+});
+
+pauseBtn.addEventListener('click', () => {
+  if(!gameEnded) {
+    paused = !paused;
+    pauseBtn.textContent = paused ? '▶' : '⏸';
+    if(!paused) resumeTimerIfNeeded();
+  }
+});
+
+resetBtn.addEventListener('click', () => {
+  score = 0;
+  level = 1;
+  lives = 3;
+  paused = false;
+  gameEnded = false;
+  shareMessage.classList.remove('visible');
+  loadBoard();
+  timerDurationMs = parseInt(timerSelect.value) * 60000;
+  startTimer();
+  canvas.focus();
+});
+
+// Touch support for mobile
+let touchStartX = 0;
+let touchStartY = 0;
+
+canvas.addEventListener('touchstart', (e) => {
+  e.preventDefault();
+  const touch = e.touches[0];
+  touchStartX = touch.clientX;
+  touchStartY = touch.clientY;
+}, { passive: false });
+
+canvas.addEventListener('touchend', (e) => {
+  e.preventDefault();
+  const touch = e.changedTouches[0];
+  const deltaX = touch.clientX - touchStartX;
+  const deltaY = touch.clientY - touchStartY;
+  
+  // Swipe threshold
+  if (Math.abs(deltaX) > 30 || Math.abs(deltaY) > 30) {
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+      // Horizontal swipe
+      if (deltaX > 0) {
+        pac.nextVX = 1;
+        pac.nextVY = 0;
+      } else {
+        pac.nextVX = -1;
+        pac.nextVY = 0;
+      }
+    } else {
+      // Vertical swipe
+      if (deltaY > 0) {
+        pac.nextVX = 0;
+        pac.nextVY = 1;
+      } else {
+        pac.nextVX = 0;
+        pac.nextVY = -1;
+      }
+    }
+  }
+}, { passive: false });
 
 /* -----------------------
    INPUT
