@@ -3,11 +3,11 @@
 // Game files configuration - moved to global scope
 const gameFiles = [
     { file: "index.html", title: "🏠 Home" },
-    { file: "chompy.html", title: "Dot Eater" },
+    { file: "chompy.html", title: "Chompy" },
     { file: "block-stack.html", title: "Block Stack" },
-    { file: "wormy.html", title: "Worm Trail" },
+    { file: "wormy.html", title: "Wormy" },
     { file: "wall-breaker.html", title: "Wall Breaker" },
-    { file: "road-dash.html", title: "Road Crosser" },
+    { file: "road-dash.html", title: "Road Dash" },
     { file: "paddle-ball.html", title: "Paddle Ball" },
     { file: "number-defenders.html", title: "Number Defenders" },
     { file: "word-defenders.html", title: "Word Defenders" }
