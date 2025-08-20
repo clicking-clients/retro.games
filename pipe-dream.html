@@ -704,6 +704,26 @@
                 filter: brightness(1.2);
             }
         }
+
+        /* Enhanced styling for curved elbows */
+        .placed-pipe:contains('╭'), .placed-pipe:contains('╮'), 
+        .placed-pipe:contains('╰'), .placed-pipe:contains('╯') {
+            font-size: 1.5rem;
+            color: #555;
+        }
+
+        /* T-junction styling */
+        .placed-pipe:contains('┣'), .placed-pipe:contains('┫'),
+        .placed-pipe:contains('┻'), .placed-pipe:contains('┳') {
+            font-size: 1.4rem;
+            color: #555;
+        }
+
+        /* Cross junction styling */
+        .placed-pipe:contains('╋') {
+            font-size: 1.3rem;
+            color: #555;
+        }
     </style>
 </head>
 <body>
@@ -943,12 +963,16 @@
                     { symbol: '●', value: 0, type: 'operator', operation: '×', connections: ['top', 'bottom', 'left', 'right'] },
                     { symbol: '●', value: 0, type: 'operator', operation: '÷', connections: ['top', 'bottom', 'left', 'right'] },
                     
-                    // Connectors - make them look more like actual pipe segments
-                    { symbol: '╋', value: 0, type: 'connector', connections: ['top', 'bottom', 'left', 'right'] }, // cross
-                    { symbol: '╱', value: 0, type: 'connector', connections: ['top', 'right'] }, // top-right elbow
-                    { symbol: '╲', value: 0, type: 'connector', connections: ['top', 'left'] }, // top-left elbow
-                    { symbol: '╱', value: 0, type: 'connector', connections: ['bottom', 'right'] }, // bottom-right elbow
-                    { symbol: '╲', value: 0, type: 'connector', connections: ['bottom', 'left'] }, // bottom-left elbow
+                    // Connectors - make them look more like actual pipe segments with proper curves
+                    { symbol: '╋', value: 0, type: 'connector', connections: ['top', 'bottom', 'left', 'right'] }, // cross junction
+                    { symbol: '┣', value: 0, type: 'connector', connections: ['top', 'bottom', 'left'] }, // T-junction left
+                    { symbol: '┫', value: 0, type: 'connector', connections: ['top', 'bottom', 'right'] }, // T-junction right
+                    { symbol: '┻', value: 0, type: 'connector', connections: ['bottom', 'left', 'right'] }, // T-junction bottom
+                    { symbol: '┳', value: 0, type: 'connector', connections: ['top', 'left', 'right'] }, // T-junction top
+                    { symbol: '╭', value: 0, type: 'connector', connections: ['top', 'right'] }, // top-right curved elbow
+                    { symbol: '╮', value: 0, type: 'connector', connections: ['top', 'left'] }, // top-left curved elbow
+                    { symbol: '╰', value: 0, type: 'connector', connections: ['bottom', 'right'] }, // bottom-right curved elbow
+                    { symbol: '╯', value: 0, type: 'connector', connections: ['bottom', 'left'] }, // bottom-left curved elbow
                     { symbol: '━', value: 0, type: 'connector', connections: ['left', 'right'] }, // horizontal pipe
                     { symbol: '┃', value: 0, type: 'connector', connections: ['top', 'bottom'] } // vertical pipe
                 ];
@@ -1205,7 +1229,7 @@
                 const playArea = document.getElementById('playArea');
                 const config = this.getGameConfig();
                 
-                // Place start pipe on left side
+                // Place start pipe on left side, centered vertically in the row
                 const startY = Math.floor(this.gridSize / 2);
                 this.startPipe = {
                     x: 0,
@@ -1219,7 +1243,7 @@
                 startElement.className = 'start-pipe';
                 startElement.textContent = this.currentExpression.a;
                 startElement.style.left = '0px';
-                startElement.style.top = (startY * 80) + 'px';
+                startElement.style.top = (startY * 80 + 20) + 'px'; // Center vertically in the 80px grid cell
                 playArea.appendChild(startElement);
                 
                 // Place answer pipes along right and bottom edges
@@ -1254,7 +1278,7 @@
                     answerElement.className = `answer-pipe ${answer === this.correctAnswer ? 'correct' : 'decoy'}`;
                     answerElement.textContent = answer;
                     answerElement.style.left = (x * 80) + 'px';
-                    answerElement.style.top = (y * 80) + 'px';
+                    answerElement.style.top = (y * 80 + 20) + 'px'; // Center vertically in the grid cell
                     playArea.appendChild(answerElement);
                 });
             }
@@ -1461,7 +1485,7 @@
                 pipeElement.className = 'placed-pipe';
                 pipeElement.textContent = pipeData.symbol;
                 pipeElement.style.left = x + 'px';
-                pipeElement.style.top = y + 'px';
+                pipeElement.style.top = y + 20 + 'px'; // Center vertically in the 80px grid cell
                 pipeElement.dataset.pipeData = JSON.stringify(pipeData);
                 pipeElement.dataset.x = x;
                 pipeElement.dataset.y = y;
@@ -1630,11 +1654,11 @@
             createConnectionLine(pipe1, pipe2) {
                 const playArea = document.getElementById('playArea');
                 
-                // Calculate connection line position
+                // Calculate connection line position - pipes are now centered vertically
                 const x1 = pipe1.x + 40; // center of pipe1
-                const y1 = pipe1.y + 20;
+                const y1 = pipe1.y + 20 + 20; // center of pipe1 (grid position + 20px centering)
                 const x2 = pipe2.x + 40; // center of pipe2
-                const y2 = pipe2.y + 20;
+                const y2 = pipe2.y + 20 + 20; // center of pipe2 (grid position + 20px centering)
                 
                 const connectionLine = document.createElement('div');
                 connectionLine.className = 'connection-line';
@@ -1649,11 +1673,11 @@
                 if (Math.abs(x2 - x1) > Math.abs(y2 - y1)) {
                     // Horizontal connection
                     connectionLine.style.height = '8px';
-                    connectionLine.style.top = (Math.min(y1, y2) + 16) + 'px';
+                    connectionLine.style.top = (Math.min(y1, y2) - 4) + 'px'; // Center the line on the pipe
                 } else {
                     // Vertical connection
                     connectionLine.style.width = '8px';
-                    connectionLine.style.left = (Math.min(x1, x2) + 36) + 'px';
+                    connectionLine.style.left = (Math.min(x1, x2) - 4) + 'px'; // Center the line on the pipe
                 }
                 
                 playArea.appendChild(connectionLine);
@@ -2036,7 +2060,7 @@
                 const flow = document.createElement('div');
                 flow.className = 'water-flow';
                 flow.style.left = (x + 40) + 'px';
-                flow.style.top = (y + 20) + 'px';
+                flow.style.top = (y + 20 + 20) + 'px'; // Account for vertical centering
                 return flow;
             }
             
