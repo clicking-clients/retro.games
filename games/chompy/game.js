@@ -448,12 +448,12 @@ export class ChompyGame {
     // Check dot/pellet collection
     if (this.board[pacGridY] && this.board[pacGridY][pacGridX] === '.') {
       this.board[pacGridY][pacGridX] = ' ';
-      this.score += 10;
-      this.container.updateScore(this.score);
+        this.score += 10;
+        this.container.updateScore(this.score);
     } else if (this.board[pacGridY] && this.board[pacGridY][pacGridX] === 'o') {
       this.board[pacGridY][pacGridX] = ' ';
-      this.score += 50;
-      this.container.updateScore(this.score);
+        this.score += 50;
+        this.container.updateScore(this.score);
       this.frightenedTimer = 10000; // 10 seconds of power
       this.ghosts.forEach(ghost => ghost.speed = ghost.baseSpeed * 0.5);
     }
@@ -566,15 +566,15 @@ export class ChompyGame {
         } else if (tile === '.') {
           // Dot
           this.ctx.fillStyle = '#ffd700';
-          this.ctx.beginPath();
+      this.ctx.beginPath();
           this.ctx.arc(drawX + tileSize / 2, drawY + tileSize / 2, 2, 0, 2 * Math.PI);
-          this.ctx.fill();
+      this.ctx.fill();
         } else if (tile === 'o') {
           // Power pellet
           this.ctx.fillStyle = '#ffd700';
-          this.ctx.beginPath();
+      this.ctx.beginPath();
           this.ctx.arc(drawX + tileSize / 2, drawY + tileSize / 2, 6, 0, 2 * Math.PI);
-          this.ctx.fill();
+      this.ctx.fill();
         }
       }
     }

@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Worm Trail</title>
+<title>Pipe Dream</title>
 <style>
-  body { background: black; color: #0f0; font-family: monospace; display: flex; justify-content: center; align-items: flex-start; height: 100%; margin: 0; padding: 20px; }
-  #container { display: flex; gap: 20px; align-items: flex-start; }
-  #gameNav, 
+body { background: black; color: #0f0; font-family: monospace; display: flex; justify-content: center; align-items: flex-start; height: 100%; margin: 0; padding: 20px; }
+#container { display: flex; gap: 20px; align-items: flex-start; }
+#gameNav, 
 #gameNav a {
   display: block;
   margin-top: 5px;
@@ -21,168 +21,455 @@
   font-weight: bold;  /* optional emphasis */
   text-decoration: underline;
 }
-  #snakeGame { border: 4px solid #0f0; height: 80vh; width: 240px; image-rendering: pixelated; background: black; display: block; }
-  #sidebar { display: flex; flex-direction: column; gap: 20px; }
-  #title { text-transform: uppercase; font-size: 2rem; color: #ff0; text-shadow: 0 0 8px #f00; text-align: center; }
-  #scoreboard { border: 2px solid #0f0; padding: 10px; }
-  .section-title { color: #ff0; margin-bottom: 5px; font-weight: bold; }
-  #rules { color: #0f0; margin-top: 10px; font-size: 0.9rem; }
+#pipeGame { border: 4px solid #0f0; height: 80vh; width: 100vw; max-width: 800px; image-rendering: pixelated; background: black; display: block; }
+#sidebar { display: flex; flex-direction: column; gap: 20px; }
+#title { text-transform: uppercase; font-size: 2rem; color: #ff0; text-shadow: 0 0 8px #f00; text-align: center; }
+#scoreboard { border: 2px solid #0f0; padding: 10px; }
+.section-title { color: #ff0; margin-bottom: 5px; font-weight: bold; }
+.pipe { cursor: pointer; }
+.pipe:hover { opacity: 0.8; }
+.selected { border: 2px solid #ff0; }
+.flow-active { background: rgba(0, 255, 255, 0.3); }
 </style>
 </head>
 <body>
 <div id="container">
-    <nav id="gameNav" style="padding:10px; background:#111; color:#0f0; font-family:monospace;">
+  <nav id="gameNav" style="padding:10px; background:#111; color:#0f0; font-family:monospace;">
     <strong>Games:</strong>
   </nav>
-  <canvas id="snakeGame" width="240" height="480"></canvas>
+  <canvas id="pipeGame" width="800" height="600"></canvas>
   <div id="sidebar">
-    <div id="title">Worm Trail</div>
+    <div id="title">Pipe Dream</div>
     <div id="scoreboard">
       <div class="section-title">SCORE</div>
       <div id="score">0</div>
+      <div class="section-title">LEVEL</div>
+      <div id="level">1</div>
+      <div class="section-title">TIME</div>
+      <div id="time">60</div>
     </div>
     <div id="instructions">
       <div class="section-title">CONTROLS</div>
-      ← / →: Move Left/Right<br>
-      ↑ / ↓: Move Up/Down<br>
-      P: Pause<br>
-      R: Reset
-      <div id="rules">
-        <div class="section-title">RULES</div>
-        Eat the red fruit to grow.<br>
-        Avoid hitting walls or your own body.<br>
-        In easy mode, you can reverse direction onto your head (not body).<br>
-      </div>
-    </div>
-    <div>
-      <input type="checkbox" id="easyMode" /> Easy Mode
+      Click: Select pipe<br>
+      Right-click: Rotate pipe<br>
+      Space: Start flow<br>
+      R: Reset level<br>
+      <div class="section-title">OBJECTIVE</div>
+      Connect pipes to create a path from start to end before time runs out!
     </div>
   </div>
 </div>
 <script src="navigation.js"></script>
-<script>
-const canvas = document.getElementById('snakeGame');
-const context = canvas.getContext('2d');
-const scale = 20;
+<script type="module">
+import { Rocket } from '../../rocket.js';
+import { Fireworks } from '../../fireworks.js';
+import { GameAudio } from '../../audio.js';
+
+const canvas = document.getElementById('pipeGame');
+const ctx = canvas.getContext('2d');
+const scale = 40;
 const rows = canvas.height / scale;
 const cols = canvas.width / scale;
-let snake;
-let fruit;
+
 let score = 0;
-let paused = false;
+let level = 1;
+let timeLeft = 60;
+let gameRunning = false;
+let selectedPipe = null;
+let flowActive = false;
+let flowPath = [];
 let gameOver = false;
-let easyMode = false;
 
-class Snake {
-    constructor() {
-        this.body = [{x: Math.floor(cols/2), y: Math.floor(rows/2)}];
-        this.dx = 0;
-        this.dy = 0;
-        this.nextDx = 0;
-        this.nextDy = 0;
-    }
-    update() {
-        this.dx = this.nextDx;
-        this.dy = this.nextDy;
-        const head = {x: this.body[0].x + this.dx, y: this.body[0].y + this.dy};
-        this.body.unshift(head);
-        if(head.x === fruit.x && head.y === fruit.y) {
-            score += 10;
-            spawnFruit();
-        } else {
-            this.body.pop();
-        }
-        if(head.x < 0 || head.x >= cols || head.y < 0 || head.y >= rows || (!easyMode && this.body.slice(1).some(seg => seg.x === head.x && seg.y === head.y))) {
-            gameOver = true;
-        }
-    }
-    draw() {
-        context.fillStyle = '#0f0';
-        this.body.forEach(seg => {
-            context.fillRect(seg.x, seg.y, 1, 1);
-            context.strokeStyle = '#000';
-            context.lineWidth = 0.05;
-            context.strokeRect(seg.x, seg.y, 1, 1);
-        });
-    }
-    setDirection(x, y) {
-        if(!easyMode) {
-            if(this.dx + x === 0 && this.dy + y === 0) return;
-        }
-        this.nextDx = x;
-        this.nextDy = y;
-    }
+// Initialize modular components
+let audio, fireworks, rocket;
+
+// Pipe types and their connections
+const pipeTypes = {
+  'straight': { connections: ['left', 'right'], color: '#666' },
+  'corner': { connections: ['left', 'down'], color: '#666' },
+  't-junction': { connections: ['left', 'right', 'down'], color: '#666' },
+  'cross': { connections: ['left', 'right', 'up', 'down'], color: '#666' },
+  'start': { connections: ['right'], color: '#0f0' },
+  'end': { connections: ['left'], color: '#f00' }
+};
+
+// Game board
+let board = [];
+let startPos = { x: 0, y: Math.floor(rows / 2) };
+let endPos = { x: cols - 1, y: Math.floor(rows / 2) };
+
+async function initGame() {
+  try {
+    // Initialize modular components
+    audio = new GameAudio();
+    fireworks = new Fireworks(canvas, audio);
+    
+    // Create overlay canvas for rocket
+    const overlayCanvas = document.createElement('canvas');
+    overlayCanvas.width = canvas.width;
+    overlayCanvas.height = canvas.height;
+    overlayCanvas.style.position = 'absolute';
+    overlayCanvas.style.top = canvas.offsetTop + 'px';
+    overlayCanvas.style.left = canvas.offsetLeft + 'px';
+    overlayCanvas.style.pointerEvents = 'none';
+    document.body.appendChild(overlayCanvas);
+    
+    rocket = new Rocket(overlayCanvas, audio, fireworks, () => {
+      console.log('Rocket sequence complete!');
+    });
+    
+    initBoard();
+    startGame();
+  } catch (error) {
+    console.error('Failed to initialize game components:', error);
+  }
 }
 
-function spawnFruit() {
-    fruit = {x: Math.floor(Math.random() * cols), y: Math.floor(Math.random() * rows)};
+function initBoard() {
+  board = [];
+  
+  // Initialize empty board
+  for (let y = 0; y < rows; y++) {
+    board[y] = [];
+    for (let x = 0; x < cols; x++) {
+      board[y][x] = null;
+    }
+  }
+  
+  // Place start and end
+  board[startPos.y][startPos.x] = { type: 'start', rotation: 0, connections: ['right'] };
+  board[endPos.y][endPos.x] = { type: 'end', rotation: 0, connections: ['left'] };
+  
+  // Place random pipes
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      if (board[y][x] === null && Math.random() < 0.3) {
+        const types = ['straight', 'corner', 't-junction'];
+        const type = types[Math.floor(Math.random() * types.length)];
+        board[y][x] = { 
+          type: type, 
+          rotation: Math.floor(Math.random() * 4) * 90,
+          connections: getRotatedConnections(type, Math.floor(Math.random() * 4) * 90)
+        };
+      }
+    }
+  }
 }
 
-function drawFruit() {
-    context.fillStyle = '#F00';
-    context.fillRect(fruit.x, fruit.y, 1, 1);
-    context.strokeStyle = '#000';
-    context.lineWidth = 0.05;
-    context.strokeRect(fruit.x, fruit.y, 1, 1);
+function getRotatedConnections(type, rotation) {
+  const baseConnections = pipeTypes[type].connections;
+  const rotated = [];
+  
+  baseConnections.forEach(conn => {
+    switch (conn) {
+      case 'left': rotated.push(rotation === 0 ? 'left' : rotation === 90 ? 'up' : rotation === 180 ? 'right' : 'down'); break;
+      case 'right': rotated.push(rotation === 0 ? 'right' : rotation === 90 ? 'down' : rotation === 180 ? 'left' : 'up'); break;
+      case 'up': rotated.push(rotation === 0 ? 'up' : rotation === 90 ? 'right' : rotation === 180 ? 'down' : 'left'); break;
+      case 'down': rotated.push(rotation === 0 ? 'down' : rotation === 90 ? 'left' : rotation === 180 ? 'up' : 'right'); break;
+    }
+  });
+  
+  return rotated;
 }
 
 function draw() {
-    context.fillStyle = '#000';
-    context.fillRect(0, 0, canvas.width, canvas.height);
-    context.save();
-    context.scale(scale, scale);
-    snake.draw();
-    drawFruit();
-    if(gameOver) {
-        context.fillStyle = '#F00';
-        context.font = '1.5px monospace';
-        context.textAlign = 'center';
-        context.fillText('GAME OVER', cols/2, rows/2);
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  // Draw grid
+  ctx.strokeStyle = '#333';
+  ctx.lineWidth = 1;
+  for (let x = 0; x <= cols; x++) {
+    ctx.beginPath();
+    ctx.moveTo(x * scale, 0);
+    ctx.lineTo(x * scale, canvas.height);
+    ctx.stroke();
+  }
+  for (let y = 0; y <= rows; y++) {
+    ctx.beginPath();
+    ctx.moveTo(0, y * scale);
+    ctx.lineTo(canvas.width, y * scale);
+    ctx.stroke();
+  }
+  
+  // Draw pipes
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      const pipe = board[y][x];
+      if (pipe) {
+        drawPipe(x, y, pipe);
+      }
     }
-    context.restore();
+  }
+  
+  // Draw flow path
+  if (flowActive) {
+    drawFlowPath();
+  }
+  
+  // Draw selected pipe highlight
+  if (selectedPipe) {
+    ctx.strokeStyle = '#ff0';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(selectedPipe.x * scale, selectedPipe.y * scale, scale, scale);
+  }
+  
+  // Update UI
+  document.getElementById('score').textContent = score;
+  document.getElementById('level').textContent = level;
+  document.getElementById('time').textContent = timeLeft;
+  
+  // Update modular components
+  if (fireworks) fireworks.update();
+  if (fireworks) fireworks.render();
+}
+
+function drawPipe(x, y, pipe) {
+  const centerX = x * scale + scale / 2;
+  const centerY = y * scale + scale / 2;
+  const radius = scale / 3;
+  
+  // Pipe base
+  ctx.fillStyle = pipeTypes[pipe.type].color;
+  ctx.fillRect(x * scale + 2, y * scale + 2, scale - 4, scale - 4);
+  
+  // Pipe connections
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 3;
+  
+  pipe.connections.forEach(conn => {
+    let startX, startY, endX, endY;
+    
+    switch (conn) {
+      case 'left':
+        startX = x * scale + 2;
+        startY = centerY;
+        endX = centerX - radius;
+        endY = centerY;
+        break;
+      case 'right':
+        startX = centerX + radius;
+        startY = centerY;
+        endX = (x + 1) * scale - 2;
+        endY = centerY;
+        break;
+      case 'up':
+        startX = centerX;
+        startY = y * scale + 2;
+        endX = centerX;
+        endY = centerY - radius;
+        break;
+      case 'down':
+        startX = centerX;
+        startY = centerY + radius;
+        endX = centerX;
+        endY = (y + 1) * scale - 2;
+        break;
+    }
+    
+    if (startX && startY && endX && endY) {
+      ctx.beginPath();
+      ctx.moveTo(startX, startY);
+      ctx.lineTo(endX, endY);
+      ctx.stroke();
+    }
+  });
+}
+
+function drawFlowPath() {
+  ctx.strokeStyle = '#00f';
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  
+  flowPath.forEach((pos, index) => {
+    if (index === 0) {
+      ctx.moveTo(pos.x * scale + scale / 2, pos.y * scale + scale / 2);
+    } else {
+      ctx.lineTo(pos.x * scale + scale / 2, pos.y * scale + scale / 2);
+    }
+  });
+  
+  ctx.stroke();
+}
+
+function handleClick(e) {
+  if (gameOver) return;
+  
+  const rect = canvas.getBoundingClientRect();
+  const x = Math.floor((e.clientX - rect.left) / scale);
+  const y = Math.floor((e.clientY - rect.top) / scale);
+  
+  if (x >= 0 && x < cols && y >= 0 && y < rows) {
+    if (e.button === 0) { // Left click - select
+      selectedPipe = { x, y };
+    } else if (e.button === 2) { // Right click - rotate
+      rotatePipe(x, y);
+    }
+  }
+}
+
+function rotatePipe(x, y) {
+  const pipe = board[y][x];
+  if (pipe && pipe.type !== 'start' && pipe.type !== 'end') {
+    pipe.rotation = (pipe.rotation + 90) % 360;
+    pipe.connections = getRotatedConnections(pipe.type, pipe.rotation);
+    
+    // Play rotation sound
+    if (audio) audio.beep(600, 0.1, 'square', 0.03);
+  }
+}
+
+function startFlow() {
+  if (flowActive || gameOver) return;
+  
+  flowActive = true;
+  flowPath = [startPos];
+  
+  // Play flow start sound
+  if (audio) audio.beep(400, 0.15, 'triangle', 0.04);
+  
+  // Simple pathfinding - just follow connections
+  let current = { ...startPos };
+  let visited = new Set();
+  
+  while (current.x !== endPos.x || current.y !== endPos.y) {
+    visited.add(`${current.x},${current.y}`);
+    
+    const pipe = board[current.y][current.x];
+    if (!pipe) break;
+    
+    let next = null;
+    for (let conn of pipe.connections) {
+      let nx = current.x, ny = current.y;
+      
+      switch (conn) {
+        case 'left': nx--; break;
+        case 'right': nx++; break;
+        case 'up': ny--; break;
+        case 'down': ny++; break;
+      }
+      
+      if (nx >= 0 && nx < cols && ny >= 0 && ny < rows && !visited.has(`${nx},${ny}`)) {
+        const nextPipe = board[ny][nx];
+        if (nextPipe && hasMatchingConnection(nextPipe, getOppositeConnection(conn))) {
+          next = { x: nx, y: ny };
+          break;
+        }
+      }
+    }
+    
+    if (next) {
+      flowPath.push(next);
+      current = next;
+    } else {
+      break;
+    }
+  }
+  
+  // Check if path reached end
+  if (current.x === endPos.x && current.y === endPos.y) {
+    levelComplete();
+  } else {
+    // Path failed - show failure
+    setTimeout(() => {
+      flowActive = false;
+      flowPath = [];
+    }, 2000);
+  }
+}
+
+function hasMatchingConnection(pipe, connection) {
+  return pipe.connections.includes(connection);
+}
+
+function getOppositeConnection(conn) {
+  switch (conn) {
+    case 'left': return 'right';
+    case 'right': return 'left';
+    case 'up': return 'down';
+    case 'down': return 'up';
+  }
+}
+
+function levelComplete() {
+  score += 100 * level;
+  level++;
+  timeLeft = Math.max(30, 60 - (level - 1) * 5);
+  
+  // Play success sound
+  if (audio) audio.beep(800, 0.2, 'sine', 0.05);
+  
+  // Show fireworks
+  if (fireworks) {
+    fireworks.show(canvas.width / 2, canvas.height / 2, () => {
+      console.log('Fireworks complete!');
+    });
+  }
+  
+  // Launch rocket
+  if (rocket) {
+    rocket.grow();
+    rocket.launch();
+  }
+  
+  // Show success message
+  setTimeout(() => {
+    alert(`Level ${level - 1} Complete! Score: ${score}`);
+    
+    // Reset level
+    initBoard();
+    flowActive = false;
+    flowPath = [];
+    selectedPipe = null;
+  }, 1000);
+}
+
+function resetLevel() {
+  initBoard();
+  flowActive = false;
+  flowPath = [];
+  selectedPipe = null;
 }
 
 function update() {
-    if(paused) return;
-    if(!gameOver) snake.update();
-    draw();
-    document.getElementById('score').textContent = score;
-    if(!gameOver) {
-        setTimeout(update, 150);
-    } else {
-        let flash = true;
-        const flashInterval = setInterval(() => {
-            draw();
-            context.save();
-            context.scale(scale, scale);
-            if(flash) {
-                context.fillStyle = '#F00';
-                context.font = '1.5px monospace';
-                context.textAlign = 'center';
-                context.fillText('GAME OVER', cols/2, rows/2);
-            }
-            context.restore();
-            flash = !flash;
-        }, 500);
+  if (gameRunning && !gameOver) {
+    timeLeft--;
+    if (timeLeft <= 0) {
+      gameOver = true;
+      if (audio) audio.beep(200, 0.5, 'sawtooth', 0.08);
+      return;
     }
+  }
+  
+  draw();
+  requestAnimationFrame(update);
 }
 
-document.getElementById('easyMode').addEventListener('change', e => easyMode = e.target.checked);
+function startGame() {
+  gameRunning = true;
+  update();
+}
 
-document.addEventListener('keydown', event => {
-    switch(event.code) {
-        case 'ArrowLeft': snake.setDirection(-1,0); break;
-        case 'ArrowRight': snake.setDirection(1,0); break;
-        case 'ArrowUp': snake.setDirection(0,-1); break;
-        case 'ArrowDown': snake.setDirection(0,1); break;
-        case 'KeyP': paused = !paused; if(!paused) update(); break;
-        case 'KeyR': score = 0; snake = new Snake(); spawnFruit(); gameOver = false; paused = false; update(); break;
-    }
+// Event listeners
+canvas.addEventListener('mousedown', handleClick);
+canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+
+document.addEventListener('keydown', (e) => {
+  if (gameOver) return;
+  
+  switch (e.key) {
+    case ' ':
+      if (gameRunning) startFlow();
+      break;
+    case 'r':
+    case 'R':
+      resetLevel();
+      break;
+  }
 });
 
-snake = new Snake();
-spawnFruit();
-update();
+// Initialize game
+initGame();
 </script>
 </body>
 </html>
