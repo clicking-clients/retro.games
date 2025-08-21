@@ -775,6 +775,62 @@
             font-size: 1.3rem;
             color: #555;
         }
+
+        .pipe-piece.selected {
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(255, 255, 0, 0.8);
+            border: 3px solid #FFD700;
+            z-index: 10;
+        }
+        
+        .pipe-piece.selected::after {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            right: -5px;
+            bottom: -5px;
+            border: 2px solid #FFD700;
+            border-radius: 20px;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        /* Mobile-specific styles */
+        @media (max-width: 767px) {
+            .pipe-piece {
+                cursor: pointer;
+                user-select: none;
+                -webkit-tap-highlight-color: transparent;
+            }
+            
+            .pipe-piece:active {
+                transform: scale(0.95);
+            }
+            
+            .placed-pipe {
+                cursor: pointer;
+                user-select: none;
+                -webkit-tap-highlight-color: transparent;
+            }
+            
+            .placed-pipe:active {
+                transform: scale(0.95);
+            }
+            
+            /* Prevent text selection on mobile */
+            .play-area, .pipe-inventory {
+                -webkit-user-select: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
+                user-select: none;
+            }
+        }
     </style>
 </head>
 <body>
@@ -950,7 +1006,7 @@
                 this.level = 1;
                 this.score = 0;
                 this.stars = 0;
-                this.pressure = 0;
+                this.pressure = 12;
                 this.maxPressure = 100;
                 this.gameActive = true;
                 
@@ -1570,184 +1626,110 @@
             
             setupEventListeners() {
                 const playArea = document.getElementById('playArea');
+                const inventory = document.getElementById('pipeInventory');
+                
+                console.log('🔧 Setting up event listeners, isMobile:', this.isMobile);
                 
                 // Desktop drag and drop
-                playArea.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                    e.dataTransfer.dropEffect = 'copy';
-                });
-                
-                playArea.addEventListener('drop', (e) => this.handleDrop(e));
-                
-                // Mobile touch support
-                let touchStartX, touchStartY;
-                let currentPipe = null;
-                
-                playArea.addEventListener('touchstart', (e) => {
-                    const touch = e.touches[0];
-                    touchStartX = touch.clientX;
-                    touchStartY = touch.clientY;
+                if (!this.isMobile) {
+                    console.log('🖥️ Setting up desktop drag and drop events');
+                    inventory.addEventListener('dragstart', (e) => this.handleDragStart(e));
+                    inventory.addEventListener('dragend', (e) => this.handleDragEnd(e));
+                    playArea.addEventListener('dragover', (e) => e.preventDefault());
+                    playArea.addEventListener('drop', (e) => this.handleDrop(e));
                     
-                    // Check if touching a pipe piece in inventory
-                    const element = document.elementFromPoint(touchStartX, touchStartY);
-                    if (element && element.classList.contains('pipe-piece')) {
-                        currentPipe = JSON.parse(element.dataset.pipeType);
-                        element.style.opacity = '0.7';
-                    }
-                });
+                    // Placed pipe drag events
+                    playArea.addEventListener('dragstart', (e) => this.handlePlacedPipeDragStart(e));
+                    playArea.addEventListener('dragend', (e) => this.handlePlacedPipeDragEnd(e));
+                }
                 
-                playArea.addEventListener('touchend', (e) => {
-                    if (currentPipe) {
-                        const touch = e.changedTouches[0];
-                        const rect = playArea.getBoundingClientRect();
-                        const rawX = touch.clientX - rect.left;
-                        const rawY = touch.clientY - rect.top;
-                        
-                        // Snap to grid using current grid configuration
-                        const gridConfig = this.getGridConfig();
-                        const cellSize = gridConfig.cellSize;
-                        const x = Math.floor(rawX / cellSize) * cellSize;
-                        const y = Math.floor(rawY / cellSize) * cellSize;
-                        
-                        // Ensure pipe stays within bounds
-                        const maxX = rect.width - cellSize;
-                        const maxY = rect.height - cellSize;
-                        const clampedX = Math.max(0, Math.min(x, maxX));
-                        const clampedY = Math.max(0, Math.min(y, maxY));
-                        
-                        if (clampedX >= 0 && clampedY >= 0 && clampedX <= maxX && clampedY <= maxY) {
-                            this.placePipe(currentPipe, clampedX, clampedY);
-                        }
-                        
-                        // Reset inventory pipe opacity
-                        document.querySelectorAll('.pipe-piece').forEach(p => p.style.opacity = '1');
-                        currentPipe = null;
-                    }
-                });
+                // Mobile tap events
+                if (this.isMobile) {
+                    console.log('📱 Setting up mobile tap events');
+                    
+                    // Inventory tap to select
+                    inventory.addEventListener('click', (e) => this.handleInventoryTap(e));
+                    
+                    // Grid tap to place
+                    playArea.addEventListener('click', (e) => this.handleGridTap(e));
+                    
+                    // Double tap to rotate placed pipes
+                    playArea.addEventListener('dblclick', (e) => this.handleDoubleTap(e));
+                }
                 
-                document.getElementById('newLevelBtn').addEventListener('click', () => this.nextLevel());
+                // Common events for both desktop and mobile
+                document.getElementById('newLevelBtn').addEventListener('click', () => this.newLevel());
                 document.getElementById('resetBtn').addEventListener('click', () => this.resetLevel());
                 document.getElementById('undoBtn').addEventListener('click', () => this.undoLastPipe());
                 document.getElementById('flowTestBtn').addEventListener('click', () => this.testFlow());
-                document.getElementById('hintBtn').addEventListener('click', () => this.showHint());
+                
+                // Settings events
+                document.getElementById('gameMode').addEventListener('change', () => this.applySettings());
+                document.getElementById('difficulty').addEventListener('change', () => this.applySettings());
+                document.getElementById('gridSize').addEventListener('change', () => this.applySettings());
+                
+                // Operation checkboxes
+                document.querySelectorAll('input[name="operation"]').forEach(checkbox => {
+                    checkbox.addEventListener('change', () => this.applySettings());
+                });
+                
+                document.getElementById('allowNegatives').addEventListener('change', () => this.applySettings());
             }
             
-            handleDragStart(e, pipe) {
-                this.draggedPipe = pipe;
-                e.target.classList.add('dragging');
-                e.dataTransfer.setData('text/plain', JSON.stringify(pipe));
+            handleDragStart(e) {
+                const pipeElement = e.target.closest('.pipe-piece');
+                if (!pipeElement) return;
                 
-                // Show grid highlights
-                this.showGridHighlights();
+                const pipeData = JSON.parse(pipeElement.dataset.pipeType);
+                e.dataTransfer.setData('text/plain', JSON.stringify(pipeData));
+                e.dataTransfer.effectAllowed = 'copy';
+                
+                pipeElement.style.opacity = '0.7';
             }
             
-            handleDragEnd() {
-                document.querySelectorAll('.pipe-piece').forEach(p => p.classList.remove('dragging'));
-                this.draggedPipe = null;
-                
-                // Clear grid highlights
-                this.clearGridHighlights();
-            }
-            
-            handlePlacedPipeDragStart(e, pipeElement) {
-                this.draggedPlacedPipe = pipeElement;
-                pipeElement.classList.add('dragging');
-                e.dataTransfer.setData('text/plain', 'placed-pipe');
-                
-                // Show grid highlights
-                this.showGridHighlights();
-            }
-            
-            handlePlacedPipeDragEnd() {
-                if (this.draggedPlacedPipe) {
-                    this.draggedPlacedPipe.classList.remove('dragging');
-                    this.draggedPlacedPipe = null;
-                }
-                
-                // Clear grid highlights
-                this.clearGridHighlights();
-            }
-            
-            rotatePipe(pipeElement) {
-                const pipeData = JSON.parse(pipeElement.dataset.pipeData);
-                
-                // Only rotate connector pipes (not numbers or operators)
-                if (pipeData.type === 'connector') {
-                    // Get current rotation
-                    let currentRotation = parseInt(pipeElement.dataset.rotation || '0');
-                    currentRotation = (currentRotation + 90) % 360;
-                    
-                    // Update rotation data
-                    pipeElement.dataset.rotation = currentRotation;
-                    
-                    // Re-render the pipe with new rotation
-                    let type = 'straight-h';
-                    switch(pipeData.symbol) {
-                        case '━': type = 'straight-h'; break;
-                        case '┃': type = 'straight-v'; break;
-                        case '╭': type = 'elbow'; break;
-                        case '╮': type = 'elbow'; break;
-                        case '╰': type = 'elbow'; break;
-                        case '╯': type = 'elbow'; break;
-                        case '┣': type = 'tee'; break;
-                        case '┫': type = 'tee'; break;
-                        case '┻': type = 'tee'; break;
-                        case '┳': type = 'tee'; break;
-                        case '╋': type = 'cross'; break;
-                    }
-                    
-                    renderPipeInto(pipeElement, type, currentRotation);
-                    
-                    // Recheck connections after rotation
-                    setTimeout(() => this.checkConnections(), 100);
+            handleDragEnd(e) {
+                const pipeElement = e.target.closest('.pipe-piece');
+                if (pipeElement) {
+                    pipeElement.style.opacity = '1';
                 }
             }
             
-            repositionPlacedPipe(pipeElement, newX, newY) {
-                // Update the pipe's position
-                pipeElement.style.left = newX + 'px';
-                pipeElement.style.top = newY + 'px';
-                pipeElement.dataset.x = newX;
-                pipeElement.dataset.y = newY;
+            handlePlacedPipeDragStart(e) {
+                const pipeElement = e.target.closest('.placed-pipe');
+                if (!pipeElement) return;
                 
-                // Update the pipe info in our arrays
-                const timestamp = pipeElement.dataset.timestamp;
-                const pipeInfo = this.pipes.find(p => p.timestamp === parseInt(timestamp));
-                if (pipeInfo) {
-                    pipeInfo.x = newX;
-                    pipeInfo.y = newY;
+                e.dataTransfer.setData('text/plain', 'move');
+                e.dataTransfer.effectAllowed = 'move';
+                
+                pipeElement.style.opacity = '0.7';
+            }
+            
+            handlePlacedPipeDragEnd(e) {
+                const pipeElement = e.target.closest('.placed-pipe');
+                if (pipeElement) {
+                    pipeElement.style.opacity = '1';
                 }
-                
-                // Recheck connections after repositioning
-                setTimeout(() => this.checkConnections(), 100);
             }
             
             handleDrop(e) {
                 e.preventDefault();
                 
+                const pipeData = JSON.parse(e.dataTransfer.getData('text/plain'));
                 const rect = e.currentTarget.getBoundingClientRect();
-                const rawX = e.clientX - rect.left;
-                const rawY = e.clientY - rect.top;
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
                 
-                // Snap to grid using current grid configuration
+                // Snap to grid
                 const gridConfig = this.getGridConfig();
                 const cellSize = gridConfig.cellSize;
-                const x = Math.floor(rawX / cellSize) * cellSize;
-                const y = Math.floor(rawY / cellSize) * cellSize;
+                const gridX = Math.floor(x / cellSize);
+                const gridY = Math.floor(y / cellSize);
                 
-                // Ensure pipe stays within bounds
-                const maxX = rect.width - cellSize;
-                const maxY = rect.height - cellSize;
-                const clampedX = Math.max(0, Math.min(x, maxX));
-                const clampedY = Math.max(0, Math.min(y, maxY));
+                // Convert back to pixel coordinates
+                const snapX = gridX * cellSize;
+                const snapY = gridY * cellSize;
                 
-                if (this.draggedPipe) {
-                    // Placing a new pipe from inventory
-                    this.placePipe(this.draggedPipe, clampedX, clampedY);
-                } else if (this.draggedPlacedPipe) {
-                    // Repositioning an existing placed pipe
-                    this.repositionPlacedPipe(this.draggedPlacedPipe, clampedX, clampedY);
-                }
+                this.placePipe(pipeData, snapX, snapY);
             }
             
             placePipe(pipeData, x, y) {
@@ -2870,6 +2852,289 @@
                     }
                     document.getElementById('mathProblem').textContent = expressionText;
                 }
+            }
+
+            handleInventoryTap(e) {
+                const pipeElement = e.target.closest('.pipe-piece');
+                if (!pipeElement) return;
+                
+                e.preventDefault();
+                console.log('📱 Inventory tap detected');
+                
+                // Get pipe data
+                const pipeData = JSON.parse(pipeElement.dataset.pipeType);
+                console.log('📱 Selected pipe:', pipeData);
+                
+                // Update selected pipe
+                this.selectedPipe = pipeData;
+                
+                // Visual feedback - highlight selected pipe
+                document.querySelectorAll('.pipe-piece').forEach(p => p.classList.remove('selected'));
+                pipeElement.classList.add('selected');
+                
+                // Show placement hint
+                this.showPlacementHint();
+            }
+            
+            handleGridTap(e) {
+                if (!this.selectedPipe) return;
+                
+                e.preventDefault();
+                console.log('📱 Grid tap detected');
+                
+                const playArea = document.getElementById('playArea');
+                const rect = playArea.getBoundingClientRect();
+                const rawX = e.clientX - rect.left;
+                const rawY = e.clientY - rect.top;
+                
+                // Snap to grid
+                const gridConfig = this.getGridConfig();
+                const cellSize = gridConfig.cellSize;
+                const gridX = Math.floor(rawX / cellSize);
+                const gridY = Math.floor(rawY / cellSize);
+                
+                // Convert back to pixel coordinates for placement
+                const x = gridX * cellSize;
+                const y = gridY * cellSize;
+                
+                console.log('📱 Placing pipe at grid position:', gridX, gridY, 'pixel position:', x, y);
+                
+                // Check if position is valid (not occupied)
+                const isOccupied = this.pipes.some(pipe => 
+                    Math.abs(pipe.x - x) < cellSize/2 && Math.abs(pipe.y - y) < cellSize/2
+                );
+                
+                if (isOccupied) {
+                    console.log('❌ Position occupied, cannot place pipe');
+                    this.showPlacementError('Position occupied!');
+                    return;
+                }
+                
+                // Animate pipe from inventory to grid
+                this.animatePipePlacement(this.selectedPipe, x, y);
+                
+                // Clear selection
+                this.clearPipeSelection();
+            }
+            
+            handleDoubleTap(e) {
+                const placedPipe = e.target.closest('.placed-pipe');
+                if (!placedPipe) return;
+                
+                e.preventDefault();
+                console.log('📱 Double tap detected on placed pipe');
+                
+                // Find the pipe in our data
+                const rect = placedPipe.getBoundingClientRect();
+                const playArea = document.getElementById('playArea');
+                const playRect = playArea.getBoundingClientRect();
+                const x = rect.left - playRect.left;
+                const y = rect.top - playRect.top;
+                
+                const pipe = this.pipes.find(p => 
+                    Math.abs(p.x - x) < 10 && Math.abs(p.y - y) < 10
+                );
+                
+                if (pipe) {
+                    this.rotatePipe(pipe);
+                }
+            }
+            
+            animatePipePlacement(pipeData, x, y) {
+                console.log('🎬 Animating pipe placement from inventory to:', x, y);
+                
+                // Create a temporary animated pipe element
+                const animatedPipe = document.createElement('div');
+                animatedPipe.className = 'pipe-piece animated-placement';
+                animatedPipe.style.cssText = `
+                    position: absolute;
+                    left: 0;
+                    top: 0;
+                    width: 60px;
+                    height: 60px;
+                    z-index: 1000;
+                    pointer-events: none;
+                    transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+                `;
+                
+                // Set initial position (center of inventory)
+                const inventory = document.getElementById('pipeInventory');
+                const inventoryRect = inventory.getBoundingClientRect();
+                const playArea = document.getElementById('playArea');
+                const playRect = playArea.getBoundingClientRect();
+                
+                const startX = inventoryRect.left - playRect.left + inventoryRect.width / 2 - 30;
+                const startY = inventoryRect.top - playRect.top + inventoryRect.height / 2 - 30;
+                
+                animatedPipe.style.left = startX + 'px';
+                animatedPipe.style.top = startY + 'px';
+                
+                // Add pipe content
+                if (pipeData.type === 'number') {
+                    animatedPipe.innerHTML = `
+                        <div style="
+                            width: 100%; 
+                            height: 100%; 
+                            display: flex; 
+                            align-items: center; 
+                            justify-content: center; 
+                            background: linear-gradient(135deg, #4CAF50, #66BB6A);
+                            border: 3px solid #2E7D32;
+                            border-radius: 15px;
+                            color: white;
+                            font-size: 1.2rem;
+                            font-weight: bold;
+                            text-shadow: 1px 1px 2px #000;
+                            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+                        ">
+                            ${pipeData.symbol}
+                        </div>
+                    `;
+                } else if (pipeData.type === 'operator') {
+                    animatedPipe.innerHTML = `
+                        <div style="
+                            width: 100%; 
+                            height: 100%; 
+                            display: flex; 
+                            align-items: center; 
+                            justify-content: center; 
+                            background: linear-gradient(135deg, #FF9800, #FFB74D);
+                            border: 3px solid #F57C00;
+                            border-radius: 15px;
+                            color: white;
+                            font-size: 1.4rem;
+                            font-weight: bold;
+                            text-shadow: 1px 1px 2px #000;
+                            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+                        ">
+                            ${pipeData.operation}
+                        </div>
+                    `;
+                } else {
+                    // Connector pipe
+                    animatedPipe.innerHTML = `
+                        <div style="
+                            width: 100%; 
+                            height: 100%; 
+                            background: linear-gradient(135deg, #2196F3, #64B5F6);
+                            border: 3px solid #1976D2;
+                            border-radius: 15px;
+                            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+                        "></div>
+                    `;
+                }
+                
+                // Add to play area
+                playArea.appendChild(animatedPipe);
+                
+                // Animate to final position
+                setTimeout(() => {
+                    animatedPipe.style.left = x + 'px';
+                    animatedPipe.style.top = y + 'px';
+                    animatedPipe.style.transform = 'scale(1.1)';
+                }, 50);
+                
+                // Complete animation and place pipe
+                setTimeout(() => {
+                    animatedPipe.remove();
+                    this.placePipe(pipeData, x, y);
+                }, 550);
+            }
+            
+            showPlacementHint() {
+                // Remove existing hint
+                this.clearPlacementHint();
+                
+                const hint = document.createElement('div');
+                hint.id = 'placementHint';
+                hint.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: rgba(0, 0, 0, 0.9);
+                    color: white;
+                    padding: 15px 20px;
+                    border-radius: 10px;
+                    font-size: 16px;
+                    z-index: 10000;
+                    pointer-events: none;
+                    animation: fadeInOut 2s ease-in-out;
+                `;
+                hint.textContent = 'Tap a grid cell to place the pipe';
+                
+                // Add CSS animation
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes fadeInOut {
+                        0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+                        20% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                        80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                        100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+                    }
+                `;
+                document.head.appendChild(style);
+                
+                document.body.appendChild(hint);
+                
+                // Auto-remove after animation
+                setTimeout(() => {
+                    this.clearPlacementHint();
+                }, 2000);
+            }
+            
+            clearPlacementHint() {
+                const hint = document.getElementById('placementHint');
+                if (hint) hint.remove();
+            }
+            
+            showPlacementError(message) {
+                const error = document.createElement('div');
+                error.id = 'placementError';
+                error.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background: rgba(244, 67, 54, 0.9);
+                    color: white;
+                    padding: 15px 20px;
+                    border-radius: 10px;
+                    font-size: 16px;
+                    z-index: 10000;
+                    pointer-events: none;
+                    animation: shake 0.5s ease-in-out;
+                `;
+                error.textContent = message;
+                
+                // Add shake animation
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes shake {
+                        0%, 100% { transform: translate(-50%, -50%); }
+                        25% { transform: translate(-52%, -50%); }
+                        75% { transform: translate(-48%, -50%); }
+                    }
+                `;
+                document.head.appendChild(style);
+                
+                document.body.appendChild(error);
+                
+                // Auto-remove after animation
+                setTimeout(() => {
+                    error.remove();
+                }, 1500);
+            }
+            
+            clearPipeSelection() {
+                this.selectedPipe = null;
+                document.querySelectorAll('.pipe-piece').forEach(p => p.classList.remove('selected'));
+                this.clearPlacementHint();
+            }
+
+            newLevel() {
+                console.log('🆕 Starting new level');
+                this.nextLevel();
             }
         }
         
