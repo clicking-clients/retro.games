@@ -1514,20 +1514,6 @@
                                 position: relative;
                             ">
                                 ${pipe.symbol}
-                                <div style="
-                                    position: absolute;
-                                    bottom: -20px;
-                                    left: 50%;
-                                    transform: translateX(-50%);
-                                    background: rgba(0,0,0,0.8);
-                                    color: white;
-                                    padding: 2px 6px;
-                                    border-radius: 4px;
-                                    font-size: 0.6rem;
-                                    white-space: nowrap;
-                                ">
-                                    Number
-                                </div>
                             </div>
                         `;
                     } else if (pipe.type === 'operator') {
@@ -1550,20 +1536,6 @@
                                 position: relative;
                             ">
                                 ${pipe.operation}
-                                <div style="
-                                    position: absolute;
-                                    bottom: -20px;
-                                    left: 50%;
-                                    transform: translateX(-50%);
-                                    background: rgba(0,0,0,0.8);
-                                    color: white;
-                                    padding: 2px 6px;
-                                    border-radius: 4px;
-                                    font-size: 0.6rem;
-                                    white-space: nowrap;
-                                ">
-                                    Operator
-                                </div>
                             </div>
                         `;
                     } else {
@@ -2040,52 +2012,10 @@
                 console.log('🔍 Pipe1 data:', pipe1.data);
                 console.log('🔍 Pipe2 data:', pipe2.data);
                 
-                // Only number pipes can connect to other number pipes
-                // Connector pipes can connect to any pipe
-                if (pipe1.data.value > 0 && pipe2.data.value > 0) {
-                    console.log('🔍 Both pipes are numbers, checking math connection');
-                    // Two number pipes - check if they can form a valid math expression
-                    const canConnect = this.isValidMathConnection(pipe1, pipe2);
-                    console.log('🔍 Math connection valid:', canConnect);
-                    return canConnect;
-                } else if (pipe1.data.value === 0 || pipe2.data.value === 0) {
-                    console.log('🔍 At least one connector pipe - allowing connection');
-                    // At least one connector pipe - always allow connection
-                    return true;
-                }
-                console.log('🔍 Pipes cannot connect - no valid connection type');
-                return false;
-            }
-            
-            isValidMathConnection(pipe1, pipe2) {
-                console.log('🧮 isValidMathConnection called for:', pipe1, 'and', pipe2);
-                console.log('🧮 Current expression:', this.currentExpression);
-                
-                // Check if connecting these two number pipes would help solve the problem
-                const total = pipe1.data.value + pipe2.data.value;
-                console.log('🧮 Total of two pipes:', total);
-                
-                if (this.currentExpression.type === 'simple') {
-                    if (this.currentExpression.op === '+') {
-                        const result = total === this.correctAnswer;
-                        console.log('🧮 Addition check:', total, '===', this.correctAnswer, '=', result);
-                        return result;
-                    } else if (this.currentExpression.op === '×') {
-                        const result = total === this.correctAnswer;
-                        console.log('🧮 Multiplication check:', total, '===', this.correctAnswer, '=', result);
-                        return result;
-                    } else if (this.currentExpression.op === '-') {
-                        // For subtraction, we need the larger number minus smaller
-                        const larger = Math.max(pipe1.data.value, pipe2.data.value);
-                        const smaller = Math.min(pipe1.data.value, pipe2.data.value);
-                        const result = (larger - smaller) === this.correctAnswer;
-                        console.log('🧮 Subtraction check:', larger, '-', smaller, '===', this.correctAnswer, '=', result);
-                        return result;
-                    }
-                }
-                
-                console.log('🧮 No valid operator found or expression type not supported');
-                return false;
+                // Pipes can connect if they are adjacent, regardless of type
+                // The mathematical validation happens during flow testing, not during connection establishment
+                console.log('🔍 Pipes are adjacent - allowing connection');
+                return true;
             }
             
             connectPipes(pipe1, pipe2) {
@@ -2561,6 +2491,10 @@
                 
                 console.log('✅ Valid path found, starting animation');
                 
+                // Calculate the final value by following the pipe path and applying operations
+                let finalValue = this.calculatePathValue(path);
+                console.log('🧮 Calculated final value from path:', finalValue);
+                
                 // Animate water flow step by step
                 let currentValue = this.startPipe.value;
                 let step = 0;
@@ -2569,8 +2503,8 @@
                 
                 const animateStep = () => {
                     if (step >= path.length) {
-                        console.log('🏁 Animation complete, final value:', currentValue);
-                        this.checkFlowResult(currentValue);
+                        console.log('🏁 Animation complete, final value:', finalValue);
+                        this.checkFlowResult(finalValue);
                         return;
                     }
                     
@@ -2579,17 +2513,6 @@
                     
                     const flowElement = this.createFlowElement(pipe.x, pipe.y);
                     playArea.appendChild(flowElement);
-                    
-                    // Apply operation if it's an operator
-                    if (pipe.data && pipe.data.type === 'operator') {
-                        const nextPipe = path[step + 1];
-                        if (nextPipe && nextPipe.data && nextPipe.data.type === 'number') {
-                            const oldValue = currentValue;
-                            currentValue = this.applyOperation(currentValue, nextPipe.data.value, pipe.data.operation);
-                            console.log('🧮 Applied operation:', oldValue, pipe.data.operation, nextPipe.data.value, '=', currentValue);
-                            step++; // Skip the number pipe since we processed it
-                        }
-                    }
                     
                     step++;
                     
@@ -2600,6 +2523,60 @@
                 };
                 
                 animateStep();
+            }
+            
+            calculatePathValue(path) {
+                console.log('🧮 calculatePathValue called with path:', path);
+                
+                if (path.length === 0) return this.startPipe.value;
+                
+                // For basic difficulty, we expect: start → operator → number
+                if (this.difficulty === 'basic' && this.currentExpression.type === 'simple') {
+                    console.log('🧮 Basic difficulty - simple expression:', this.currentExpression);
+                    
+                    // Find the operator and number in the path
+                    const operatorPipe = path.find(p => p.data && p.data.type === 'operator');
+                    const numberPipe = path.find(p => p.data && p.data.type === 'number');
+                    
+                    if (operatorPipe && numberPipe) {
+                        const startValue = this.startPipe.value;
+                        const operator = operatorPipe.data.operation;
+                        const numberValue = numberPipe.data.value;
+                        
+                        console.log('🧮 Found operator:', operator, 'and number:', numberValue);
+                        
+                        const result = this.applyOperation(startValue, numberValue, operator);
+                        console.log('🧮 Calculated result:', startValue, operator, numberValue, '=', result);
+                        return result;
+                    } else {
+                        console.log('⚠️ Missing operator or number in path');
+                        return this.startPipe.value;
+                    }
+                }
+                
+                // For other difficulties, follow the path more complexly
+                let currentValue = this.startPipe.value;
+                let i = 0;
+                
+                while (i < path.length) {
+                    const pipe = path[i];
+                    
+                    if (pipe.data && pipe.data.type === 'operator') {
+                        const nextPipe = path[i + 1];
+                        if (nextPipe && nextPipe.data && nextPipe.data.type === 'number') {
+                            const oldValue = currentValue;
+                            currentValue = this.applyOperation(currentValue, nextPipe.data.value, pipe.data.operation);
+                            console.log('🧮 Applied operation:', oldValue, pipe.data.operation, nextPipe.data.value, '=', currentValue);
+                            i += 2; // Skip both operator and number
+                        } else {
+                            i++; // Skip operator if no number follows
+                        }
+                    } else {
+                        i++; // Skip non-operator pipes
+                    }
+                }
+                
+                return currentValue;
             }
             
             findFlowPath() {
