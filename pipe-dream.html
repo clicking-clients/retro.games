@@ -291,6 +291,22 @@
             cursor: pointer;
             transition: all 0.3s ease;
             transform-style: preserve-3d;
+            overflow: visible;
+        }
+        
+        /* Responsive pipe sizing */
+        @media (max-width: 768px) {
+            .placed-pipe {
+                width: 70px;
+                height: 70px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .placed-pipe {
+                width: 50px;
+                height: 50px;
+            }
         }
 
 
@@ -1886,6 +1902,9 @@
                         `;
                     } else {
                         // Connector pipes use SVG rendering
+                        let type = 'straight-h';
+                        let rot = 0;
+                        
                         switch(pipe.symbol) {
                             case '━': type = 'straight-h'; break;
                             case '┃': type = 'straight-v'; break;
@@ -1898,9 +1917,30 @@
                             case '┻': type = 'tee'; rot = 90; break;
                             case '┳': type = 'tee'; rot = 270; break;
                             case '╋': type = 'cross'; break;
+                            case '╬': type = 'cross'; break; // splitter
+                            case '▶': type = 'straight-h'; break; // valve
+                            case '⊕': type = 'cross'; break; // crossover
+                            case '⚡': type = 'cross'; break; // pressure valve
                             default: type = 'straight-h';
                         }
+                        
+                        // Render the pipe with proper SVG
                         renderPipeInto(pipeElement, type, rot);
+                        
+                        // Add a label to show the pipe type
+                        const label = document.createElement('div');
+                        label.style.cssText = `
+                            position: absolute;
+                            bottom: -20px;
+                            left: 50%;
+                            transform: translateX(-50%);
+                            font-size: 10px;
+                            color: #0f0;
+                            text-align: center;
+                            white-space: nowrap;
+                        `;
+                        label.textContent = pipe.symbol;
+                        pipeElement.appendChild(label);
                     }
                     
 
@@ -2022,7 +2062,7 @@
                 if (!pipeElement) return;
                 
                 const pipeData = JSON.parse(pipeElement.dataset.pipeType);
-                e.dataTransfer.setData('text/plain', JSON.stringify(pipeElement.dataset.pipeType));
+                e.dataTransfer.setData('text/plain', JSON.stringify(pipeData));
                 e.dataTransfer.effectAllowed = 'copy';
                 
                 pipeElement.style.opacity = '0.7';
@@ -2056,6 +2096,8 @@
                 e.preventDefault();
                 
                 const pipeData = JSON.parse(e.dataTransfer.getData('text/plain'));
+                console.log('🖥️ handleDrop - pipeData received:', pipeData);
+                
                 const rect = e.currentTarget.getBoundingClientRect();
                 const x = e.clientX - rect.left;
                 const y = e.clientY - rect.top;
@@ -2070,6 +2112,7 @@
                 const snapX = gridX * cellSize;
                 const snapY = gridY * cellSize;
                 
+                console.log('🖥️ handleDrop - placing pipe at grid position:', gridX, gridY, 'pixel position:', snapX, snapY);
                 this.placePipe(pipeData, snapX, snapY);
             }
             
@@ -2079,6 +2122,13 @@
                 const pipeElement = document.createElement('div');
                 
                 pipeElement.className = 'placed-pipe';
+                
+                // Set size based on grid configuration
+                const gridConfig = this.getGridConfig();
+                const cellSize = gridConfig.cellSize;
+                pipeElement.style.width = cellSize + 'px';
+                pipeElement.style.height = cellSize + 'px';
+                
                 pipeElement.style.left = x + 'px';
                 pipeElement.style.top = y + 'px'; // Center vertically in the grid cell
                 pipeElement.dataset.pipeData = JSON.stringify(pipeData);
@@ -2087,6 +2137,7 @@
                 pipeElement.dataset.pipeId = Date.now(); // Add unique ID for water flow styling
                 
                 console.log('🔧 Pipe element created with data:', pipeElement.dataset);
+                console.log('🔧 Pipe data type:', pipeData.type, 'symbol:', pipeData.symbol);
                 
                 // Make placed pipes draggable for repositioning
                 pipeElement.draggable = true;
@@ -2146,6 +2197,9 @@
                 } else {
                     console.log('🔗 Rendering connector pipe:', pipeData.symbol);
                     // Connector pipes use SVG rendering
+                    let type = 'straight-h';
+                    let rot = 0;
+                    
                     switch(pipeData.symbol) {
                         case '━': type = 'straight-h'; break;
                         case '┃': type = 'straight-v'; break;
@@ -2158,12 +2212,37 @@
                         case '┻': type = 'tee'; rot = 90; break;
                         case '┳': type = 'tee'; rot = 270; break;
                         case '╋': type = 'cross'; break;
+                        case '╬': type = 'cross'; break; // splitter
+                        case '▶': type = 'straight-h'; break; // valve
+                        case '⊕': type = 'cross'; break; // crossover
+                        case '⚡': type = 'cross'; break; // pressure valve
                         default: type = 'straight-h';
                     }
+                    
+                    // Render the pipe with proper SVG
+                    console.log('🔧 Rendering SVG pipe with type:', type, 'rotation:', rot);
                     renderPipeInto(pipeElement, type, rot);
+                    
+                    // Add a label to show the pipe type
+                    const label = document.createElement('div');
+                    label.style.cssText = `
+                        position: absolute;
+                        bottom: -20px;
+                        left: 50%;
+                        transform: translateX(-50%);
+                        font-size: 10px;
+                        color: #0f0;
+                        text-align: center;
+                        white-space: nowrap;
+                        pointer-events: none;
+                    `;
+                    label.textContent = pipeData.symbol;
+                    pipeElement.appendChild(label);
                     
                     // Add rotatable class for connector pipes
                     pipeElement.classList.add('rotatable');
+                    
+                    console.log('🔧 Pipe element after SVG rendering:', pipeElement.innerHTML);
                 }
                 
 
@@ -3607,6 +3686,56 @@
                 
                 // Update pipe data
                 pipe.rotation = newRotation;
+                
+                // Get pipe data to determine type and rotation
+                const pipeData = JSON.parse(pipeElement.dataset.pipeData);
+                if (pipeData.type === 'connector') {
+                    // Re-render the pipe with new rotation
+                    let type = 'straight-h';
+                    let baseRot = 0;
+                    
+                    switch(pipeData.symbol) {
+                        case '━': type = 'straight-h'; baseRot = 0; break;
+                        case '┃': type = 'straight-v'; baseRot = 0; break;
+                        case '╭': type = 'elbow'; baseRot = 0; break;
+                        case '╮': type = 'elbow'; baseRot = 90; break;
+                        case '╰': type = 'elbow'; baseRot = 270; break;
+                        case '╯': type = 'elbow'; baseRot = 180; break;
+                        case '┣': type = 'tee'; baseRot = 180; break;
+                        case '┫': type = 'tee'; baseRot = 0; break;
+                        case '┻': type = 'tee'; baseRot = 90; break;
+                        case '┳': type = 'tee'; baseRot = 270; break;
+                        case '╋': type = 'cross'; baseRot = 0; break;
+                        case '╬': type = 'cross'; baseRot = 0; break;
+                        case '▶': type = 'straight-h'; baseRot = 0; break;
+                        case '⊕': type = 'cross'; baseRot = 0; break;
+                        case '⚡': type = 'cross'; baseRot = 0; break;
+                        default: type = 'straight-h'; baseRot = 0;
+                    }
+                    
+                    // Calculate total rotation
+                    const totalRotation = (baseRot + newRotation) % 360;
+                    
+                    // Clear existing content and re-render
+                    pipeElement.innerHTML = '';
+                    renderPipeInto(pipeElement, type, totalRotation);
+                    
+                    // Re-add the label
+                    const label = document.createElement('div');
+                    label.style.cssText = `
+                        position: absolute;
+                        bottom: -20px;
+                        left: 50%;
+                        transform: translateX(-50%);
+                        font-size: 10px;
+                        color: #0f0;
+                        text-align: center;
+                        white-space: nowrap;
+                        pointer-events: none;
+                    `;
+                    label.textContent = pipeData.symbol;
+                    pipeElement.appendChild(label);
+                }
                 
                 // Apply rotation to element
                 pipeElement.style.transform = `rotate(${newRotation}deg)`;
