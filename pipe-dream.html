@@ -1346,6 +1346,19 @@
                 startElement.style.top = (startY * cellSize) + 'px';
                 playArea.appendChild(startElement);
                 
+                // IMPORTANT: Add start pipe to the pipes array so it can be found by pathfinding
+                const startPipeInfo = {
+                    element: startElement,
+                    data: { symbol: this.currentExpression.a, value: this.currentExpression.a, type: 'start' },
+                    x: 0,
+                    y: startY * cellSize, // Convert grid position to pixel position
+                    connected: false,
+                    timestamp: Date.now()
+                };
+                this.pipes.push(startPipeInfo);
+                
+                console.log('🚰 Start pipe added to pipes array:', startPipeInfo);
+                
                 // Place answer pipes along right and bottom edges
                 const allAnswers = [this.correctAnswer, ...this.decoyAnswers];
                 const shuffledAnswers = allAnswers.sort(() => Math.random() - 0.5);
@@ -1982,6 +1995,8 @@
                     console.log('🔢 First placed pipe:', this.pipes[0]);
                     
                     const firstPipe = this.pipes[0];
+                    
+                    // Convert pixel positions to grid positions consistently
                     const startGridX = Math.floor(this.startPipe.x / cellSize);
                     const startGridY = Math.floor(this.startPipe.y / cellSize);
                     const firstGridX = Math.floor(firstPipe.x / cellSize);
@@ -1990,9 +2005,11 @@
                     console.log('📍 Start grid position:', startGridX, startGridY);
                     console.log('📍 First pipe grid position:', firstGridX, firstGridY);
                     
-                    // Check if they are adjacent
-                    if ((Math.abs(startGridX - firstGridX) === 1 && startGridY === firstGridY) ||
-                        (Math.abs(startGridY - firstGridY) === 1 && startGridX === firstGridX)) {
+                    // Check if they are adjacent (including diagonal for better connection detection)
+                    const xDiff = Math.abs(startGridX - firstGridX);
+                    const yDiff = Math.abs(startGridY - firstGridY);
+                    
+                    if ((xDiff === 1 && yDiff === 0) || (xDiff === 0 && yDiff === 1)) {
                         console.log('✅ Start pipe and first pipe are adjacent - marking as connected');
                         // Mark first pipe as connected to start
                         firstPipe.connected = true;
@@ -2000,6 +2017,7 @@
                         this.connectedPipes.push(firstPipe);
                     } else {
                         console.log('❌ Start pipe and first pipe are not adjacent');
+                        console.log('📏 Distance:', xDiff, yDiff);
                     }
                 }
                 
@@ -2609,14 +2627,21 @@
                 console.log('🚰 Start element found:', startElement);
                 
                 if (startElement) {
-                    const startX = parseInt(startElement.style.left);
-                    const startY = parseInt(startElement.style.top);
-                    console.log('📍 Start position:', startX, startY);
+                    // Look for start pipe in the pipes array by type
+                    startPipe = this.pipes.find(p => p.data && p.data.type === 'start');
+                    console.log('🔍 Start pipe found in pipes array by type:', startPipe);
                     
-                    startPipe = this.pipes.find(p => 
-                        Math.abs(p.x - startX) < cellSize/2 && Math.abs(p.y - startY) < cellSize/2
-                    );
-                    console.log('🔍 Start pipe found in pipes array:', startPipe);
+                    // Fallback: look by position
+                    if (!startPipe) {
+                        const startX = parseInt(startElement.style.left);
+                        const startY = parseInt(startElement.style.top);
+                        console.log('📍 Start position:', startX, startY);
+                        
+                        startPipe = this.pipes.find(p => 
+                            Math.abs(p.x - startX) < cellSize/2 && Math.abs(p.y - startY) < cellSize/2
+                        );
+                        console.log('🔍 Start pipe found in pipes array by position:', startPipe);
+                    }
                 }
                 
                 // Fallback: look for pipe at start position
@@ -2635,35 +2660,44 @@
                 // If we have connected pipes, try to build a path through them
                 if (this.connectedPipes.length > 0) {
                     console.log('🔗 Building path through connected pipes...');
-                    // Start with the start pipe
-                    path.push(startPipe);
-                    visited.add(startPipe.timestamp);
                     
-                    // Find the next connected pipe
-                    let currentPipe = startPipe;
-                    let attempts = 0;
-                    const maxAttempts = this.pipes.length;
-                    
-                    while (attempts < maxAttempts && path.length < this.pipes.length) {
-                        const nextPipe = this.findNextConnectedPipe(currentPipe, visited);
-                        if (nextPipe && !visited.has(nextPipe.timestamp)) {
-                            console.log('➡️ Next connected pipe:', nextPipe);
-                            path.push(nextPipe);
-                            visited.add(nextPipe.timestamp);
-                            currentPipe = nextPipe;
-                        } else {
-                            console.log('🛑 No more connected pipes found');
-                            break;
+                    // Find the start pipe in connected pipes (it should be there now)
+                    const connectedStartPipe = this.connectedPipes.find(p => p.data && p.data.type === 'start');
+                    if (connectedStartPipe) {
+                        console.log('🚰 Found start pipe in connected pipes:', connectedStartPipe);
+                        
+                        // Start with the start pipe
+                        path.push(connectedStartPipe);
+                        visited.add(connectedStartPipe.timestamp);
+                        
+                        // Find the next connected pipe
+                        let currentPipe = connectedStartPipe;
+                        let attempts = 0;
+                        const maxAttempts = this.connectedPipes.length;
+                        
+                        while (attempts < maxAttempts && path.length < this.connectedPipes.length) {
+                            const nextPipe = this.findNextConnectedPipe(currentPipe, visited);
+                            if (nextPipe && !visited.has(nextPipe.timestamp)) {
+                                console.log('➡️ Next connected pipe:', nextPipe);
+                                path.push(nextPipe);
+                                visited.add(nextPipe.timestamp);
+                                currentPipe = nextPipe;
+                            } else {
+                                console.log('🛑 No more connected pipes found');
+                                break;
+                            }
+                            attempts++;
                         }
-                        attempts++;
-                    }
-                    
-                    console.log('🛤️ Path built through connected pipes:', path);
-                    
-                    // Check if this path leads to an answer
-                    if (path.length > 1) {
-                        console.log('✅ Valid path found through connected pipes!');
-                        return path;
+                        
+                        console.log('🛤️ Path built through connected pipes:', path);
+                        
+                        // Check if this path leads to an answer
+                        if (path.length > 1) {
+                            console.log('✅ Valid path found through connected pipes!');
+                            return path;
+                        }
+                    } else {
+                        console.log('❌ Start pipe not found in connected pipes');
                     }
                 }
                 
