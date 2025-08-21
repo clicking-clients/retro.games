@@ -3,79 +3,218 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Retro Games Collection</title>
-    <link rel="stylesheet" href="styles.css">
+    <meta name="description" content="Classic retro arcade games collection with modern responsive design and touch controls.">
+    <meta name="keywords" content="retro, arcade, games, classic, mobile, responsive, touch">
+    <meta name="author" content="Retro Games Collection">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://retrogames.com/">
+    <meta property="og:title" content="Retro Games Collection">
+    <meta property="og:description" content="Classic retro arcade games collection with modern responsive design and touch controls.">
+    <meta property="og:image" content="https://retrogames.com/images/collection.jpg">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://retrogames.com/">
+    <meta property="twitter:title" content="Retro Games Collection">
+    <meta property="twitter:description" content="Classic retro arcade games collection with modern responsive design and touch controls.">
+    <meta property="twitter:image" content="https://retrogames.com/images/collection.jpg">
+    
+    <title>🎮 Retro Games Collection</title>
+    
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="core/base.css">
+    <link rel="stylesheet" href="core/components.css">
+    <link rel="stylesheet" href="core/responsive.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+    
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Retro Games Collection",
+      "description": "Classic retro arcade games collection with modern responsive design and touch controls.",
+      "url": "https://retrogames.com/",
+      "author": {
+        "@type": "Organization",
+        "name": "Retro Games Collection"
+      },
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    }
+    </script>
 </head>
 <body>
+    <!-- Skip to main content link for accessibility -->
+    <a href="#mainContent" class="sr-only sr-only-focusable">Skip to main content</a>
+    
+    <!-- Main Container -->
     <div class="container">
+        <!-- Header -->
         <header>
             <h1 class="main-title">🎮 Retro Games Collection</h1>
             <p class="subtitle">Classic arcade games from the golden age of gaming</p>
+            <p class="subtitle-secondary">Modern responsive design • Touch controls • Mobile optimized</p>
         </header>
         
-
-        
-        <main class="games-grid">
-            <div class="game-card">
+        <!-- Main Content -->
+        <main class="games-grid" id="mainContent">
+            <div class="game-card" data-game="chompy">
                 <h3>Chompy</h3>
                 <p>Navigate through mazes, eat dots, and avoid ghosts in this classic arcade game.</p>
-                <a href="chompy.html" class="play-button">Play Now</a>
+                <div class="game-meta">
+                    <span class="game-category">🎮 Arcade</span>
+                    <span class="game-difficulty">⭐ Medium</span>
+                    <span class="game-time">⏱️ 10-20 minutes</span>
+                </div>
+                <a href="games/chompy/index.html" class="play-button">Play Now</a>
             </div>
             
-            <div class="game-card">
+            <div class="game-card" data-game="block-stack">
                 <h3>Block Stack</h3>
                 <p>Stack falling blocks to create complete lines in this addictive puzzle game.</p>
-                <a href="block-stack.html" class="play-button">Play Now</a>
+                <div class="game-meta">
+                    <span class="game-category">🧩 Puzzle</span>
+                    <span class="game-difficulty">⭐ Medium</span>
+                    <span class="game-time">⏱️ 5-15 minutes</span>
+                </div>
+                <a href="games/block-stack/index.html" class="play-button">Play Now</a>
             </div>
             
-            <div class="game-card">
+            <div class="game-card" data-game="wormy">
                 <h3>Wormy</h3>
                 <p>Control a growing worm, eat food, and avoid hitting walls or yourself.</p>
-                <a href="wormy.html" class="play-button">Play Now</a>
+                <div class="game-meta">
+                    <span class="game-category">🎮 Arcade</span>
+                    <span class="game-difficulty">⭐ Easy</span>
+                    <span class="game-time">⏱️ 2-8 minutes</span>
+                </div>
+                <a href="games/wormy/index.html" class="play-button">Play Now</a>
             </div>
             
-            <div class="game-card">
+            <div class="game-card" data-game="bubble-pop">
                 <h3>Bubble Pop</h3>
                 <p>Pop colorful bubbles with realistic physics and satisfying sound effects!</p>
-                <a href="bubble-pop.html" class="play-button">Play Now</a>
+                <div class="game-meta">
+                    <span class="game-category">🎈 Puzzle</span>
+                    <span class="game-difficulty">⭐ Easy</span>
+                    <span class="game-time">⏱️ 5-15 minutes</span>
+                </div>
+                <a href="games/bubble-pop/index.html" class="play-button">Play Now</a>
             </div>
             
-            <div class="game-card">
+            <div class="game-card" data-game="road-dash">
                 <h3>Road Dash</h3>
                 <p>Help the frog cross the road and river safely.</p>
-                <a href="road-dash.html" class="play-button">Play Now</a>
+                <div class="game-meta">
+                    <span class="game-category">🏎️ Racing</span>
+                    <span class="game-difficulty">⭐ Easy</span>
+                    <span class="game-time">⏱️ 5-10 minutes</span>
+                </div>
+                <a href="games/road-dash/index.html" class="play-button">Play Now</a>
             </div>
             
-            <div class="game-card">
+            <div class="game-card" data-game="paddle-ball">
                 <h3>Paddle Ball</h3>
                 <p>The classic two-player table tennis simulation game.</p>
-                <a href="paddle-ball.html" class="play-button">Play Now</a>
+                <div class="game-meta">
+                    <span class="game-category">🏓 Arcade</span>
+                    <span class="game-difficulty">⭐ Easy</span>
+                    <span class="game-time">⏱️ 3-8 minutes</span>
+                </div>
+                <a href="games/paddle-ball/index.html" class="play-button">Play Now</a>
             </div>
             
-            <div class="game-card">
+            <div class="game-card" data-game="number-defenders">
                 <h3>Number Defenders</h3>
                 <p>Solve math problems while defending against invading aliens.</p>
-                <a href="number-defenders.html" class="play-button">Play Now</a>
+                <div class="game-meta">
+                    <span class="game-category">🔢 Math</span>
+                    <span class="game-difficulty">⭐ Medium</span>
+                    <span class="game-time">⏱️ 8-15 minutes</span>
+                </div>
+                <a href="games/number-defenders/index.html" class="play-button">Play Now</a>
             </div>
             
-            <div class="game-card">
+            <div class="game-card" data-game="word-defenders">
                 <h3>Word Defenders</h3>
                 <p>Improve your spelling while defending against word-based invaders.</p>
-                <a href="word-defenders.html" class="play-button">Play Now</a>
+                <div class="game-meta">
+                    <span class="game-category">📚 Word</span>
+                    <span class="game-difficulty">⭐ Medium</span>
+                    <span class="game-time">⏱️ 10-20 minutes</span>
+                </div>
+                <a href="games/word-defenders/index.html" class="play-button">Play Now</a>
             </div>
             
-            <div class="game-card">
+            <div class="game-card" data-game="pipe-dream">
                 <h3>Pipe Dream</h3>
                 <p>Connect pipes to solve math problems and watch the water flow in this puzzle game!</p>
-                <a href="pipe-dream.html" class="play-button">Play Now</a>
+                <div class="game-meta">
+                    <span class="game-category">🧩 Puzzle</span>
+                    <span class="game-difficulty">⭐ Hard</span>
+                    <span class="game-time">⏱️ 15-30 minutes</span>
+                </div>
+                <a href="games/pipe-dream/index.html" class="play-button">Play Now</a>
             </div>
         </main>
         
+        <!-- Footer -->
         <footer>
             <p>&copy; 2025 Retro Games Collection. All games are playable in your browser!</p>
+            <p class="footer-features">
+                <span>📱 Mobile Optimized</span> • 
+                <span>🎮 Touch Controls</span> • 
+                <span>⚡ Fast Loading</span> • 
+                <span>🌐 Offline Support</span>
+            </p>
         </footer>
     </div>
     
-    <script src="navigation.js"></script>
+    <!-- Core Scripts -->
+    <script type="module" src="core/responsive-utils.js"></script>
+    <script type="module" src="core/performance.js"></script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./core/serviceWorker.js')
+                    .then(registration => console.log('SW registered'))
+                    .catch(error => console.log('SW registration failed'));
+            });
+        }
+    </script>
+    
+    <!-- Analytics (if needed) -->
+    <script>
+        // Collection analytics tracking
+        window.collectionAnalytics = {
+            collectionId: 'retro-games-collection',
+            collectionTitle: 'Retro Games Collection',
+            totalGames: 9,
+            startTime: Date.now()
+        };
+        
+        // Track collection view
+        window.addEventListener('load', () => {
+            if (typeof gtag !== 'undefined') {
+                gtag('event', 'collection_view', {
+                    collection_id: 'retro-games-collection',
+                    collection_title: 'Retro Games Collection',
+                    total_games: 9
+                });
+            }
+        });
+    </script>
 </body>
 </html>

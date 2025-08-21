@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New System Test - Retro Games Collection</title>
+    <link rel="stylesheet" href="core/base.css">
+    <link rel="stylesheet" href="core/components.css">
+    <link rel="stylesheet" href="core/responsive.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 class="main-title">🧪 New System Test</h1>
+            <p class="subtitle">Testing our new component-based architecture</p>
+        </header>
+        
+        <main class="games-grid">
+            <div class="game-card" data-game="test">
+                <h3>System Test</h3>
+                <p>Test our new component system and verify everything works.</p>
+                <div class="game-meta">
+                    <span class="game-category">🧪 Test</span>
+                    <span class="game-difficulty">⭐ Easy</span>
+                    <span class="game-time">⏱️ 1-2 minutes</span>
+                </div>
+                <button onclick="testSystem()" class="play-button">Test System</button>
+            </div>
+        </main>
+        
+        <div id="testResults" class="test-results" style="display: none;">
+            <h2>Test Results</h2>
+            <div id="testOutput"></div>
+        </div>
+        
+        <footer>
+            <p>&copy; 2025 Retro Games Collection. Testing new architecture!</p>
+        </footer>
+    </div>
+    
+    <script type="module">
+        import { ResponsiveUtils } from './core/responsive-utils.js';
+        import { PerformanceMonitor } from './core/performance.js';
+        
+        // Test responsive utilities
+        window.testResponsiveUtils = () => {
+            const utils = window.responsiveUtils;
+            return {
+                breakpoint: utils.getCurrentBreakpoint(),
+                isTouch: utils.isTouch(),
+                isMobile: utils.isMobileDevice(),
+                orientation: utils.getCurrentOrientation(),
+                viewport: utils.getViewport(),
+                capabilities: utils.getDeviceCapabilities()
+            };
+        };
+        
+        // Test performance monitor
+        window.testPerformanceMonitor = () => {
+            const monitor = window.performanceMonitor;
+            return {
+                metrics: monitor.getMetrics(),
+                report: monitor.getPerformanceReport()
+            };
+        };
+        
+        // Test asset loader
+        window.testAssetLoader = () => {
+            const loader = window.assetLoader;
+            if (loader) {
+                return {
+                    cacheStats: loader.getCacheStats(),
+                    isLoading: loader.isLoading(),
+                    hasFailed: loader.hasFailed()
+                };
+            }
+            return { error: 'Asset loader not available' };
+        };
+        
+        // Test game config
+        window.testGameConfig = async () => {
+            try {
+                const { GAME_CONFIGS } = await import('./config/games.js');
+                return {
+                    totalGames: Object.keys(GAME_CONFIGS).length,
+                    games: Object.keys(GAME_CONFIGS),
+                    sampleConfig: GAME_CONFIGS['wormy']
+                };
+            } catch (error) {
+                return { error: error.message };
+            }
+        };
+        
+        // Test game container
+        window.testGameContainer = async () => {
+            try {
+                const { GameContainer } = await import('./components/GameContainer.js');
+                const { GAME_CONFIGS } = await import('./config/games.js');
+                
+                const config = GAME_CONFIGS['wormy'];
+                const container = new GameContainer(config);
+                
+                return {
+                    containerCreated: !!container,
+                    config: config,
+                    methods: Object.getOwnPropertyNames(Object.getPrototypeOf(container))
+                };
+            } catch (error) {
+                return { error: error.message };
+            }
+        };
+        
+        console.log('Test system loaded successfully');
+    </script>
+    
+    <script>
+        async function testSystem() {
+            const results = document.getElementById('testResults');
+            const output = document.getElementById('testOutput');
+            
+            results.style.display = 'block';
+            output.innerHTML = '<div class="loading">Running tests...</div>';
+            
+            const tests = [
+                { name: 'Responsive Utilities', test: window.testResponsiveUtils },
+                { name: 'Performance Monitor', test: window.testPerformanceMonitor },
+                { name: 'Asset Loader', test: window.testAssetLoader },
+                { name: 'Game Configuration', test: window.testGameConfig },
+                { name: 'Game Container', test: window.testGameContainer }
+            ];
+            
+            let resultsHtml = '';
+            
+            for (const test of tests) {
+                try {
+                    const result = await test.test();
+                    const status = result.error ? '❌' : '✅';
+                    resultsHtml += `
+                        <div class="test-item">
+                            <h3>${status} ${test.name}</h3>
+                            <pre>${JSON.stringify(result, null, 2)}</pre>
+                        </div>
+                    `;
+                } catch (error) {
+                    resultsHtml += `
+                        <div class="test-item">
+                            <h3>❌ ${test.name}</h3>
+                            <p class="error">Error: ${error.message}</p>
+                        </div>
+                    `;
+                }
+            }
+            
+            output.innerHTML = resultsHtml;
+        }
+    </script>
+    
+    <style>
+        .test-results {
+            margin: 2rem 0;
+            padding: 1rem;
+            background: var(--retro-dark);
+            border: 2px solid var(--retro-green);
+            border-radius: 8px;
+        }
+        
+        .test-item {
+            margin: 1rem 0;
+            padding: 1rem;
+            background: var(--retro-darker);
+            border: 1px solid var(--retro-blue);
+            border-radius: 4px;
+        }
+        
+        .test-item h3 {
+            margin: 0 0 0.5rem 0;
+            color: var(--retro-green);
+        }
+        
+        .test-item pre {
+            background: var(--retro-darkest);
+            padding: 0.5rem;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 0.8rem;
+        }
+        
+        .error {
+            color: var(--retro-red);
+        }
+        
+        .loading {
+            text-align: center;
+            color: var(--retro-yellow);
+            font-style: italic;
+        }
+    </style>
+</body>
+</html>

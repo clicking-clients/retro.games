@@ -1,0 +1,351 @@
+/* ========================================
+   RETRO GAMES COLLECTION - RESPONSIVE DESIGN SYSTEM
+   ======================================== */
+
+/* ===== BREAKPOINT SYSTEM ===== */
+:root {
+  --breakpoint-xs: 320px;
+  --breakpoint-sm: 480px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1200px;
+  --breakpoint-2xl: 1400px;
+}
+
+/* ===== MOBILE-FIRST APPROACH ===== */
+/* Base styles are mobile-first by default */
+
+/* ===== SMALL MOBILE (320px+) ===== */
+@media (min-width: 320px) {
+  .container {
+    padding: 0 var(--space-sm);
+  }
+  
+  .game-container {
+    padding: var(--space-sm);
+  }
+  
+  .game-title {
+    font-size: var(--font-size-xl);
+  }
+  
+  .btn {
+    padding: var(--space-xs) var(--space-md);
+    font-size: var(--font-size-sm);
+  }
+  
+  .touch-button {
+    min-height: 48px;
+    min-width: 48px;
+    font-size: var(--font-size-lg);
+  }
+}
+
+/* ===== MEDIUM MOBILE (480px+) ===== */
+@media (min-width: 480px) {
+  .container {
+    padding: 0 var(--space-md);
+  }
+  
+  .game-container {
+    padding: var(--space-md);
+  }
+  
+  .game-title {
+    font-size: var(--font-size-2xl);
+  }
+  
+  .btn {
+    padding: var(--space-sm) var(--space-lg);
+    font-size: var(--font-size-base);
+  }
+  
+  .touch-button {
+    min-height: 52px;
+    min-width: 52px;
+    font-size: var(--font-size-xl);
+  }
+}
+
+/* ===== TABLET (768px+) ===== */
+@media (min-width: 768px) {
+  .game-content {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: center;
+    gap: var(--space-xl);
+  }
+  
+  .game-sidebar {
+    max-width: var(--sidebar-width);
+    order: 0; /* Reset order for desktop */
+  }
+  
+  .touch-controls {
+    display: none; /* Hide touch controls on desktop */
+  }
+  
+  .btn-group {
+    flex-direction: row;
+  }
+  
+  .btn-group .btn {
+    min-width: 120px;
+  }
+  
+  /* Show desktop-specific elements */
+  .desktop-only {
+    display: block;
+  }
+  
+  .mobile-only {
+    display: none;
+  }
+}
+
+/* ===== DESKTOP (1024px+) ===== */
+@media (min-width: 1024px) {
+  .game-container {
+    padding: var(--space-lg);
+  }
+  
+  .game-title {
+    font-size: var(--font-size-3xl);
+  }
+  
+  .sidebar-section {
+    padding: var(--space-lg);
+  }
+  
+  .btn {
+    padding: var(--space-md) var(--space-xl);
+    font-size: var(--font-size-lg);
+  }
+}
+
+/* ===== LARGE DESKTOP (1200px+) ===== */
+@media (min-width: 1200px) {
+  .game-container {
+    padding: var(--space-xl);
+  }
+  
+  .game-title {
+    font-size: var(--font-size-4xl);
+  }
+  
+  .btn {
+    padding: var(--space-lg) var(--space-2xl);
+    font-size: var(--font-size-xl);
+  }
+}
+
+/* ===== EXTRA LARGE DESKTOP (1400px+) ===== */
+@media (min-width: 1400px) {
+  .container {
+    max-width: var(--breakpoint-2xl);
+  }
+  
+  .game-title {
+    font-size: var(--font-size-5xl);
+  }
+}
+
+/* ===== LANDSCAPE MOBILE ===== */
+@media (max-height: 500px) and (orientation: landscape) {
+  .game-container {
+    min-height: auto;
+    padding: var(--space-sm);
+  }
+  
+  .game-content {
+    flex-direction: row;
+    gap: var(--space-md);
+  }
+  
+  .game-title {
+    font-size: var(--font-size-lg);
+    margin-bottom: var(--space-sm);
+  }
+  
+  .sidebar-section {
+    padding: var(--space-sm);
+  }
+}
+
+/* ===== HIGH DPI DISPLAYS ===== */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .game-canvas {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}
+
+/* ===== REDUCED MOTION ===== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .hover-lift:hover {
+    transform: none;
+  }
+  
+  .touch-button:hover,
+  .touch-button:focus {
+    transform: none;
+  }
+}
+
+/* ===== DARK MODE SUPPORT ===== */
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Keep retro colors but ensure good contrast */
+    --retro-bg: #000;
+    --retro-green: #0f0;
+    --retro-yellow: #ffd700;
+    --retro-red: #f00;
+  }
+}
+
+/* ===== LIGHT MODE SUPPORT ===== */
+@media (prefers-color-scheme: light) {
+  :root {
+    /* Adjust for light mode if needed */
+    --retro-bg: #000; /* Keep black for retro feel */
+  }
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+  .game-container {
+    min-height: auto;
+    padding: 0;
+  }
+  
+  .game-sidebar {
+    display: none;
+  }
+  
+  .touch-controls {
+    display: none;
+  }
+  
+  .btn {
+    border: 1px solid #000;
+    background: transparent;
+    color: #000;
+  }
+}
+
+/* ===== ACCESSIBILITY ENHANCEMENTS ===== */
+@media (prefers-contrast: high) {
+  :root {
+    --retro-green: #00ff00;
+    --retro-yellow: #ffff00;
+    --retro-red: #ff0000;
+    --retro-focus: #ffffff;
+  }
+  
+  .btn {
+    border-width: 3px;
+  }
+  
+  .game-canvas {
+    border-width: 6px;
+  }
+}
+
+/* ===== TOUCH DEVICE DETECTION ===== */
+@media (hover: none) and (pointer: coarse) {
+  /* Touch-specific enhancements */
+  .btn {
+    min-height: 48px;
+    min-width: 48px;
+  }
+  
+  .touch-controls {
+    display: flex;
+  }
+  
+  /* Increase touch targets */
+  .form-input,
+  .form-select {
+    min-height: 44px;
+  }
+  
+  /* Prevent text selection on interactive elements */
+  .btn,
+  .touch-button {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* ===== NON-TOUCH DEVICES ===== */
+@media (hover: hover) and (pointer: fine) {
+  /* Desktop-specific enhancements */
+  .btn:hover {
+    transform: translateY(-2px);
+  }
+  
+  .touch-controls {
+    display: none;
+  }
+}
+
+/* ===== FOLDABLE DEVICES ===== */
+@media (screen-spanning: single-fold-vertical) {
+  .game-container {
+    max-width: 100vw;
+  }
+  
+  .game-content {
+    flex-direction: column;
+  }
+}
+
+/* ===== ORIENTATION CHANGES ===== */
+@media (orientation: portrait) {
+  .game-content {
+    flex-direction: column;
+  }
+  
+  .game-sidebar {
+    order: -1;
+  }
+}
+
+@media (orientation: landscape) and (min-width: 768px) {
+  .game-content {
+    flex-direction: row;
+  }
+  
+  .game-sidebar {
+    order: 0;
+  }
+}
+
+/* ===== VIEWPORT HEIGHT ADJUSTMENTS ===== */
+/* For mobile browsers with dynamic toolbars */
+@supports (height: 100dvh) {
+  .game-container {
+    min-height: 100dvh;
+  }
+}
+
+/* ===== SAFE AREA INSETS ===== */
+@supports (padding: max(0px)) {
+  .game-container {
+    padding-left: max(var(--space-md), env(safe-area-inset-left));
+    padding-right: max(var(--space-md), env(safe-area-inset-right));
+    padding-top: max(var(--space-md), env(safe-area-inset-top));
+    padding-bottom: max(var(--space-md), env(safe-area-inset-bottom));
+  }
+}

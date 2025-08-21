@@ -1,0 +1,340 @@
+/* ========================================
+   WORMY - GAME SPECIFIC STYLES
+   ======================================== */
+
+/* Game-specific overrides and customizations */
+.game-header {
+  text-align: center;
+  margin-bottom: var(--space-lg);
+}
+
+.game-meta {
+  display: flex;
+  gap: var(--space-md);
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: var(--space-sm);
+}
+
+.game-category,
+.game-difficulty,
+.game-time {
+  background: rgba(0, 255, 0, 0.1);
+  border: 1px solid var(--retro-green);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--button-border-radius);
+  font-size: var(--font-size-sm);
+  text-transform: uppercase;
+}
+
+.game-canvas-area {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.game-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.overlay-content {
+  text-align: center;
+  color: var(--retro-green);
+  padding: var(--space-xl);
+}
+
+.overlay-buttons {
+  display: flex;
+  gap: var(--space-md);
+  justify-content: center;
+  margin-top: var(--space-lg);
+}
+
+.score-grid {
+  display: grid;
+  gap: var(--space-sm);
+}
+
+.score-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.score-label {
+  color: var(--retro-green);
+}
+
+.score-value {
+  color: var(--retro-yellow);
+  font-weight: bold;
+}
+
+.controls-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.control-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.control-name {
+  color: var(--retro-yellow);
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.control-description {
+  color: var(--retro-green);
+  font-size: var(--font-size-sm);
+}
+
+.stats-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.stat-label {
+  color: var(--retro-green);
+}
+
+.stat-value {
+  color: var(--retro-yellow);
+  font-weight: bold;
+}
+
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.game-instructions {
+  margin-top: var(--space-xl);
+  padding: var(--space-lg);
+  border: 2px solid var(--retro-green);
+  border-radius: var(--game-border-radius);
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.game-instructions h2 {
+  color: var(--retro-yellow);
+  margin-bottom: var(--space-md);
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.feature-list {
+  list-style: none;
+  padding: 0;
+  margin: var(--space-md) 0 0 0;
+}
+
+.feature-list li {
+  padding: var(--space-xs) 0;
+  color: var(--retro-green);
+  position: relative;
+  padding-left: var(--space-lg);
+}
+
+.feature-list li::before {
+  content: '▶';
+  color: var(--retro-yellow);
+  position: absolute;
+  left: 0;
+}
+
+.game-footer {
+  margin-top: var(--space-xl);
+  padding: var(--space-lg);
+  border-top: 2px solid var(--retro-green);
+  text-align: center;
+}
+
+.game-info {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-lg);
+  margin-bottom: var(--space-md);
+  color: var(--retro-green);
+  opacity: 0.7;
+}
+
+.game-tags {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.game-tag {
+  background: rgba(0, 255, 0, 0.1);
+  border: 1px solid var(--retro-green);
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--button-border-radius);
+  font-size: var(--font-size-sm);
+  color: var(--retro-green);
+}
+
+.home-button {
+  position: fixed;
+  top: var(--space-md);
+  right: var(--space-md);
+  background: var(--retro-bg);
+  color: var(--retro-green);
+  padding: var(--space-sm) var(--space-md);
+  text-decoration: none;
+  border: 2px solid var(--retro-green);
+  border-radius: var(--button-border-radius);
+  font-weight: bold;
+  z-index: 1000;
+  transition: var(--transition-normal);
+}
+
+.home-button:hover,
+.home-button:focus {
+  background: var(--retro-green);
+  color: var(--retro-bg);
+  box-shadow: var(--shadow-glow) var(--retro-green);
+}
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--retro-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.loading-spinner {
+  text-align: center;
+  color: var(--retro-green);
+}
+
+.loading-spinner p {
+  margin-top: var(--space-md);
+  font-size: var(--font-size-lg);
+}
+
+.error-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--retro-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.error-content {
+  text-align: center;
+  color: var(--retro-red);
+  padding: var(--space-xl);
+  max-width: 500px;
+}
+
+.error-content h2 {
+  color: var(--retro-red);
+  margin-bottom: var(--space-md);
+}
+
+.error-content .btn {
+  margin: var(--space-sm);
+}
+
+/* Wormy-specific enhancements */
+.game-canvas {
+  border: 4px solid var(--retro-green);
+  box-shadow: var(--shadow-glow) var(--retro-green);
+}
+
+.game-canvas:focus {
+  border-color: var(--retro-yellow);
+  box-shadow: var(--shadow-glow) var(--retro-yellow);
+}
+
+/* Snake-themed color variations */
+.snake-green {
+  color: #00ff00;
+}
+
+.snake-yellow {
+  color: #ffff00;
+}
+
+.snake-red {
+  color: #ff0000;
+}
+
+/* Game state indicators */
+.game-state-menu .game-canvas {
+  border-color: var(--retro-cyan);
+  box-shadow: var(--shadow-glow) var(--retro-cyan);
+}
+
+.game-state-playing .game-canvas {
+  border-color: var(--retro-green);
+  box-shadow: var(--shadow-glow) var(--retro-green);
+}
+
+.game-state-paused .game-canvas {
+  border-color: var(--retro-yellow);
+  box-shadow: var(--shadow-glow) var(--retro-yellow);
+}
+
+.game-state-gameover .game-canvas {
+  border-color: var(--retro-red);
+  box-shadow: var(--shadow-glow) var(--retro-red);
+}
+
+/* Responsive adjustments */
+@media (max-width: 767px) {
+  .game-meta {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .overlay-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .action-buttons {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  
+  .game-info {
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
+}
