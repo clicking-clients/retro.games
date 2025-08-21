@@ -142,18 +142,18 @@
 
         .pipe-inventory {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-            gap: 15px;
+            grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
+            gap: 8px;
             margin: 20px 0;
-            padding: 20px;
+            padding: 15px;
             background: rgba(0, 255, 0, 0.05);
             border-radius: 10px;
             border: 1px solid #0f0;
         }
 
         .pipe-piece {
-            width: 60px;
-            height: 60px;
+            width: 50px;
+            height: 50px;
             display: grid;
             place-items: center;
             background: transparent;
@@ -1954,6 +1954,24 @@
                     });
                 });
                 
+                // Special case: Check if start pipe connects to first placed pipe
+                if (this.pipes.length > 0 && this.startPipe) {
+                    const firstPipe = this.pipes[0];
+                    const startGridX = Math.floor(this.startPipe.x / cellSize);
+                    const startGridY = Math.floor(this.startPipe.y / cellSize);
+                    const firstGridX = Math.floor(firstPipe.x / cellSize);
+                    const firstGridY = Math.floor(firstPipe.y / cellSize);
+                    
+                    // Check if they are adjacent
+                    if ((Math.abs(startGridX - firstGridX) === 1 && startGridY === firstGridY) ||
+                        (Math.abs(startGridY - firstGridY) === 1 && startGridX === firstGridX)) {
+                        // Mark first pipe as connected to start
+                        firstPipe.connected = true;
+                        firstPipe.element.classList.add('connected');
+                        this.connectedPipes.push(firstPipe);
+                    }
+                }
+                
                 // Apply water flow effect if pipes are connected
                 if (this.connectedPipes.length > 0) {
                     setTimeout(() => this.applyWaterFlowEffect(), 100);
@@ -2503,16 +2521,83 @@
                 // Try to find path from start to any answer pipe
                 const gridConfig = this.getGridConfig();
                 const cellSize = gridConfig.cellSize;
-                const startPipe = this.pipes.find(p => p.data && p.data.type === 'start') || 
-                                 this.pipes.find(p => p.x === 0 && p.y === Math.floor(gridConfig.height / 2) * cellSize);
+                
+                // Find start pipe by looking for the start pipe element in the DOM
+                let startPipe = null;
+                const startElement = document.querySelector('.start-pipe');
+                if (startElement) {
+                    const startX = parseInt(startElement.style.left);
+                    const startY = parseInt(startElement.style.top);
+                    startPipe = this.pipes.find(p => 
+                        Math.abs(p.x - startX) < cellSize/2 && Math.abs(p.y - startY) < cellSize/2
+                    );
+                }
+                
+                // Fallback: look for pipe at start position
+                if (!startPipe) {
+                    startPipe = this.pipes.find(p => p.x === 0 && p.y === Math.floor(gridConfig.height / 2) * cellSize);
+                }
                 
                 if (!startPipe) return null;
                 
-                // Try to reach any answer pipe
+                // If we have connected pipes, try to build a path through them
+                if (this.connectedPipes.length > 0) {
+                    // Start with the start pipe
+                    path.push(startPipe);
+                    visited.add(startPipe.timestamp);
+                    
+                    // Find the next connected pipe
+                    let currentPipe = startPipe;
+                    let attempts = 0;
+                    const maxAttempts = this.pipes.length;
+                    
+                    while (attempts < maxAttempts && path.length < this.pipes.length) {
+                        const nextPipe = this.findNextConnectedPipe(currentPipe, visited);
+                        if (nextPipe && !visited.has(nextPipe.timestamp)) {
+                            path.push(nextPipe);
+                            visited.add(nextPipe.timestamp);
+                            currentPipe = nextPipe;
+                        } else {
+                            break;
+                        }
+                        attempts++;
+                    }
+                    
+                    // Check if this path leads to an answer
+                    if (path.length > 1) {
+                        return path;
+                    }
+                }
+                
+                // Fallback: Try to reach any answer pipe using network
                 for (const answerPipe of this.answerPipes) {
                     const pathToAnswer = this.findPathToAnswer(startPipe, answerPipe, pipeNetwork, visited);
                     if (pathToAnswer) {
                         return pathToAnswer;
+                    }
+                }
+                
+                return null;
+            }
+            
+            findNextConnectedPipe(currentPipe, visited) {
+                // Find the next pipe that is connected to the current one
+                const gridConfig = this.getGridConfig();
+                const cellSize = gridConfig.cellSize;
+                const currentGridX = Math.floor(currentPipe.x / cellSize);
+                const currentGridY = Math.floor(currentPipe.y / cellSize);
+                
+                // Look for pipes in adjacent grid cells
+                for (const pipe of this.pipes) {
+                    if (visited.has(pipe.timestamp)) continue;
+                    
+                    const pipeGridX = Math.floor(pipe.x / cellSize);
+                    const pipeGridY = Math.floor(pipe.y / cellSize);
+                    
+                    // Check if pipes are adjacent
+                    if ((Math.abs(pipeGridX - currentGridX) === 1 && pipeGridY === currentGridY) ||
+                        (Math.abs(pipeGridY - currentGridY) === 1 && pipeGridX === currentGridX)) {
+                        return pipe;
                     }
                 }
                 
