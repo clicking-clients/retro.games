@@ -15,12 +15,12 @@
         }
 
         .app{ 
-            height: 80%;
+            min-height: 100vh;
             display:flex;
             flex-direction: column;
             gap:15px;
             align-items:center;
-            justify-content:center;
+            justify-content:flex-start;
             padding:15px;
             width: 100%;
             max-width: 1200px;
@@ -939,6 +939,48 @@
             pointer-events: none;
             z-index: 100;
         }
+        
+        /* Mobile responsive styles */
+        @media (max-width: 767px) {
+            .app {
+                padding: 10px;
+                gap: 10px;
+            }
+            
+            #title {
+                margin-top: 10px;
+                margin-bottom: 10px;
+                font-size: 1.5rem;
+            }
+            
+            #sidebar {
+                order: 3;
+            }
+            
+            .game-wrap {
+                order: 2;
+            }
+            
+            .game-container {
+                margin: 10px auto;
+                padding: 15px;
+            }
+            
+            .pipe-inventory {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .control-row {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .control-btn {
+                width: 100%;
+                margin: 5px 0;
+            }
+        }
     </style>
 </head>
 <body>
@@ -946,6 +988,8 @@
         <nav id="gameNav" style="padding:10px; background:#111; color:#0f0; font-family:monospace;">
             <strong>Games:</strong>
         </nav>
+        
+        <h1 id="title">🚰 Pipe Dream</h1>
         
         <div class="game-wrap">
             <div class="game-container">
@@ -986,8 +1030,6 @@
                 </div>
 
                 <div id="sidebar">
-                    <h1 id="title">Pipe Dream</h1>
-
                     <div class="level-info" style="margin-bottom: 20px;">
                         <div class="score-display" style="text-align: center; margin-bottom: 15px;">
                             <div style="margin-bottom: 8px;">
@@ -2634,11 +2676,17 @@
             }
             
             applyWaterFlowStyling(pipe) {
-                // Find the DOM element for this pipe by timestamp
-                const pipeElement = document.querySelector(`[data-pipe-id="${pipe.timestamp}"]`);
+                // Find the DOM element for this pipe by timestamp or position
+                let pipeElement = null;
+                
+                // First try to find by timestamp if the pipe has one
+                if (pipe.timestamp) {
+                    pipeElement = document.querySelector(`[data-pipe-id="${pipe.timestamp}"]`);
+                }
+                
+                // If not found by timestamp, try to find by position
                 if (!pipeElement) {
                     console.log('⚠️ Could not find pipe element by timestamp, trying fallback');
-                    // Fallback: try to find by position
                     const allPipes = document.querySelectorAll('.placed-pipe');
                     let foundElement = null;
                     
@@ -2951,6 +2999,8 @@
             findPathToAnswer(startPipe, answerPipe, network, visited) {
                 const path = [];
                 const localVisited = new Set();
+                const gridConfig = this.getGridConfig();
+                const cellSize = gridConfig.cellSize;
                 
                 const dfs = (currentPipe, targetPipe) => {
                     const key = `${Math.floor(currentPipe.x / cellSize)},${Math.floor(currentPipe.y / cellSize)}`;
@@ -2993,6 +3043,12 @@
             
             checkFlowResult(finalValue) {
                 const correctAnswer = this.answerPipes.find(p => p.isCorrect);
+                
+                if (!correctAnswer) {
+                    console.log('❌ No correct answer pipe found');
+                    this.showFlowError('No correct answer pipe found!');
+                    return;
+                }
                 
                 if (finalValue === correctAnswer.value) {
                     // Highlight the correct answer pipe
@@ -3351,6 +3407,29 @@
                 this.clearPlacementHint();
             }
 
+            rotatePipe(pipe) {
+                console.log('🔄 Rotating pipe:', pipe);
+                
+                // Find the pipe element
+                const pipeElement = pipe.element;
+                if (!pipeElement) {
+                    console.log('❌ No pipe element found for rotation');
+                    return;
+                }
+                
+                // Get current rotation
+                const currentRotation = pipe.rotation || 0;
+                const newRotation = (currentRotation + 90) % 360;
+                
+                // Update pipe data
+                pipe.rotation = newRotation;
+                
+                // Apply rotation to element
+                pipeElement.style.transform = `rotate(${newRotation}deg)`;
+                
+                console.log('✅ Pipe rotated to:', newRotation, 'degrees');
+            }
+            
             newLevel() {
                 console.log('🆕 Starting new level');
                 this.nextLevel();
@@ -3408,6 +3487,8 @@
             el.innerHTML = svgForPipe(type, rot, active);
         }
     </script>
+    
+    <script src="navigation.js"></script>
    
 </body>
 </html>

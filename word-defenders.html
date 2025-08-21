@@ -422,6 +422,27 @@ input[type=range] {
     max-width: 100vw;
     margin: 0 auto;
   }
+  
+  #title {
+    margin-top: 10px;
+    margin-bottom: 10px;
+  }
+  
+  #sidebar {
+    order: 3;
+  }
+  
+  #game {
+    order: 2;
+  }
+  
+  .directional-controls {
+    order: 4;
+  }
+  
+  .mobile-input-area {
+    order: 5;
+  }
 }
 
 /* High contrast mode support */
@@ -487,7 +508,7 @@ input[type=range] {
   <nav id="gameNav" style="padding:10px; background:#111; color:#0f0; font-family:monospace;">
     <strong>Games:</strong>
   </nav>
-    <script src="navigation.js"></script>
+  <h1 id="title">WORD DEFENDERS</h1>
   <canvas id="game" width="540" height="640" role="img" aria-label="Word Defenders game area" tabindex="0"></canvas>
   
   <!-- Directional Controls (Mobile) -->
@@ -541,7 +562,6 @@ input[type=range] {
   </div>
   
   <div id="sidebar">
-      <h1 id="title">WORD DEFENDERS</h1>
   <div id="scoreboard" role="region" aria-label="Game Score">
       <div class="section-title">SCORE</div>
     <div>Score: <span id="score" aria-live="polite">0</span> | Words Left: <span id="wordsLeft" aria-live="polite">0</span> | WPM: <span id="wpm" aria-live="polite">0</span></div>
@@ -612,6 +632,7 @@ input[type=range] {
   </div>
   <canvas id="rocketOverlay" width="1200" height="720"></canvas>
 </div>
+<script src="navigation.js"></script>
 <script type="module">
 import { GameAudio } from './audio.js';
 import { Fireworks } from './fireworks.js';

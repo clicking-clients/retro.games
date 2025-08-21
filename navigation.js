@@ -46,11 +46,11 @@ function addMobileNavStyles() {
             
             @media (max-width: 767px) {
                 .mobile-nav-toggle {
-                    display: block;
+                    display: none; /* Hide toggle button on mobile */
                 }
                 
                 .mobile-nav-content {
-                    display: none;
+                    display: block; /* Always show menu on mobile */
                 }
                 
                 .mobile-nav-content.open {
@@ -60,6 +60,8 @@ function addMobileNavStyles() {
                 #gameNav {
                     flex-direction: column;
                     align-items: center;
+                    position: relative;
+                    z-index: 1000;
                 }
                 
                 #gameNav a {
@@ -68,6 +70,13 @@ function addMobileNavStyles() {
                     padding: 12px;
                     margin: 2px 0;
                     border-radius: 5px;
+                    background: rgba(0, 0, 0, 0.9);
+                    border: 1px solid var(--green, #0f0);
+                }
+                
+                #gameNav a:hover,
+                #gameNav a:focus {
+                    background: rgba(0, 255, 0, 0.2);
                 }
             }
         `;

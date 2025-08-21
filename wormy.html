@@ -39,6 +39,7 @@ body {
 
 /* Mobile-first responsive design */
 #container { 
+  min-height: 100vh;
   display: flex; 
   flex-direction: column;
   gap: 15px; 
@@ -195,6 +196,19 @@ body {
     max-width: 100vw;
     margin: 0 auto;
   }
+  
+  #title {
+    margin-top: 10px;
+    margin-bottom: 10px;
+  }
+  
+  #sidebar {
+    order: 3;
+  }
+  
+  #snakeGame {
+    order: 2;
+  }
 }
 
 /* High contrast mode support */
@@ -256,9 +270,9 @@ body {
     <nav id="gameNav" style="padding:10px; background:#111; color:#0f0; font-family:monospace;">
     <strong>Games:</strong>
   </nav>
+  <h1 id="title">Worm Trail</h1>
   <canvas id="snakeGame" width="240" height="480" role="img" aria-label="Worm Trail game area" tabindex="0"></canvas>
   <div id="sidebar">
-    <h1 id="title">Worm Trail</h1>
     <div id="scoreboard" role="region" aria-label="Game Score">
       <div class="section-title">SCORE</div>
       <div id="score" aria-live="polite">0</div>

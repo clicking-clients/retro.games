@@ -39,6 +39,7 @@ body {
 
 /* Mobile-first responsive design */
 #container { 
+  min-height: 100vh;
   display: flex; 
   flex-direction: column;
   gap: 15px; 
@@ -140,6 +141,56 @@ body {
   flex-wrap: wrap;
 }
 
+/* Touch/swipe controls */
+.touch-controls {
+  display: none;
+  position: relative;
+  width: 100%;
+  height: 200px;
+  margin-top: 15px;
+  border: 2px solid var(--green);
+  border-radius: 8px;
+  background: rgba(0, 255, 0, 0.1);
+}
+
+.touch-controls .left-zone {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 50%;
+  height: 100%;
+  background: rgba(255, 0, 0, 0.1);
+}
+
+.touch-controls .right-zone {
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 50%;
+  height: 100%;
+  background: rgba(0, 0, 255, 0.1);
+}
+
+.touch-controls .zone-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--green);
+  font-weight: bold;
+  font-size: 1.2rem;
+  text-align: center;
+}
+
+.touch-controls .left-zone .zone-label {
+  left: 25%;
+}
+
+.touch-controls .right-zone .zone-label {
+  right: 25%;
+  left: auto;
+}
+
 .mobile-btn {
   background: rgba(0, 255, 0, 0.2);
   border: 2px solid var(--green);
@@ -191,6 +242,10 @@ body {
     display: flex;
   }
   
+  .touch-controls {
+    display: block;
+  }
+  
   body {
     padding: 10px;
   }
@@ -198,6 +253,19 @@ body {
   #pongGame {
     max-width: 100vw;
     margin: 0 auto;
+  }
+  
+  #title {
+    margin-top: 10px;
+    margin-bottom: 10px;
+  }
+  
+  #sidebar {
+    order: 3;
+  }
+  
+  #pongGame {
+    order: 2;
   }
 }
 
@@ -260,10 +328,9 @@ body {
     <nav id="gameNav" style="padding:10px; background:#111; color:#0f0; font-family:monospace;">
     <strong>Games:</strong>
   </nav>
-    <script src="navigation.js"></script>
+  <h1 id="title">Paddle Ball</h1>
   <canvas id="pongGame" width="960" height="480" role="img" aria-label="Paddle Ball game area" tabindex="0"></canvas>
   <div id="sidebar">
-    <h1 id="title">Paddle Ball</h1>
     <div id="scoreboard" role="region" aria-label="Game Score">
       <div class="section-title">SCORE</div>
       <div id="score" aria-live="polite">0 - 0</div>
@@ -290,8 +357,19 @@ body {
       <button class="mobile-btn" id="pauseBtn" aria-label="Pause/Resume">⏸</button>
       <button class="mobile-btn" id="resetBtn" aria-label="Reset Game">🔄</button>
     </div>
+    
+    <!-- Touch/Swipe Controls -->
+    <div class="touch-controls">
+      <div class="left-zone">
+        <div class="zone-label">Left Paddle<br>Touch & Swipe</div>
+      </div>
+      <div class="right-zone">
+        <div class="zone-label">Right Paddle<br>Touch & Swipe</div>
+      </div>
+    </div>
   </div>
 </div>
+<script src="navigation.js"></script>
 <script>
 const canvas = document.getElementById('pongGame');
 const context = canvas.getContext('2d');
