@@ -1,9 +1,9 @@
 /**
- * Wormy Game Implementation
- * A classic snake game using the new component system
+ * Word Defenders Game Implementation
+ * A word puzzle game using the new component system
  */
 
-export class WormyGame {
+export class WordDefendersGame {
   constructor(gameContainer) {
     this.container = gameContainer;
     this.canvas = gameContainer.getCanvas();
@@ -12,28 +12,21 @@ export class WormyGame {
     // Game state
     this.gameState = 'menu'; // menu, playing, paused, gameOver
     this.score = 0;
-    this.lives = 3;
     this.level = 1;
+    this.lives = 3;
     
     // Game settings
-    this.gridSize = 20;
-    this.gameSpeed = 150;
-    this.speedIncrease = 10;
-    
-    // Snake properties
-    this.snake = [{ x: 10, y: 10 }];
-    this.direction = { x: 1, y: 0 };
-    this.nextDirection = { x: 1, y: 0 };
-    
-    // Food properties
-    this.food = this.generateFood();
+    this.words = ['HELLO', 'WORLD', 'GAME', 'PLAY', 'FUN', 'CODE', 'WEB', 'APP'];
+    this.currentWord = '';
+    this.letters = [];
+    this.fallingLetters = [];
     
     // Game loop
     this.gameLoop = null;
     this.lastUpdate = 0;
     
     // Input handling
-    this.keys = new Set();
+    this.typedWord = '';
     this.setupInputHandling();
     
     // Bind methods
@@ -46,7 +39,7 @@ export class WormyGame {
    * Initialize the game
    */
   async init() {
-    console.log('Initializing Wormy game...');
+    console.log('Initializing Word Defenders game...');
     
     // Setup canvas
     this.setupCanvas();
@@ -54,13 +47,16 @@ export class WormyGame {
     // Setup game container events
     this.setupGameEvents();
     
+    // Initialize game
+    this.initializeGame();
+    
     // Start game loop
     this.startGameLoop();
     
     // Show menu
     this.showMenu();
     
-    console.log('Wormy game initialized successfully');
+    console.log('Word Defenders game initialized successfully');
   }
   
   /**
@@ -73,7 +69,7 @@ export class WormyGame {
     // Set canvas style for pixel-perfect rendering
     this.canvas.style.imageRendering = 'pixelated';
     this.canvas.style.imageRendering = '-moz-crisp-edges';
-    this.canvas.style.imageRendering = 'crisp-edges';
+    this.ctx.imageSmoothingEnabled = false;
   }
   
   /**
@@ -94,10 +90,11 @@ export class WormyGame {
    * Setup input handling
    */
   setupInputHandling() {
-    // Prevent default behavior for arrow keys
-    document.addEventListener('keydown', (e) => {
-      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
-        e.preventDefault();
+    // Listen for key presses to build words
+    document.addEventListener('keypress', (e) => {
+      if (this.gameState === 'playing' && e.key.match(/[A-Za-z]/)) {
+        this.typedWord += e.key.toUpperCase();
+        this.checkWord();
       }
     });
   }
@@ -110,17 +107,16 @@ export class WormyGame {
     
     const key = e.key;
     
-    // Prevent opposite direction movement
-    if (key === 'ArrowUp' && this.direction.y === 0) {
-      this.nextDirection = { x: 0, y: -1 };
-    } else if (key === 'ArrowDown' && this.direction.y === 0) {
-      this.nextDirection = { x: 0, y: 1 };
-    } else if (key === 'ArrowLeft' && this.direction.x === 0) {
-      this.nextDirection = { x: -1, y: 0 };
-    } else if (key === 'ArrowRight' && this.direction.x === 0) {
-      this.nextDirection = { x: 1, y: 0 };
-    } else if (key === ' ') {
-      this.togglePause();
+    switch (key) {
+      case 'Backspace':
+        this.typedWord = this.typedWord.slice(0, -1);
+        break;
+      case 'Enter':
+        this.typedWord = '';
+        break;
+      case ' ':
+        this.togglePause();
+        break;
     }
   }
   
@@ -139,15 +135,51 @@ export class WormyGame {
     
     const key = data.key;
     
-    // Map touch controls to keyboard events
-    if (key === 'ArrowUp' && this.direction.y === 0) {
-      this.nextDirection = { x: 0, y: -1 };
-    } else if (key === 'ArrowDown' && this.direction.y === 0) {
-      this.nextDirection = { x: 0, y: 1 };
-    } else if (key === 'ArrowLeft' && this.direction.x === 0) {
-      this.nextDirection = { x: -1, y: 0 };
-    } else if (key === 'ArrowRight' && this.direction.x === 0) {
-      this.nextDirection = { x: 1, y: 0 };
+    switch (key) {
+      case ' ':
+        this.togglePause();
+        break;
+    }
+  }
+  
+  /**
+   * Initialize the game
+   */
+  initializeGame() {
+    this.currentWord = this.words[Math.floor(Math.random() * this.words.length)];
+    this.letters = this.currentWord.split('');
+    this.fallingLetters = [];
+    this.typedWord = '';
+    
+    // Create falling letters
+    for (let i = 0; i < this.letters.length; i++) {
+      this.fallingLetters.push({
+        letter: this.letters[i],
+        x: Math.random() * (this.canvas.width - 40),
+        y: -50 - i * 30,
+        speed: 1 + Math.random() * 2
+      });
+    }
+  }
+  
+  /**
+   * Check if typed word matches
+   */
+  checkWord() {
+    if (this.typedWord === this.currentWord) {
+      this.score += 100 * this.level;
+      this.container.updateScore(this.score);
+      
+      // Clear falling letters
+      this.fallingLetters = this.fallingLetters.filter(letter => 
+        !this.letters.includes(letter.letter)
+      );
+      
+      // Next word
+      this.level++;
+      this.initializeGame();
+      
+      console.log(`Word completed! Score: ${this.score}`);
     }
   }
   
@@ -157,7 +189,7 @@ export class WormyGame {
   startGameLoop() {
     this.gameLoop = setInterval(() => {
       this.update();
-    }, this.gameSpeed);
+    }, 50); // 20 FPS - appropriate for word game
   }
   
   /**
@@ -176,153 +208,31 @@ export class WormyGame {
   update() {
     if (this.gameState !== 'playing') return;
     
-    // Update direction
-    this.direction = { ...this.nextDirection };
+    const now = Date.now();
+    const deltaTime = now - this.lastUpdate;
+    this.lastUpdate = now;
     
-    // Move snake
-    this.moveSnake();
+    // Update falling letters
+    this.fallingLetters.forEach(letter => {
+      letter.y += letter.speed;
+      
+      // Check if letter reached bottom
+      if (letter.y > this.canvas.height) {
+        this.lives--;
+        this.container.updateLives(this.lives);
+        
+        if (this.lives <= 0) {
+          this.gameOver();
+          return;
+        }
+      }
+    });
     
-    // Check collisions
-    if (this.checkCollisions()) {
-      this.gameOver();
-      return;
-    }
-    
-    // Check food collision
-    if (this.checkFoodCollision()) {
-      this.eatFood();
-    }
+    // Remove letters that reached bottom
+    this.fallingLetters = this.fallingLetters.filter(letter => letter.y <= this.canvas.height);
     
     // Render
     this.render();
-  }
-  
-  /**
-   * Move the snake
-   */
-  moveSnake() {
-    const head = { ...this.snake[0] };
-    head.x += this.direction.x;
-    head.y += this.direction.y;
-    
-    // Wrap around edges
-    head.x = (head.x + this.canvas.width / this.gridSize) % (this.canvas.width / this.gridSize);
-    head.y = (head.y + this.canvas.height / this.gridSize) % (this.canvas.height / this.gridSize);
-    
-    this.snake.unshift(head);
-    
-    // Remove tail (unless growing)
-    if (!this.growing) {
-      this.snake.pop();
-    } else {
-      this.growing = false;
-    }
-  }
-  
-  /**
-   * Check for collisions
-   */
-  checkCollisions() {
-    const head = this.snake[0];
-    
-    // Check wall collision (if not wrapping)
-    if (head.x < 0 || head.x >= this.canvas.width / this.gridSize ||
-        head.y < 0 || head.y >= this.canvas.height / this.gridSize) {
-      return true;
-    }
-    
-    // Check self collision
-    for (let i = 1; i < this.snake.length; i++) {
-      if (head.x === this.snake[i].x && head.y === this.snake[i].y) {
-        return true;
-      }
-    }
-    
-    return false;
-  }
-  
-  /**
-   * Check food collision
-   */
-  checkFoodCollision() {
-    const head = this.snake[0];
-    return head.x === this.food.x && head.y === this.food.y;
-  }
-  
-  /**
-   * Handle eating food
-   */
-  eatFood() {
-    this.score += 10;
-    this.growing = true;
-    
-    // Update score display
-    this.container.updateScore(this.score);
-    
-    // Generate new food
-    this.food = this.generateFood();
-    
-    // Increase speed every 5 food items
-    if (this.score % 50 === 0) {
-      this.increaseSpeed();
-    }
-    
-    // Check for level up
-    if (this.score % 100 === 0) {
-      this.levelUp();
-    }
-    
-    // Play sound if available
-    if (this.container.audio && typeof this.container.audio.beep === 'function') {
-      this.container.audio.beep(800, 100, 'square', 0.3);
-    }
-  }
-  
-  /**
-   * Generate new food position
-   */
-  generateFood() {
-    let food;
-    do {
-      food = {
-        x: Math.floor(Math.random() * (this.canvas.width / this.gridSize)),
-        y: Math.floor(Math.random() * (this.canvas.height / this.gridSize))
-      };
-    } while (this.snake.some(segment => segment.x === food.x && segment.y === food.y));
-    
-    return food;
-  }
-  
-  /**
-   * Increase game speed
-   */
-  increaseSpeed() {
-    this.gameSpeed = Math.max(50, this.gameSpeed - this.speedIncrease);
-    this.restartGameLoop();
-  }
-  
-  /**
-   * Level up
-   */
-  levelUp() {
-    this.level++;
-    this.container.updateLives(this.level); // Reusing lives display for level
-    
-    // Show level up message
-    this.container.showStatus(`Level ${this.level}!`, 'success');
-    
-    // Play celebration sound if available
-    if (this.container.audio && typeof this.container.audio.beep === 'function') {
-      this.container.audio.beep(1000, 200, 'sine', 0.5);
-    }
-  }
-  
-  /**
-   * Restart game loop with new speed
-   */
-  restartGameLoop() {
-    this.stopGameLoop();
-    this.startGameLoop();
   }
   
   /**
@@ -333,156 +243,55 @@ export class WormyGame {
     this.ctx.fillStyle = '#000';
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     
-    // Draw grid (optional)
-    this.drawGrid();
+    // Draw current word
+    this.drawCurrentWord();
     
-    // Draw snake
-    this.drawSnake();
+    // Draw falling letters
+    this.drawFallingLetters();
     
-    // Draw food
-    this.drawFood();
+    // Draw typed word
+    this.drawTypedWord();
     
     // Draw UI
     this.drawUI();
   }
   
   /**
-   * Draw the grid
+   * Draw the current word to spell
    */
-  drawGrid() {
-    this.ctx.strokeStyle = '#0f0';
-    this.ctx.lineWidth = 0.5;
-    this.ctx.globalAlpha = 0.2;
-    
-    for (let x = 0; x <= this.canvas.width; x += this.gridSize) {
-      this.ctx.beginPath();
-      this.ctx.moveTo(x, 0);
-      this.ctx.lineTo(x, this.canvas.height);
-      this.ctx.stroke();
-    }
-    
-    for (let y = 0; y <= this.canvas.height; y += this.gridSize) {
-      this.ctx.beginPath();
-      this.ctx.moveTo(0, y);
-      this.ctx.lineTo(this.canvas.width, y);
-      this.ctx.stroke();
-    }
-    
-    this.ctx.globalAlpha = 1;
+  drawCurrentWord() {
+    this.ctx.fillStyle = '#0f0';
+    this.ctx.font = '24px monospace';
+    this.ctx.textAlign = 'center';
+    this.ctx.fillText(this.currentWord, this.canvas.width / 2, 50);
   }
   
   /**
-   * Draw the snake
+   * Draw falling letters
    */
-  drawSnake() {
-    this.snake.forEach((segment, index) => {
-      if (index === 0) {
-        // Head
-        this.ctx.fillStyle = '#ffd700';
-        this.ctx.fillRect(
-          segment.x * this.gridSize + 2,
-          segment.y * this.gridSize + 2,
-          this.gridSize - 4,
-          this.gridSize - 4
-        );
-        
-        // Eyes
-        this.ctx.fillStyle = '#000';
-        const eyeSize = 3;
-        const eyeOffset = 4;
-        
-        if (this.direction.x === 1) { // Right
-          this.ctx.fillRect(
-            segment.x * this.gridSize + this.gridSize - eyeOffset,
-            segment.y * this.gridSize + eyeOffset,
-            eyeSize,
-            eyeSize
-          );
-          this.ctx.fillRect(
-            segment.x * this.gridSize + this.gridSize - eyeOffset,
-            segment.y * this.gridSize + this.gridSize - eyeOffset - eyeSize,
-            eyeSize,
-            eyeSize
-          );
-        } else if (this.direction.x === -1) { // Left
-          this.ctx.fillRect(
-            segment.x * this.gridSize + eyeOffset,
-            segment.y * this.gridSize + eyeOffset,
-            eyeSize,
-            eyeSize
-          );
-          this.ctx.fillRect(
-            segment.x * this.gridSize + eyeOffset,
-            segment.y * this.gridSize + this.gridSize - eyeOffset - eyeSize,
-            eyeSize,
-            eyeSize
-          );
-        } else if (this.direction.y === -1) { // Up
-          this.ctx.fillRect(
-            segment.x * this.gridSize + eyeOffset,
-            segment.y * this.gridSize + eyeOffset,
-            eyeSize,
-            eyeSize
-          );
-          this.ctx.fillRect(
-            segment.x * this.gridSize + this.gridSize - eyeOffset - eyeSize,
-            segment.y * this.gridSize + eyeOffset,
-            eyeSize,
-            eyeSize
-          );
-        } else if (this.direction.y === 1) { // Down
-          this.ctx.fillRect(
-            segment.x * this.gridSize + eyeOffset,
-            segment.y * this.gridSize + this.gridSize - eyeOffset - eyeSize,
-            eyeSize,
-            eyeSize
-          );
-          this.ctx.fillRect(
-            segment.x * this.gridSize + this.gridSize - eyeOffset - eyeSize,
-            segment.y * this.gridSize + this.gridSize - eyeOffset - eyeSize,
-            eyeSize,
-            eyeSize
-          );
-        }
-      } else {
-        // Body
-        this.ctx.fillStyle = '#0f0';
-        this.ctx.fillRect(
-          segment.x * this.gridSize + 1,
-          segment.y * this.gridSize + 1,
-          this.gridSize - 2,
-          this.gridSize - 2
-        );
-      }
+  drawFallingLetters() {
+    this.ctx.font = '20px monospace';
+    this.ctx.textAlign = 'center';
+    
+    this.fallingLetters.forEach(letter => {
+      this.ctx.fillStyle = '#fff';
+      this.ctx.fillText(letter.letter, letter.x + 20, letter.y + 20);
+      
+      // Draw letter box
+      this.ctx.strokeStyle = '#fff';
+      this.ctx.lineWidth = 2;
+      this.ctx.strokeRect(letter.x, letter.y, 40, 40);
     });
   }
   
   /**
-   * Draw the food
+   * Draw the typed word
    */
-  drawFood() {
-    this.ctx.fillStyle = '#f00';
-    this.ctx.beginPath();
-    this.ctx.arc(
-      this.food.x * this.gridSize + this.gridSize / 2,
-      this.food.y * this.gridSize + this.gridSize / 2,
-      this.gridSize / 2 - 2,
-      0,
-      2 * Math.PI
-    );
-    this.ctx.fill();
-    
-    // Add shine effect
-    this.ctx.fillStyle = '#fff';
-    this.ctx.beginPath();
-    this.ctx.arc(
-      this.food.x * this.gridSize + this.gridSize / 2 - 2,
-      this.food.y * this.gridSize + this.gridSize / 2 - 2,
-      2,
-      0,
-      2 * Math.PI
-    );
-    this.ctx.fill();
+  drawTypedWord() {
+    this.ctx.fillStyle = '#ff0';
+    this.ctx.font = '18px monospace';
+    this.ctx.textAlign = 'center';
+    this.ctx.fillText(`Typed: ${this.typedWord}`, this.canvas.width / 2, this.canvas.height - 50);
   }
   
   /**
@@ -490,11 +299,18 @@ export class WormyGame {
    */
   drawUI() {
     // Draw score
-    this.ctx.fillStyle = '#0f0';
+    this.ctx.fillStyle = '#fff';
     this.ctx.font = '16px monospace';
     this.ctx.textAlign = 'left';
     this.ctx.fillText(`Score: ${this.score}`, 10, 20);
     this.ctx.fillText(`Level: ${this.level}`, 10, 40);
+    this.ctx.fillText(`Lives: ${this.lives}`, 10, 60);
+    
+    // Draw instructions
+    this.ctx.fillStyle = '#0f0';
+    this.ctx.font = '14px monospace';
+    this.ctx.textAlign = 'center';
+    this.ctx.fillText('Type the word before letters reach bottom!', this.canvas.width / 2, this.canvas.height - 20);
   }
   
   /**
@@ -505,15 +321,16 @@ export class WormyGame {
     this.render();
     
     // Draw menu text
-    this.ctx.fillStyle = '#ffd700';
-    this.ctx.font = '24px monospace';
-    this.ctx.textAlign = 'center';
-    this.ctx.fillText('WORMY', this.canvas.width / 2, this.canvas.height / 2 - 40);
-    
     this.ctx.fillStyle = '#0f0';
-    this.ctx.font = '16px monospace';
-    this.ctx.fillText('Press SPACE to start', this.canvas.width / 2, this.canvas.height / 2);
-    this.ctx.fillText('Use arrow keys to move', this.canvas.width / 2, this.canvas.height / 2 + 30);
+    this.ctx.font = '32px monospace';
+    this.ctx.textAlign = 'center';
+    this.ctx.fillText('WORD DEFENDERS', this.canvas.width / 2, this.canvas.height / 2 - 60);
+    
+    this.ctx.fillStyle = '#fff';
+    this.ctx.font = '18px monospace';
+    this.ctx.fillText('Press SPACE to start', this.canvas.width / 2, this.canvas.height / 2 - 20);
+    this.ctx.fillText('Type words before letters reach bottom', this.canvas.width / 2, this.canvas.height / 2 + 10);
+    this.ctx.fillText('Use keyboard to type the target word', this.canvas.width / 2, this.canvas.height / 2 + 40);
     
     // Listen for space key to start
     const startHandler = (e) => {
@@ -540,19 +357,13 @@ export class WormyGame {
   resetGame() {
     this.score = 0;
     this.level = 1;
-    this.gameSpeed = 150;
-    this.snake = [{ x: 10, y: 10 }];
-    this.direction = { x: 1, y: 0 };
-    this.nextDirection = { x: 1, y: 0 };
-    this.food = this.generateFood();
-    this.growing = false;
+    this.lives = 3;
+    
+    this.initializeGame();
     
     // Update displays
     this.container.updateScore(this.score);
     this.container.updateLives(this.lives);
-    
-    // Restart game loop
-    this.restartGameLoop();
   }
   
   /**
@@ -606,7 +417,7 @@ export class WormyGame {
     this.ctx.textAlign = 'center';
     this.ctx.fillText('GAME OVER', this.canvas.width / 2, this.canvas.height / 2 - 40);
     
-    this.ctx.fillStyle = '#0f0';
+    this.ctx.fillStyle = '#fff';
     this.ctx.font = '20px monospace';
     this.ctx.fillText(`Final Score: ${this.score}`, this.canvas.width / 2, this.canvas.height / 2);
     this.ctx.fillText(`Level Reached: ${this.level}`, this.canvas.width / 2, this.canvas.height / 2 + 30);
@@ -621,7 +432,7 @@ export class WormyGame {
         this.startGame();
         document.removeEventListener('keydown', gameOverHandler);
       } else if (e.key === 'h' || e.key === 'H') {
-        window.location.href = '../index.html';
+        window.location.href = '../../index.html';
       }
     };
     document.addEventListener('keydown', gameOverHandler);
@@ -643,4 +454,4 @@ export class WormyGame {
   }
 }
 
-export default WormyGame;
+export default WordDefendersGame;
