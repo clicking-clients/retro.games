@@ -730,132 +730,125 @@
                     <h1>🚰 Pipe Dream</h1>
                     <p>Connect pipes to solve math problems and watch the water flow!</p>
                 </div>
-
-    <div class="game-container">
-        <div class="game-header">
-            <h1>🚰 Pipe Dream</h1>
-            <p>Connect pipes to solve math problems and watch the water flow!</p>
-            
-            
-        </div>
-
-        <div class="level-info">
-            <div class="score-display">
-                <strong>Level:</strong> <span id="level">1</span>
-                <strong>Score:</strong> <span id="score">0</span>
-                <strong>Stars:</strong> <span id="stars">0</span>
-            </div>
-            <div class="pressure-gauge">
-                <strong>Pressure:</strong> <span id="pressure">0</span>%
-                <div class="pressure-bar">
-                    <div class="pressure-fill" id="pressureFill"></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="math-problem" id="mathProblem" role="heading" aria-level="2">
-            5 + 3 = ?
-        </div>
-
-        <div class="pipe-inventory" id="pipeInventory">
-            <!-- Pipe pieces will be generated here -->
-        </div>
-
-        <div class="play-area" id="playArea">
-            <!-- Placed pipes will appear here -->
-        </div>
-
-        <div class="game-controls">
-            <button class="control-btn" id="newLevelBtn" aria-label="Start new level">New Level</button>
-            <button class="control-btn" id="resetBtn" aria-label="Reset current level">Reset</button>
-            <button class="control-btn" id="undoBtn" aria-label="Undo last pipe placement">Undo</button>
-            <button class="control-btn" id="flowTestBtn" aria-label="Test water flow">Flow Test</button>
-            <button class="control-btn" id="hintBtn" aria-label="Get a hint for current problem">Hint</button>
-        </div>
-            </div>
-        </div>
-
-        <div id="sidebar">
-            <h1 id="title">Pipe Dream</h1>
-
-            <div role="region" aria-label="Game Settings">
-                <div class="section-title">SETTINGS</div>
-                <div style="margin-bottom: 15px;">
-                    <label style="display: block; margin-bottom: 5px; color: #0f0;">Game Mode:</label>
-                    <select id="gameMode" style="width: 100%; padding: 8px; background: #1a1a2e; color: #0f0; border: 2px solid #0f0; border-radius: 5px; margin-bottom: 10px;">
-                        <option value="practice">Practice (Free Build)</option>
-                        <option value="adventure">Adventure (Levels)</option>
-                        <option value="timed">Timed Rush</option>
-                    </select>
-                    
-                    <label style="display: block; margin-bottom: 5px; color: #0f0;">Difficulty:</label>
-                    <select id="difficulty" style="width: 100%; padding: 8px; background: #1a1a2e; color: #0f0; border: 2px solid #0f0; border-radius: 5px; margin-bottom: 10px;">
-                        <option value="easy">Easy (5×5 grid)</option>
-                        <option value="medium">Medium (7×7 grid)</option>
-                        <option value="hard">Hard (9×9 grid)</option>
-                    </select>
-                </div>
-                
-                <div style="margin-bottom: 15px;">
-                    <div class="section-title">OPERATIONS</div>
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px;">
-                        <label style="display: flex; align-items: center; gap: 5px; color: #0f0;">
-                            <input type="checkbox" id="opAdd" checked style="accent-color: #0f0;"> +
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 5px; color: #0f0;">
-                            <input type="checkbox" id="opSub" style="accent-color: #0f0;"> −
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 5px; color: #0f0;">
-                            <input type="checkbox" id="opMul" style="accent-color: #0f0;"> ×
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 5px; color: #0f0;">
-                            <input type="checkbox" id="opDiv" style="accent-color: #0f0;"> ÷
-                        </label>
+        
+                <div class="level-info">
+                    <div class="score-display">
+                        <strong>Level:</strong> <span id="level">1</span>
+                        <strong>Score:</strong> <span id="score">0</span>
+                        <strong>Stars:</strong> <span id="stars">0</span>
                     </div>
-                    
-                    <div style="margin-bottom: 10px;">
-                        <label style="display: flex; align-items: center; gap: 5px; color: #0f0;">
-                            <input type="checkbox" id="allowNegatives" style="accent-color: #0f0;"> Allow Negatives
-                        </label>
-                    </div>
-                    
-                    <div style="margin-bottom: 15px;">
-                        <label style="display: flex; align-items: center; gap: 5px; color: #0f0;">
-                            <input type="checkbox" id="showPrecedenceHints" checked style="accent-color: #0f0;"> Show Hints
-                        </label>
+                    <div class="pressure-gauge">
+                        <strong>Pressure:</strong> <span id="pressure">0</span>%
+                        <div class="pressure-bar">
+                            <div class="pressure-fill" id="pressureFill"></div>
+                        </div>
                     </div>
                 </div>
-                
-                <button id="applySettings" style="width: 100%; background: #0f0; color: #000; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem;">
-                    Apply Settings & New Game
-                </button>
-            </div>
 
-            <div id="scoreboard" role="region" aria-label="Game Score">
-                <div class="section-title">CURRENT</div>
-                <div class="section-title">Level</div><div class="value" id="levelDisplay">1</div>
-                <div class="section-title">Score</div><div class="value" id="scoreDisplay">0</div>
-                <div class="section-title">Pressure</div><div class="value" id="pressureDisplay">0%</div>
-            </div>
+                <div class="math-problem" id="mathProblem" role="heading" aria-level="2">
+                    5 + 3 = ?
+                </div>
 
-            <div id="instructions">
-                <div class="section-title">CONTROLS</div>
-                Drag & Drop — place pipes<br>
-                Double-click — rotate pipes<br>
-                Drag placed pipes — reposition
-                
-                <div style="margin-top: 15px" class="section-title">RULES</div>
-                <div style="font-size: 13px; line-height: 1.4;">
-                    • Connect start pipe (green) to answer pipe (red)<br>
-                    • Use operator pipes (+, −, ×, ÷) for math<br>
-                    • Route through connector pipes<br>
-                    • Water flows when pipes connect<br>
-                    • Solve the math expression correctly
+                <div class="pipe-inventory" id="pipeInventory">
+                    <!-- Pipe pieces will be generated here -->
+                </div>
+
+                <div class="play-area" id="playArea">
+                    <!-- Placed pipes will appear here -->
+                </div>
+
+                <div class="game-controls">
+                    <button class="control-btn" id="newLevelBtn" aria-label="Start new level">New Level</button>
+                    <button class="control-btn" id="resetBtn" aria-label="Reset current level">Reset</button>
+                    <button class="control-btn" id="undoBtn" aria-label="Undo last pipe placement">Undo</button>
+                    <button class="control-btn" id="flowTestBtn" aria-label="Test water flow">Flow Test</button>
+                    <button class="control-btn" id="hintBtn" aria-label="Get a hint for current problem">Hint</button>
+                </div>
+                    </div>
+                </div>
+
+                <div id="sidebar">
+                    <h1 id="title">Pipe Dream</h1>
+
+                    <div role="region" aria-label="Game Settings">
+                        <div class="section-title">SETTINGS</div>
+                        <div style="margin-bottom: 15px;">
+                            <label style="display: block; margin-bottom: 5px; color: #0f0;">Game Mode:</label>
+                            <select id="gameMode" style="width: 100%; padding: 8px; background: #1a1a2e; color: #0f0; border: 2px solid #0f0; border-radius: 5px; margin-bottom: 10px;">
+                                <option value="practice">Practice (Free Build)</option>
+                                <option value="adventure">Adventure (Levels)</option>
+                                <option value="timed">Timed Rush</option>
+                            </select>
+                            
+                            <label style="display: block; margin-bottom: 5px; color: #0f0;">Difficulty:</label>
+                            <select id="difficulty" style="width: 100%; padding: 8px; background: #1a1a2e; color: #0f0; border: 2px solid #0f0; border-radius: 5px; margin-bottom: 10px;">
+                                <option value="easy">Easy (5×5 grid)</option>
+                                <option value="medium">Medium (7×7 grid)</option>
+                                <option value="hard">Hard (9×9 grid)</option>
+                            </select>
+                        </div>
+                        
+                        <div style="margin-bottom: 15px;">
+                            <div class="section-title">OPERATIONS</div>
+                            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px;">
+                                <label style="display: flex; align-items: center; gap: 5px; color: #0f0;">
+                                    <input type="checkbox" id="opAdd" checked style="accent-color: #0f0;"> +
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 5px; color: #0f0;">
+                                    <input type="checkbox" id="opSub" style="accent-color: #0f0;"> −
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 5px; color: #0f0;">
+                                    <input type="checkbox" id="opMul" style="accent-color: #0f0;"> ×
+                                </label>
+                                <label style="display: flex; align-items: center; gap: 5px; color: #0f0;">
+                                    <input type="checkbox" id="opDiv" style="accent-color: #0f0;"> ÷
+                                </label>
+                            </div>
+                            
+                            <div style="margin-bottom: 10px;">
+                                <label style="display: flex; align-items: center; gap: 5px; color: #0f0;">
+                                    <input type="checkbox" id="allowNegatives" style="accent-color: #0f0;"> Allow Negatives
+                                </label>
+                            </div>
+                            
+                            <div style="margin-bottom: 15px;">
+                                <label style="display: flex; align-items: center; gap: 5px; color: #0f0;">
+                                    <input type="checkbox" id="showPrecedenceHints" checked style="accent-color: #0f0;"> Show Hints
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <button id="applySettings" style="width: 100%; background: #0f0; color: #000; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem;">
+                            Apply Settings & New Game
+                        </button>
+                    </div>
+
+                    <div id="scoreboard" role="region" aria-label="Game Score">
+                        <div class="section-title">CURRENT</div>
+                        <div class="section-title">Level</div><div class="value" id="levelDisplay">1</div>
+                        <div class="section-title">Score</div><div class="value" id="scoreDisplay">0</div>
+                        <div class="section-title">Pressure</div><div class="value" id="pressureDisplay">0%</div>
+                    </div>
+
+                    <div id="instructions">
+                        <div class="section-title">CONTROLS</div>
+                        Drag & Drop — place pipes<br>
+                        Double-click — rotate pipes<br>
+                        Drag placed pipes — reposition
+                        
+                        <div style="margin-top: 15px" class="section-title">RULES</div>
+                        <div style="font-size: 13px; line-height: 1.4;">
+                            • Connect start pipe (green) to answer pipe (red)<br>
+                            • Use operator pipes (+, −, ×, ÷) for math<br>
+                            • Route through connector pipes<br>
+                            • Water flows when pipes connect<br>
+                            • Solve the math expression correctly
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-
     <script>
         class PipeDream {
             constructor() {
