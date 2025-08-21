@@ -95,7 +95,10 @@ input[type=range] { width:100%; }
   </div>
   <canvas id="rocketOverlay" width="1200" height="720"></canvas>
 </div>
-<script>
+<script type="module">
+import { Rocket } from '../../rocket.js';
+import { Fireworks } from '../../fireworks.js';
+import { GameAudio } from '../../audio.js';
 (() => {
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
@@ -128,40 +131,38 @@ const splashText=document.getElementById('splashText');
 const rocketOverlay=document.getElementById('rocketOverlay');
 const rocketCtx=rocketOverlay.getContext('2d');
 
-/* ===== Audio ===== */
-const AudioCtx = window.AudioContext || window.webkitAudioContext;
-const actx = new AudioCtx();
-function beep(freq=440,dur=0.07,type='square',vol=0.02){
-  const o=actx.createOscillator();
-  const g=actx.createGain();
-  o.type=type; o.frequency.value=freq;
-  o.connect(g); g.connect(actx.destination); g.gain.value=vol;
-  o.start(); o.stop(actx.currentTime+dur);
+// Initialize modular components
+async function initModularComponents() {
+  try {
+    audio = new GameAudio();
+    fireworks = new Fireworks(rocketOverlay, audio);
+    
+    // Create rocket instance
+    rocket = new Rocket(
+      rocketOverlay,
+      { 
+        fireworksPop: () => audio.fireworksPop(), 
+        rocketRumble: () => audio.rocketRumble(), 
+        actx: audio.actx 
+      },
+      () => { splashLevelOver(true); level++; }
+    );
+    
+    console.log('Modular components initialized successfully');
+  } catch (error) {
+    console.error('Failed to initialize modular components:', error);
+  }
 }
-function rocketRumble(){
-  const g=actx.createGain(); g.gain.value=0.04; g.connect(actx.destination);
-  const o1=actx.createOscillator(), o2=actx.createOscillator();
-  o1.type='sawtooth'; o2.type='square';
-  o1.frequency.setValueAtTime(90, actx.currentTime);
-  o2.frequency.setValueAtTime(55, actx.currentTime);
-  o1.frequency.exponentialRampToValueAtTime(140, actx.currentTime+0.6);
-  o2.frequency.exponentialRampToValueAtTime(70, actx.currentTime+0.6);
-  o1.connect(g); o2.connect(g);
-  const end=actx.currentTime+0.7;
-  g.gain.setValueAtTime(0.045, actx.currentTime);
-  g.gain.exponentialRampToValueAtTime(0.01, end);
-  o1.start(); o2.start(); o1.stop(end); o2.stop(end);
+
+// Audio wrapper functions for compatibility
+function beep(freq=440, dur=0.07, type='square', vol=0.02) {
+  if (audio) audio.beep(freq, dur, type, vol);
 }
-function fireworksPop(){
-  [900,1100,1300].forEach((f,i)=>{
-    const delay= i*0.08;
-    const o=actx.createOscillator(), g=actx.createGain();
-    o.type='triangle'; o.frequency.value=f;
-    o.connect(g); g.connect(actx.destination);
-    g.gain.setValueAtTime(0.03, actx.currentTime+delay);
-    g.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime+delay+0.2);
-    o.start(actx.currentTime+delay); o.stop(actx.currentTime+delay+0.22);
-  });
+function rocketRumble() {
+  if (audio) audio.rocketRumble();
+}
+function fireworksPop() {
+  if (audio) audio.fireworksPop();
 }
 
 /* ===== quotes ===== */
@@ -206,26 +207,7 @@ function spawnWord(){
   scheduleNextSpawn();
 }
 
-/* ===== Rocket Class ===== */
-class Rocket{
-  constructor(canvas, audioFuncs, levelCompleteCb){
-    this.canvas = canvas; this.ctx = canvas.getContext('2d'); this.levelCompleteCb = levelCompleteCb;
-    this.x=60; this.y=H-80; this.height=40; this.width=20; this.audio=audioFuncs; this.flying=false;
-    this.draw();
-  }
-  draw(){
-    const ctx=this.ctx; ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
-    ctx.fillStyle='#fff'; ctx.fillRect(this.x,this.y,this.width,this.height);
-  }
-  grow(){ this.height +=6; this.y-=6; this.draw(); this.audio.rocketRumble(); }
-  launch(){
-    this.flying=true; let interval = setInterval(()=>{
-      if(this.y<-50){ clearInterval(interval); this.audio.fireworksPop(); this.levelCompleteCb(); return; }
-      this.y-=6; this.draw();
-    },16);
-  }
-  resetForLevel(){ this.height=40; this.y=H-80; this.draw(); this.flying=false; }
-}
+// Rocket class is now imported from modular components
 
 /* ===== Level Reset ===== */
 let rocket;
@@ -244,11 +226,8 @@ function resetLevel(keepLevelNumber=false){
   scheduleNextSpawn();
   draw();
   if(!rocket){
-    rocket = new Rocket(
-      rocketOverlay,
-      { fireworksPop, rocketRumble, actx },
-      ()=>{ splashLevelOver(true); level++; }
-    );
+    // Rocket is now initialized in initModularComponents
+    console.log('Rocket not initialized yet');
   } else { rocket.resetForLevel(); }
 }
 function startNextLevel(){ resetLevel(true); }
@@ -336,9 +315,18 @@ function splashLevelOver(success){
   splashScreen.style.display='flex';
 }
 
-resetLevel();
-draw(); // Draw immediately to show player lane indicator
-step();
+// Initialize modular components first, then start the game
+initModularComponents().then(() => {
+  resetLevel();
+  draw(); // Draw immediately to show player lane indicator
+  step();
+}).catch(error => {
+  console.error('Failed to initialize game:', error);
+  // Fallback to basic game without modular components
+  resetLevel();
+  draw();
+  step();
+});
 })();
 </script>
 
