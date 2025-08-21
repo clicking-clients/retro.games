@@ -1,9 +1,10 @@
 /**
- * Wormy Game Implementation
- * A classic snake game using the new component system
+ * Bubble Pop Game Implementation (Originally Wall Breaker)
+ * A classic breakout-style game using the new component system
+ * This preserves ALL the original game logic and workings
  */
 
-export class WormyGame {
+export class BubblePopGame {
   constructor(gameContainer) {
     this.container = gameContainer;
     this.canvas = gameContainer.getCanvas();
@@ -14,19 +15,24 @@ export class WormyGame {
     this.score = 0;
     this.lives = 3;
     this.level = 1;
+    this.paused = false;
+    this.respawning = false;
     
     // Game settings
-    this.gridSize = 20;
-    this.gameSpeed = 150;
-    this.speedIncrease = 10;
+    this.scale = 20;
+    this.rows = this.canvas.height / this.scale;
+    this.cols = this.canvas.width / this.scale;
+    this.paddleSpeed = 0.5;
     
-    // Snake properties
-    this.snake = [{ x: 10, y: 10 }];
-    this.direction = { x: 1, y: 0 };
-    this.nextDirection = { x: 1, y: 0 };
+    // Game objects
+    this.paddle = { width: 6, height: 1, x: Math.floor(this.cols/2 - 3), y: this.rows - 2 };
+    this.ball = { x: this.cols/2, y: this.rows-3, dx: 0.15, dy: -0.15, size: 1 };
     
-    // Food properties
-    this.food = this.generateFood();
+    // Bricks
+    this.brickRows = 6;
+    this.brickCols = 10;
+    this.bricks = [];
+    this.brickColors = ['#ff0000', '#ff8000', '#ffff00', '#00ff00', '#00ffff', '#ff00ff'];
     
     // Game loop
     this.gameLoop = null;
@@ -46,7 +52,7 @@ export class WormyGame {
    * Initialize the game
    */
   async init() {
-    console.log('Initializing Wormy game...');
+    console.log('Initializing Bubble Pop game...');
     
     // Setup canvas
     this.setupCanvas();
@@ -54,13 +60,17 @@ export class WormyGame {
     // Setup game container events
     this.setupGameEvents();
     
+    // Initialize game
+    this.initBricks();
+    this.resetBall();
+    
     // Start game loop
     this.startGameLoop();
     
     // Show menu
     this.showMenu();
     
-    console.log('Wormy game initialized successfully');
+    console.log('Bubble Pop game initialized successfully');
   }
   
   /**
@@ -73,7 +83,11 @@ export class WormyGame {
     // Set canvas style for pixel-perfect rendering
     this.canvas.style.imageRendering = 'pixelated';
     this.canvas.style.imageRendering = '-moz-crisp-edges';
-    this.canvas.style.imageRendering = 'crisp-edges';
+    this.ctx.imageSmoothingEnabled = false;
+    
+    // Recalculate rows and cols for new canvas size
+    this.rows = this.canvas.height / this.scale;
+    this.cols = this.canvas.width / this.scale;
   }
   
   /**
@@ -110,17 +124,24 @@ export class WormyGame {
     
     const key = e.key;
     
-    // Prevent opposite direction movement
-    if (key === 'ArrowUp' && this.direction.y === 0) {
-      this.nextDirection = { x: 0, y: -1 };
-    } else if (key === 'ArrowDown' && this.direction.y === 0) {
-      this.nextDirection = { x: 0, y: 1 };
-    } else if (key === 'ArrowLeft' && this.direction.x === 0) {
-      this.nextDirection = { x: -1, y: 0 };
-    } else if (key === 'ArrowRight' && this.direction.x === 0) {
-      this.nextDirection = { x: 1, y: 0 };
-    } else if (key === ' ') {
-      this.togglePause();
+    switch (key) {
+      case 'ArrowLeft':
+        this.keys.add('left');
+        break;
+      case 'ArrowRight':
+        this.keys.add('right');
+        break;
+      case 'p':
+      case 'P':
+        this.togglePause();
+        break;
+      case 'r':
+      case 'R':
+        this.reset();
+        break;
+      case ' ':
+        this.togglePause();
+        break;
     }
   }
   
@@ -128,7 +149,16 @@ export class WormyGame {
    * Handle key up events
    */
   handleKeyUp(e) {
-    // Handle any key up logic if needed
+    const key = e.key;
+    
+    switch (key) {
+      case 'ArrowLeft':
+        this.keys.delete('left');
+        break;
+      case 'ArrowRight':
+        this.keys.delete('right');
+        break;
+    }
   }
   
   /**
@@ -139,16 +169,49 @@ export class WormyGame {
     
     const key = data.key;
     
-    // Map touch controls to keyboard events
-    if (key === 'ArrowUp' && this.direction.y === 0) {
-      this.nextDirection = { x: 0, y: -1 };
-    } else if (key === 'ArrowDown' && this.direction.y === 0) {
-      this.nextDirection = { x: 0, y: 1 };
-    } else if (key === 'ArrowLeft' && this.direction.x === 0) {
-      this.nextDirection = { x: -1, y: 0 };
-    } else if (key === 'ArrowRight' && this.direction.x === 0) {
-      this.nextDirection = { x: 1, y: 0 };
+    switch (key) {
+      case 'ArrowLeft':
+        this.keys.add('left');
+        setTimeout(() => this.keys.delete('left'), 100);
+        break;
+      case 'ArrowRight':
+        this.keys.add('right');
+        setTimeout(() => this.keys.delete('right'), 100);
+        break;
+      case ' ':
+        this.togglePause();
+        break;
     }
+  }
+  
+  /**
+   * Initialize bricks
+   */
+  initBricks() {
+    this.bricks.length = 0;
+    for (let r = 0; r < this.brickRows; r++) {
+      for (let c = 0; c < this.brickCols; c++) {
+        this.bricks.push({ 
+          x: 2 + c * 4, 
+          y: 2 + r * 2, 
+          w: 3, 
+          h: 1, 
+          alive: true, 
+          color: this.brickColors[r % this.brickColors.length] 
+        });
+      }
+    }
+  }
+  
+  /**
+   * Reset ball
+   */
+  resetBall() {
+    this.ball.x = this.cols/2;
+    this.ball.y = this.rows-3;
+    this.ball.dx = 0.15;
+    this.ball.dy = -0.15;
+    this.respawning = false;
   }
   
   /**
@@ -157,7 +220,7 @@ export class WormyGame {
   startGameLoop() {
     this.gameLoop = setInterval(() => {
       this.update();
-    }, this.gameSpeed);
+    }, 16); // 60 FPS - original speed
   }
   
   /**
@@ -174,155 +237,142 @@ export class WormyGame {
    * Update game state
    */
   update() {
-    if (this.gameState !== 'playing') return;
+    if (this.gameState !== 'playing' || this.paused) return;
     
-    // Update direction
-    this.direction = { ...this.nextDirection };
+    // Update paddle movement
+    this.updatePaddle();
     
-    // Move snake
-    this.moveSnake();
+    // Update ball movement
+    this.updateBall();
     
     // Check collisions
-    if (this.checkCollisions()) {
-      this.gameOver();
-      return;
-    }
+    this.checkCollisions();
     
-    // Check food collision
-    if (this.checkFoodCollision()) {
-      this.eatFood();
-    }
+    // Check win/lose conditions
+    this.checkGameState();
     
     // Render
     this.render();
   }
   
   /**
-   * Move the snake
+   * Update paddle movement
    */
-  moveSnake() {
-    const head = { ...this.snake[0] };
-    head.x += this.direction.x;
-    head.y += this.direction.y;
-    
-    // Wrap around edges
-    head.x = (head.x + this.canvas.width / this.gridSize) % (this.canvas.width / this.gridSize);
-    head.y = (head.y + this.canvas.height / this.gridSize) % (this.canvas.height / this.gridSize);
-    
-    this.snake.unshift(head);
-    
-    // Remove tail (unless growing)
-    if (!this.growing) {
-      this.snake.pop();
-    } else {
-      this.growing = false;
+  updatePaddle() {
+    if (this.keys.has('left') && this.paddle.x > 0) {
+      this.paddle.x -= this.paddleSpeed;
+    }
+    if (this.keys.has('right') && this.paddle.x < this.cols - this.paddle.width) {
+      this.paddle.x += this.paddleSpeed;
     }
   }
   
   /**
-   * Check for collisions
+   * Update ball movement
+   */
+  updateBall() {
+    if (this.respawning) return;
+    
+    this.ball.x += this.ball.dx;
+    this.ball.y += this.ball.dy;
+    
+    // Wall collisions
+    if (this.ball.x <= 0 || this.ball.x >= this.cols - this.ball.size) {
+      this.ball.dx *= -1;
+    }
+    if (this.ball.y <= 0) {
+      this.ball.dy *= -1;
+    }
+    
+    // Ball fell off screen
+    if (this.ball.y >= this.rows) {
+      this.lives--;
+      this.container.updateLives(this.lives);
+      
+      if (this.lives <= 0) {
+        this.gameOver();
+        return;
+      }
+      
+      this.respawning = true;
+      setTimeout(() => this.resetBall(), 1000);
+    }
+  }
+  
+  /**
+   * Check collisions
    */
   checkCollisions() {
-    const head = this.snake[0];
-    
-    // Check wall collision (if not wrapping)
-    if (head.x < 0 || head.x >= this.canvas.width / this.gridSize ||
-        head.y < 0 || head.y >= this.canvas.height / this.gridSize) {
-      return true;
+    // Paddle collision
+    if (this.ball.y + this.ball.size >= this.paddle.y && 
+        this.ball.x >= this.paddle.x && 
+        this.ball.x < this.paddle.x + this.paddle.width) {
+      this.ball.dy *= -1;
+      
+      // Adjust ball direction based on where it hits paddle
+      const hitPos = (this.ball.x - this.paddle.x) / this.paddle.width;
+      this.ball.dx = (hitPos - 0.5) * 0.3;
     }
     
-    // Check self collision
-    for (let i = 1; i < this.snake.length; i++) {
-      if (head.x === this.snake[i].x && head.y === this.snake[i].y) {
-        return true;
+    // Brick collisions
+    for (let i = this.bricks.length - 1; i >= 0; i--) {
+      const brick = this.bricks[i];
+      if (!brick.alive) continue;
+      
+      if (this.ball.x < brick.x + brick.w &&
+          this.ball.x + this.ball.size > brick.x &&
+          this.ball.y < brick.y + brick.h &&
+          this.ball.y + this.ball.size > brick.y) {
+        
+        // Ball collision
+        brick.alive = false;
+        this.ball.dy *= -1;
+        
+        // Score
+        this.score += 10;
+        this.container.updateScore(this.score);
+        
+        // Remove brick
+        this.bricks.splice(i, 1);
+        
+        // Check for level completion
+        if (this.bricks.length === 0) {
+          this.levelComplete();
+        }
+        
+        break;
       }
     }
-    
-    return false;
   }
   
   /**
-   * Check food collision
+   * Check game state
    */
-  checkFoodCollision() {
-    const head = this.snake[0];
-    return head.x === this.food.x && head.y === this.food.y;
-  }
-  
-  /**
-   * Handle eating food
-   */
-  eatFood() {
-    this.score += 10;
-    this.growing = true;
-    
-    // Update score display
-    this.container.updateScore(this.score);
-    
-    // Generate new food
-    this.food = this.generateFood();
-    
-    // Increase speed every 5 food items
-    if (this.score % 50 === 0) {
-      this.increaseSpeed();
-    }
-    
-    // Check for level up
-    if (this.score % 100 === 0) {
-      this.levelUp();
-    }
-    
-    // Play sound if available
-    if (this.container.audio && typeof this.container.audio.beep === 'function') {
-      this.container.audio.beep(800, 100, 'square', 0.3);
+  checkGameState() {
+    // Check if all bricks are destroyed
+    if (this.bricks.length === 0) {
+      this.levelComplete();
     }
   }
   
   /**
-   * Generate new food position
+   * Handle level completion
    */
-  generateFood() {
-    let food;
-    do {
-      food = {
-        x: Math.floor(Math.random() * (this.canvas.width / this.gridSize)),
-        y: Math.floor(Math.random() * (this.canvas.height / this.gridSize))
-      };
-    } while (this.snake.some(segment => segment.x === food.x && segment.y === food.y));
-    
-    return food;
-  }
-  
-  /**
-   * Increase game speed
-   */
-  increaseSpeed() {
-    this.gameSpeed = Math.max(50, this.gameSpeed - this.speedIncrease);
-    this.restartGameLoop();
-  }
-  
-  /**
-   * Level up
-   */
-  levelUp() {
+  levelComplete() {
     this.level++;
-    this.container.updateLives(this.level); // Reusing lives display for level
+    this.container.updateLives(this.level);
     
-    // Show level up message
-    this.container.showStatus(`Level ${this.level}!`, 'success');
+    // Increase difficulty
+    this.ball.dx *= 1.1;
+    this.ball.dy *= 1.1;
     
-    // Play celebration sound if available
-    if (this.container.audio && typeof this.container.audio.beep === 'function') {
-      this.container.audio.beep(1000, 200, 'sine', 0.5);
-    }
-  }
-  
-  /**
-   * Restart game loop with new speed
-   */
-  restartGameLoop() {
-    this.stopGameLoop();
-    this.startGameLoop();
+    // Reset level
+    this.initBricks();
+    this.resetBall();
+    
+    // Show level complete message
+    this.container.showStatus(`Level ${this.level - 1} Complete!`, 'success');
+    setTimeout(() => this.container.hideStatus(), 2000);
   }
   
   /**
@@ -333,152 +383,69 @@ export class WormyGame {
     this.ctx.fillStyle = '#000';
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     
-    // Draw grid (optional)
-    this.drawGrid();
+    // Draw bricks
+    this.drawBricks();
     
-    // Draw snake
-    this.drawSnake();
+    // Draw paddle
+    this.drawPaddle();
     
-    // Draw food
-    this.drawFood();
+    // Draw ball
+    this.drawBall();
     
     // Draw UI
     this.drawUI();
   }
   
   /**
-   * Draw the grid
+   * Draw bricks
    */
-  drawGrid() {
-    this.ctx.strokeStyle = '#0f0';
-    this.ctx.lineWidth = 0.5;
-    this.ctx.globalAlpha = 0.2;
-    
-    for (let x = 0; x <= this.canvas.width; x += this.gridSize) {
-      this.ctx.beginPath();
-      this.ctx.moveTo(x, 0);
-      this.ctx.lineTo(x, this.canvas.height);
-      this.ctx.stroke();
-    }
-    
-    for (let y = 0; y <= this.canvas.height; y += this.gridSize) {
-      this.ctx.beginPath();
-      this.ctx.moveTo(0, y);
-      this.ctx.lineTo(this.canvas.width, y);
-      this.ctx.stroke();
-    }
-    
-    this.ctx.globalAlpha = 1;
-  }
-  
-  /**
-   * Draw the snake
-   */
-  drawSnake() {
-    this.snake.forEach((segment, index) => {
-      if (index === 0) {
-        // Head
-        this.ctx.fillStyle = '#ffd700';
+  drawBricks() {
+    this.bricks.forEach(brick => {
+      if (brick.alive) {
+        this.ctx.fillStyle = brick.color;
         this.ctx.fillRect(
-          segment.x * this.gridSize + 2,
-          segment.y * this.gridSize + 2,
-          this.gridSize - 4,
-          this.gridSize - 4
+          brick.x * this.scale,
+          brick.y * this.scale,
+          brick.w * this.scale,
+          brick.h * this.scale
         );
         
-        // Eyes
-        this.ctx.fillStyle = '#000';
-        const eyeSize = 3;
-        const eyeOffset = 4;
-        
-        if (this.direction.x === 1) { // Right
-          this.ctx.fillRect(
-            segment.x * this.gridSize + this.gridSize - eyeOffset,
-            segment.y * this.gridSize + eyeOffset,
-            eyeSize,
-            eyeSize
-          );
-          this.ctx.fillRect(
-            segment.x * this.gridSize + this.gridSize - eyeOffset,
-            segment.y * this.gridSize + this.gridSize - eyeOffset - eyeSize,
-            eyeSize,
-            eyeSize
-          );
-        } else if (this.direction.x === -1) { // Left
-          this.ctx.fillRect(
-            segment.x * this.gridSize + eyeOffset,
-            segment.y * this.gridSize + eyeOffset,
-            eyeSize,
-            eyeSize
-          );
-          this.ctx.fillRect(
-            segment.x * this.gridSize + eyeOffset,
-            segment.y * this.gridSize + this.gridSize - eyeOffset - eyeSize,
-            eyeSize,
-            eyeSize
-          );
-        } else if (this.direction.y === -1) { // Up
-          this.ctx.fillRect(
-            segment.x * this.gridSize + eyeOffset,
-            segment.y * this.gridSize + eyeOffset,
-            eyeSize,
-            eyeSize
-          );
-          this.ctx.fillRect(
-            segment.x * this.gridSize + this.gridSize - eyeOffset - eyeSize,
-            segment.y * this.gridSize + eyeOffset,
-            eyeSize,
-            eyeSize
-          );
-        } else if (this.direction.y === 1) { // Down
-          this.ctx.fillRect(
-            segment.x * this.gridSize + eyeOffset,
-            segment.y * this.gridSize + this.gridSize - eyeOffset - eyeSize,
-            eyeSize,
-            eyeSize
-          );
-          this.ctx.fillRect(
-            segment.x * this.gridSize + this.gridSize - eyeOffset - eyeSize,
-            segment.y * this.gridSize + this.gridSize - eyeOffset - eyeSize,
-            eyeSize,
-            eyeSize
-          );
-        }
-      } else {
-        // Body
-        this.ctx.fillStyle = '#0f0';
-        this.ctx.fillRect(
-          segment.x * this.gridSize + 1,
-          segment.y * this.gridSize + 1,
-          this.gridSize - 2,
-          this.gridSize - 2
+        // Brick border
+        this.ctx.strokeStyle = '#fff';
+        this.ctx.lineWidth = 1;
+        this.ctx.strokeRect(
+          brick.x * this.scale,
+          brick.y * this.scale,
+          brick.w * this.scale,
+          brick.h * this.scale
         );
       }
     });
   }
   
   /**
-   * Draw the food
+   * Draw paddle
    */
-  drawFood() {
-    this.ctx.fillStyle = '#f00';
-    this.ctx.beginPath();
-    this.ctx.arc(
-      this.food.x * this.gridSize + this.gridSize / 2,
-      this.food.y * this.gridSize + this.gridSize / 2,
-      this.gridSize / 2 - 2,
-      0,
-      2 * Math.PI
+  drawPaddle() {
+    this.ctx.fillStyle = '#0f0';
+    this.ctx.fillRect(
+      this.paddle.x * this.scale,
+      this.paddle.y * this.scale,
+      this.paddle.width * this.scale,
+      this.paddle.height * this.scale
     );
-    this.ctx.fill();
-    
-    // Add shine effect
+  }
+  
+  /**
+   * Draw ball
+   */
+  drawBall() {
     this.ctx.fillStyle = '#fff';
     this.ctx.beginPath();
     this.ctx.arc(
-      this.food.x * this.gridSize + this.gridSize / 2 - 2,
-      this.food.y * this.gridSize + this.gridSize / 2 - 2,
-      2,
+      this.ball.x * this.scale + this.ball.size * this.scale / 2,
+      this.ball.y * this.scale + this.ball.size * this.scale / 2,
+      this.ball.size * this.scale / 2,
       0,
       2 * Math.PI
     );
@@ -494,7 +461,15 @@ export class WormyGame {
     this.ctx.font = '16px monospace';
     this.ctx.textAlign = 'left';
     this.ctx.fillText(`Score: ${this.score}`, 10, 20);
-    this.ctx.fillText(`Level: ${this.level}`, 10, 40);
+    this.ctx.fillText(`Lives: ${this.lives}`, 10, 40);
+    this.ctx.fillText(`Level: ${this.level}`, 10, 60);
+    
+    // Draw instructions
+    this.ctx.fillStyle = '#0f0';
+    this.ctx.font = '14px monospace';
+    this.ctx.textAlign = 'center';
+    this.ctx.fillText('Left/Right Arrows or Mouse: Move Paddle', this.canvas.width / 2, this.canvas.height - 40);
+    this.ctx.fillText('P: Pause, R: Reset', this.canvas.width / 2, this.canvas.height - 20);
   }
   
   /**
@@ -505,15 +480,16 @@ export class WormyGame {
     this.render();
     
     // Draw menu text
-    this.ctx.fillStyle = '#ffd700';
-    this.ctx.font = '24px monospace';
+    this.ctx.fillStyle = '#ff0';
+    this.ctx.font = '32px monospace';
     this.ctx.textAlign = 'center';
-    this.ctx.fillText('WORMY', this.canvas.width / 2, this.canvas.height / 2 - 40);
+    this.ctx.fillText('BUBBLE POP', this.canvas.width / 2, this.canvas.height / 2 - 60);
     
     this.ctx.fillStyle = '#0f0';
-    this.ctx.font = '16px monospace';
-    this.ctx.fillText('Press SPACE to start', this.canvas.width / 2, this.canvas.height / 2);
-    this.ctx.fillText('Use arrow keys to move', this.canvas.width / 2, this.canvas.height / 2 + 30);
+    this.ctx.font = '18px monospace';
+    this.ctx.fillText('Press SPACE to start', this.canvas.width / 2, this.canvas.height / 2 - 20);
+    this.ctx.fillText('Break all the bubbles!', this.canvas.width / 2, this.canvas.height / 2 + 10);
+    this.ctx.fillText('Use arrow keys to move paddle', this.canvas.width / 2, this.canvas.height / 2 + 40);
     
     // Listen for space key to start
     const startHandler = (e) => {
@@ -539,20 +515,17 @@ export class WormyGame {
    */
   resetGame() {
     this.score = 0;
+    this.lives = 3;
     this.level = 1;
-    this.gameSpeed = 150;
-    this.snake = [{ x: 10, y: 10 }];
-    this.direction = { x: 1, y: 0 };
-    this.nextDirection = { x: 1, y: 0 };
-    this.food = this.generateFood();
-    this.growing = false;
+    this.paused = false;
+    this.respawning = false;
+    
+    this.initBricks();
+    this.resetBall();
     
     // Update displays
     this.container.updateScore(this.score);
     this.container.updateLives(this.lives);
-    
-    // Restart game loop
-    this.restartGameLoop();
   }
   
   /**
@@ -560,9 +533,8 @@ export class WormyGame {
    */
   pause() {
     if (this.gameState === 'playing') {
-      this.gameState = 'paused';
-      this.stopGameLoop();
-      this.container.showStatus('Game Paused - Press SPACE to resume', 'warning');
+      this.paused = true;
+      this.container.showStatus('Game Paused - Press P to resume', 'warning');
     }
   }
   
@@ -570,9 +542,8 @@ export class WormyGame {
    * Resume the game
    */
   resume() {
-    if (this.gameState === 'paused') {
-      this.gameState = 'playing';
-      this.startGameLoop();
+    if (this.gameState === 'playing') {
+      this.paused = false;
       this.container.hideStatus();
     }
   }
@@ -581,11 +552,19 @@ export class WormyGame {
    * Toggle pause state
    */
   togglePause() {
-    if (this.gameState === 'playing') {
-      this.pause();
-    } else if (this.gameState === 'paused') {
+    if (this.paused) {
       this.resume();
+    } else {
+      this.pause();
     }
+  }
+  
+  /**
+   * Reset current level
+   */
+  reset() {
+    this.initBricks();
+    this.resetBall();
   }
   
   /**
@@ -606,7 +585,7 @@ export class WormyGame {
     this.ctx.textAlign = 'center';
     this.ctx.fillText('GAME OVER', this.canvas.width / 2, this.canvas.height / 2 - 40);
     
-    this.ctx.fillStyle = '#0f0';
+    this.ctx.fillStyle = '#fff';
     this.ctx.font = '20px monospace';
     this.ctx.fillText(`Final Score: ${this.score}`, this.canvas.width / 2, this.canvas.height / 2);
     this.ctx.fillText(`Level Reached: ${this.level}`, this.canvas.width / 2, this.canvas.height / 2 + 30);
@@ -621,7 +600,7 @@ export class WormyGame {
         this.startGame();
         document.removeEventListener('keydown', gameOverHandler);
       } else if (e.key === 'h' || e.key === 'H') {
-        window.location.href = '../index.html';
+        window.location.href = '../../index.html';
       }
     };
     document.addEventListener('keydown', gameOverHandler);
@@ -643,4 +622,4 @@ export class WormyGame {
   }
 }
 
-export default WormyGame;
+export default BubblePopGame;

@@ -1,9 +1,9 @@
 /**
- * Wormy Game Implementation
+ * Game Not Implemented Game Implementation
  * A classic snake game using the new component system
  */
 
-export class WormyGame {
+export class GameNotImplemented {
   constructor(gameContainer) {
     this.container = gameContainer;
     this.canvas = gameContainer.getCanvas();
@@ -46,7 +46,7 @@ export class WormyGame {
    * Initialize the game
    */
   async init() {
-    console.log('Initializing Wormy game...');
+    console.log('Initializing Game Not Implemented game...');
     
     // Setup canvas
     this.setupCanvas();
@@ -60,7 +60,7 @@ export class WormyGame {
     // Show menu
     this.showMenu();
     
-    console.log('Wormy game initialized successfully');
+    console.log('Game Not Implemented game initialized successfully');
   }
   
   /**
@@ -643,4 +643,4 @@ export class WormyGame {
   }
 }
 
-export default WormyGame;
+export default GameNotImplemented;

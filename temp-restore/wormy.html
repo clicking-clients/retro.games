@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Worm Trail</title>
+<style>
+  body { background: black; color: #0f0; font-family: monospace; display: flex; justify-content: center; align-items: flex-start; height: 100%; margin: 0; padding: 20px; }
+  #container { display: flex; gap: 20px; align-items: flex-start; }
+  #gameNav, 
+#gameNav a {
+  display: block;
+  margin-top: 5px;
+  text-transform: uppercase;
+  color: #0f0;
+  text-decoration: none;
+}
+
+#gameNav a.active {
+  color: #ff0;       /* highlight color */
+  font-weight: bold;  /* optional emphasis */
+  text-decoration: underline;
+}
+  #snakeGame { border: 4px solid #0f0; height: 80vh; width: 240px; image-rendering: pixelated; background: black; display: block; }
+  #sidebar { display: flex; flex-direction: column; gap: 20px; }
+  #title { text-transform: uppercase; font-size: 2rem; color: #ff0; text-shadow: 0 0 8px #f00; text-align: center; }
+  #scoreboard { border: 2px solid #0f0; padding: 10px; }
+  .section-title { color: #ff0; margin-bottom: 5px; font-weight: bold; }
+  #rules { color: #0f0; margin-top: 10px; font-size: 0.9rem; }
+</style>
+</head>
+<body>
+<div id="container">
+    <nav id="gameNav" style="padding:10px; background:#111; color:#0f0; font-family:monospace;">
+    <strong>Games:</strong>
+  </nav>
+  <canvas id="snakeGame" width="240" height="480"></canvas>
+  <div id="sidebar">
+    <div id="title">Worm Trail</div>
+    <div id="scoreboard">
+      <div class="section-title">SCORE</div>
+      <div id="score">0</div>
+    </div>
+    <div id="instructions">
+      <div class="section-title">CONTROLS</div>
+      ← / →: Move Left/Right<br>
+      ↑ / ↓: Move Up/Down<br>
+      P: Pause<br>
+      R: Reset
+      <div id="rules">
+        <div class="section-title">RULES</div>
+        Eat the red fruit to grow.<br>
+        Avoid hitting walls or your own body.<br>
+        In easy mode, you can reverse direction onto your head (not body).<br>
+      </div>
+    </div>
+    <div>
+      <input type="checkbox" id="easyMode" /> Easy Mode
+    </div>
+  </div>
+</div>
+<script src="navigation.js"></script>
+<script>
+const canvas = document.getElementById('snakeGame');
+const context = canvas.getContext('2d');
+const scale = 20;
+const rows = canvas.height / scale;
+const cols = canvas.width / scale;
+let snake;
+let fruit;
+let score = 0;
+let paused = false;
+let gameOver = false;
+let easyMode = false;
+
+class Snake {
+    constructor() {
+        this.body = [{x: Math.floor(cols/2), y: Math.floor(rows/2)}];
+        this.dx = 0;
+        this.dy = 0;
+        this.nextDx = 0;
+        this.nextDy = 0;
+    }
+    update() {
+        this.dx = this.nextDx;
+        this.dy = this.nextDy;
+        const head = {x: this.body[0].x + this.dx, y: this.body[0].y + this.dy};
+        this.body.unshift(head);
+        if(head.x === fruit.x && head.y === fruit.y) {
+            score += 10;
+            spawnFruit();
+        } else {
+            this.body.pop();
+        }
+        if(head.x < 0 || head.x >= cols || head.y < 0 || head.y >= rows || (!easyMode && this.body.slice(1).some(seg => seg.x === head.x && seg.y === head.y))) {
+            gameOver = true;
+        }
+    }
+    draw() {
+        context.fillStyle = '#0f0';
+        this.body.forEach(seg => {
+            context.fillRect(seg.x, seg.y, 1, 1);
+            context.strokeStyle = '#000';
+            context.lineWidth = 0.05;
+            context.strokeRect(seg.x, seg.y, 1, 1);
+        });
+    }
+    setDirection(x, y) {
+        if(!easyMode) {
+            if(this.dx + x === 0 && this.dy + y === 0) return;
+        }
+        this.nextDx = x;
+        this.nextDy = y;
+    }
+}
+
+function spawnFruit() {
+    fruit = {x: Math.floor(Math.random() * cols), y: Math.floor(Math.random() * rows)};
+}
+
+function drawFruit() {
+    context.fillStyle = '#F00';
+    context.fillRect(fruit.x, fruit.y, 1, 1);
+    context.strokeStyle = '#000';
+    context.lineWidth = 0.05;
+    context.strokeRect(fruit.x, fruit.y, 1, 1);
+}
+
+function draw() {
+    context.fillStyle = '#000';
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.save();
+    context.scale(scale, scale);
+    snake.draw();
+    drawFruit();
+    if(gameOver) {
+        context.fillStyle = '#F00';
+        context.font = '1.5px monospace';
+        context.textAlign = 'center';
+        context.fillText('GAME OVER', cols/2, rows/2);
+    }
+    context.restore();
+}
+
+function update() {
+    if(paused) return;
+    if(!gameOver) snake.update();
+    draw();
+    document.getElementById('score').textContent = score;
+    if(!gameOver) {
+        setTimeout(update, 150);
+    } else {
+        let flash = true;
+        const flashInterval = setInterval(() => {
+            draw();
+            context.save();
+            context.scale(scale, scale);
+            if(flash) {
+                context.fillStyle = '#F00';
+                context.font = '1.5px monospace';
+                context.textAlign = 'center';
+                context.fillText('GAME OVER', cols/2, rows/2);
+            }
+            context.restore();
+            flash = !flash;
+        }, 500);
+    }
+}
+
+document.getElementById('easyMode').addEventListener('change', e => easyMode = e.target.checked);
+
+document.addEventListener('keydown', event => {
+    switch(event.code) {
+        case 'ArrowLeft': snake.setDirection(-1,0); break;
+        case 'ArrowRight': snake.setDirection(1,0); break;
+        case 'ArrowUp': snake.setDirection(0,-1); break;
+        case 'ArrowDown': snake.setDirection(0,1); break;
+        case 'KeyP': paused = !paused; if(!paused) update(); break;
+        case 'KeyR': score = 0; snake = new Snake(); spawnFruit(); gameOver = false; paused = false; update(); break;
+    }
+});
+
+snake = new Snake();
+spawnFruit();
+update();
+</script>
+</body>
+</html>

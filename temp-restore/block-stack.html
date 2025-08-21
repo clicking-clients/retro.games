@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Block Stack</title>
+<style>
+  body { height: 100%; background: black; color: #0f0; font-family: monospace; display: flex; justify-content: center; align-items: flex-start;  margin: 0; padding: 20px; }
+  #container {  height: 100%; display: flex; gap: 20px; align-items: flex-start; }
+  #gameNav, 
+  #gameNav a {
+    display: block;
+    margin-top: 5px;
+    text-transform: uppercase;
+    color: #0f0;
+    text-decoration: none;
+  }
+
+  #gameNav a.active {
+    color: #ff0;       /* highlight color */
+    font-weight: bold;  /* optional emphasis */
+    text-decoration: underline;
+  }
+  #tetris { border: 4px solid #0f0; height: 80vh; image-rendering: pixelated; background: black; display: block; }
+  #sidebar { display: flex; flex-direction: column; gap: 20px; }
+  #title { text-transform: uppercase; font-size: 2rem; color: #ff0; text-shadow: 0 0 8px #f00; text-align: center; }
+  #scoreboard { border: 2px solid #0f0; padding: 10px; }
+  .section-title { color: #ff0; margin-bottom: 5px; font-weight: bold; }
+</style>
+</head>
+<body>
+<div id="container">
+  <nav id="gameNav" style="padding:10px; background:#111; color:#0f0; font-family:monospace;">
+    <strong>Games:</strong>
+  </nav>
+  <canvas id="tetris" width="240" height="480"></canvas>
+  <div id="sidebar">
+    <div id="title">BLOCK STACK</div>
+    <div id="scoreboard">
+      <div class="section-title">SCORE</div>
+      <div id="score">0</div>
+      <div class="section-title">LINES</div>
+      <div id="lines">0</div>
+      <div class="section-title">LEVEL</div>
+      <div id="level">1</div>
+    </div>
+    <div id="instructions">
+      <div class="section-title">CONTROLS</div>
+      ← / →: Move<br>
+      ↓: Soft drop<br>
+      ↑ / X: Rotate CW<br>
+      Z: Rotate CCW<br>
+      Space: Hard drop<br>
+      Shift: Hold piece<br>
+      P: Pause<br>
+      R: Reset
+    </div>
+  </div>
+</div>
+<script src="navigation.js"></script>
+<script>
+const canvas = document.getElementById('tetris');
+const context = canvas.getContext('2d');
+context.scale(20, 20);
+
+const colors = [null,'#FF0D72','#0DC2FF','#0DFF72','#F538FF','#FF8E0D','#FFE138','#3877FF'];
+
+function createMatrix(w,h){const matrix=[];while(h--){matrix.push(new Array(w).fill(0));}return matrix;}
+function createPiece(type){if(type==='T')return[[0,1,0],[1,1,1],[0,0,0]];
+else if(type==='O')return[[2,2],[2,2]];
+else if(type==='L')return[[0,3,0],[0,3,0],[0,3,3]];
+else if(type==='J')return[[0,4,0],[0,4,0],[4,4,0]];
+else if(type==='I')return[[0,5,0,0],[0,5,0,0],[0,5,0,0],[0,5,0,0]];
+else if(type==='S')return[[0,6,6],[6,6,0],[0,0,0]];
+else if(type==='Z')return[[7,7,0],[0,7,7],[0,0,0]];}
+
+function drawMatrix(matrix,offset){matrix.forEach((row,y)=>{row.forEach((value,x)=>{if(value!==0){context.fillStyle=value===8?'#fff':colors[value];context.fillRect(x+offset.x,y+offset.y,1,1);}});});}
+
+function draw(){context.fillStyle='#000';context.fillRect(0,0,canvas.width,canvas.height);drawMatrix(arena,{x:0,y:0});drawMatrix(player.matrix,player.pos);drawFloor();}
+
+function drawFloor(){context.fillStyle='#0f0';context.fillRect(0,arena.length,arena[0].length,0.1);}
+
+function merge(arena,player){player.matrix.forEach((row,y)=>{row.forEach((value,x)=>{if(value!==0)arena[y+player.pos.y][x+player.pos.x]=value;});});}
+
+function collide(arena,player){const m=player.matrix;const o=player.pos;for(let y=0;y<m.length;++y){for(let x=0;x<m[y].length;++x){if(m[y][x]!==0&&(arena[y+o.y]&&arena[y+o.y][x+o.x])!==0){return true;}}}return false;}
+
+function arenaSweep(){let rowCount=1;outer:for(let y=arena.length-1;y>=0;--y){for(let x=0;x<arena[y].length;++x){if(arena[y][x]===0)continue outer;}let flashCount=0;const flashInterval=setInterval(()=>{for(let x=0;x<arena[y].length;x++){arena[y][x]=arena[y][x]?0:8;}draw();flashCount++;if(flashCount>5){clearInterval(flashInterval);arena.splice(y,1);arena.unshift(new Array(arena[0].length).fill(0));y++;player.score+=rowCount*10;lines+=1;rowCount*=2;updateScore();}},50);}}
+
+function playerDrop(){player.pos.y++;if(collide(arena,player)){player.pos.y--;merge(arena,player);playerReset();arenaSweep();updateScore();}dropCounter=0;}
+function playerHardDrop(){while(!collide(arena,player)){player.pos.y++;}player.pos.y--;merge(arena,player);playerReset();arenaSweep();updateScore();dropCounter=0;}
+function playerMove(dir){player.pos.x+=dir;if(collide(arena,player)){player.pos.x-=dir;}}
+function playerReset(){const pieces='TJLOSZI';player.matrix=createPiece(pieces[pieces.length*Math.random()|0]);player.pos.y=0;player.pos.x=(arena[0].length/2|0)-(player.matrix[0].length/2|0);canHold=true;if(collide(arena,player)){arena.forEach(row=>row.fill(0));player.score=0;lines=0;level=1;updateScore();}}
+function playerRotate(dir){const pos=player.pos.x;let offset=1;rotate(player.matrix,dir);while(collide(arena,player)){player.pos.x+=offset;offset=-(offset+(offset>0?1:-1));if(offset>player.matrix[0].length){rotate(player.matrix,-dir);player.pos.x=pos;return;}}}
+function rotate(matrix,dir){for(let y=0;y<matrix.length;++y){for(let x=0;x<y;++x){[matrix[x][y],matrix[y][x]]=[matrix[y][x],matrix[x][y]];}}if(dir>0){matrix.forEach(row=>row.reverse());}else{matrix.reverse();}}
+
+let dropCounter=0,dropInterval=1000,lastTime=0,paused=false,gameOver=false,level=1,score=0,lines=0,holdPiece=null,canHold=true;
+const arena=createMatrix(12,20);
+const player={pos:{x:0,y:0},matrix:null,score:0};
+
+document.addEventListener('keydown',event=>{switch(event.code){case'ArrowLeft':playerMove(-1);break;case'ArrowRight':playerMove(1);break;case'ArrowDown':playerDrop();break;case'ArrowUp':case'KeyX':playerRotate(1);break;case'KeyZ':playerRotate(-1);break;case'Space':playerHardDrop();break;case'KeyP':paused=!paused;if(!paused){lastTime=performance.now();update();}break;case'KeyR':arena.forEach(row=>row.fill(0));score=0;lines=0;level=1;playerReset();updateScore();paused=false;gameOver=false;lastTime=performance.now();update();break;}});
+
+function updateScore(){document.getElementById('score').textContent=player.score;document.getElementById('lines').textContent=lines;document.getElementById('level').textContent=level;}
+
+function update(time=0){if(paused||gameOver)return;const deltaTime=time-lastTime;lastTime=time;dropCounter+=deltaTime;if(dropCounter>dropInterval)playerDrop();draw();requestAnimationFrame(update);}
+
+playerReset();updateScore();update();
+</script>
+</body>
+</html>

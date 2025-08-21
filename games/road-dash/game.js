@@ -1,9 +1,10 @@
 /**
- * Wormy Game Implementation
- * A classic snake game using the new component system
+ * Road Dash Game Implementation (Originally Road Crosser/Frogger)
+ * A classic road crossing game using the new component system
+ * This preserves ALL the original game logic and workings
  */
 
-export class WormyGame {
+export class RoadDashGame {
   constructor(gameContainer) {
     this.container = gameContainer;
     this.canvas = gameContainer.getCanvas();
@@ -14,19 +15,19 @@ export class WormyGame {
     this.score = 0;
     this.lives = 3;
     this.level = 1;
+    this.paused = false;
     
     // Game settings
-    this.gridSize = 20;
-    this.gameSpeed = 150;
-    this.speedIncrease = 10;
+    this.scale = 20;
+    this.rows = this.canvas.height / this.scale;
+    this.cols = this.canvas.width / this.scale;
     
-    // Snake properties
-    this.snake = [{ x: 10, y: 10 }];
-    this.direction = { x: 1, y: 0 };
-    this.nextDirection = { x: 1, y: 0 };
+    // Player (frog)
+    this.frog = { x: Math.floor(this.cols/2), y: this.rows - 1, size: 1 };
     
-    // Food properties
-    this.food = this.generateFood();
+    // Vehicles
+    this.vehicles = [];
+    this.vehicleSpeed = 2;
     
     // Game loop
     this.gameLoop = null;
@@ -46,7 +47,7 @@ export class WormyGame {
    * Initialize the game
    */
   async init() {
-    console.log('Initializing Wormy game...');
+    console.log('Initializing Road Dash game...');
     
     // Setup canvas
     this.setupCanvas();
@@ -54,13 +55,16 @@ export class WormyGame {
     // Setup game container events
     this.setupGameEvents();
     
+    // Initialize game
+    this.initVehicles();
+    
     // Start game loop
     this.startGameLoop();
     
     // Show menu
     this.showMenu();
     
-    console.log('Wormy game initialized successfully');
+    console.log('Road Dash game initialized successfully');
   }
   
   /**
@@ -73,7 +77,11 @@ export class WormyGame {
     // Set canvas style for pixel-perfect rendering
     this.canvas.style.imageRendering = 'pixelated';
     this.canvas.style.imageRendering = '-moz-crisp-edges';
-    this.canvas.style.imageRendering = 'crisp-edges';
+    this.ctx.imageSmoothingEnabled = false;
+    
+    // Recalculate rows and cols for new canvas size
+    this.rows = this.canvas.height / this.scale;
+    this.cols = this.canvas.width / this.scale;
   }
   
   /**
@@ -110,17 +118,30 @@ export class WormyGame {
     
     const key = e.key;
     
-    // Prevent opposite direction movement
-    if (key === 'ArrowUp' && this.direction.y === 0) {
-      this.nextDirection = { x: 0, y: -1 };
-    } else if (key === 'ArrowDown' && this.direction.y === 0) {
-      this.nextDirection = { x: 0, y: 1 };
-    } else if (key === 'ArrowLeft' && this.direction.x === 0) {
-      this.nextDirection = { x: -1, y: 0 };
-    } else if (key === 'ArrowRight' && this.direction.x === 0) {
-      this.nextDirection = { x: 1, y: 0 };
-    } else if (key === ' ') {
-      this.togglePause();
+    switch (key) {
+      case 'ArrowUp':
+        this.moveFrog(0, -1);
+        break;
+      case 'ArrowDown':
+        this.moveFrog(0, 1);
+        break;
+      case 'ArrowLeft':
+        this.moveFrog(-1, 0);
+        break;
+      case 'ArrowRight':
+        this.moveFrog(1, 0);
+        break;
+      case 'p':
+      case 'P':
+        this.togglePause();
+        break;
+      case 'r':
+      case 'R':
+        this.reset();
+        break;
+      case ' ':
+        this.togglePause();
+        break;
     }
   }
   
@@ -139,15 +160,63 @@ export class WormyGame {
     
     const key = data.key;
     
-    // Map touch controls to keyboard events
-    if (key === 'ArrowUp' && this.direction.y === 0) {
-      this.nextDirection = { x: 0, y: -1 };
-    } else if (key === 'ArrowDown' && this.direction.y === 0) {
-      this.nextDirection = { x: 0, y: 1 };
-    } else if (key === 'ArrowLeft' && this.direction.x === 0) {
-      this.nextDirection = { x: -1, y: 0 };
-    } else if (key === 'ArrowRight' && this.direction.x === 0) {
-      this.nextDirection = { x: 1, y: 0 };
+    switch (key) {
+      case 'ArrowUp':
+        this.moveFrog(0, -1);
+        break;
+      case 'ArrowDown':
+        this.moveFrog(0, 1);
+        break;
+      case 'ArrowLeft':
+        this.moveFrog(-1, 0);
+        break;
+      case 'ArrowRight':
+        this.moveFrog(1, 0);
+        break;
+      case ' ':
+        this.togglePause();
+        break;
+    }
+  }
+  
+  /**
+   * Move the frog
+   */
+  moveFrog(dx, dy) {
+    const newX = this.frog.x + dx;
+    const newY = this.frog.y + dy;
+    
+    // Check boundaries
+    if (newX >= 0 && newX < this.cols && newY >= 0 && newY < this.rows) {
+      this.frog.x = newX;
+      this.frog.y = newY;
+      
+      // Check if reached top (level complete)
+      if (this.frog.y === 0) {
+        this.levelComplete();
+      }
+    }
+  }
+  
+  /**
+   * Initialize vehicles
+   */
+  initVehicles() {
+    this.vehicles = [];
+    
+    // Create vehicles on different rows
+    for (let row = 1; row < this.rows - 1; row++) {
+      const vehicleCount = Math.floor(Math.random() * 3) + 1;
+      for (let i = 0; i < vehicleCount; i++) {
+        this.vehicles.push({
+          x: Math.random() * this.cols,
+          y: row,
+          width: Math.floor(Math.random() * 3) + 2,
+          height: 1,
+          speed: (Math.random() * 0.5 + 0.5) * this.vehicleSpeed,
+          direction: Math.random() > 0.5 ? 1 : -1
+        });
+      }
     }
   }
   
@@ -157,7 +226,7 @@ export class WormyGame {
   startGameLoop() {
     this.gameLoop = setInterval(() => {
       this.update();
-    }, this.gameSpeed);
+    }, 50); // 20 FPS - appropriate for road crossing game
   }
   
   /**
@@ -174,155 +243,82 @@ export class WormyGame {
    * Update game state
    */
   update() {
-    if (this.gameState !== 'playing') return;
+    if (this.gameState !== 'playing' || this.paused) return;
     
-    // Update direction
-    this.direction = { ...this.nextDirection };
-    
-    // Move snake
-    this.moveSnake();
+    // Update vehicles
+    this.updateVehicles();
     
     // Check collisions
-    if (this.checkCollisions()) {
-      this.gameOver();
-      return;
-    }
-    
-    // Check food collision
-    if (this.checkFoodCollision()) {
-      this.eatFood();
-    }
+    this.checkCollisions();
     
     // Render
     this.render();
   }
   
   /**
-   * Move the snake
+   * Update vehicles
    */
-  moveSnake() {
-    const head = { ...this.snake[0] };
-    head.x += this.direction.x;
-    head.y += this.direction.y;
-    
-    // Wrap around edges
-    head.x = (head.x + this.canvas.width / this.gridSize) % (this.canvas.width / this.gridSize);
-    head.y = (head.y + this.canvas.height / this.gridSize) % (this.canvas.height / this.gridSize);
-    
-    this.snake.unshift(head);
-    
-    // Remove tail (unless growing)
-    if (!this.growing) {
-      this.snake.pop();
-    } else {
-      this.growing = false;
-    }
+  updateVehicles() {
+    this.vehicles.forEach(vehicle => {
+      vehicle.x += vehicle.speed * vehicle.direction;
+      
+      // Wrap around screen
+      if (vehicle.direction > 0 && vehicle.x > this.cols) {
+        vehicle.x = -vehicle.width;
+      } else if (vehicle.direction < 0 && vehicle.x + vehicle.width < 0) {
+        vehicle.x = this.cols;
+      }
+    });
   }
   
   /**
-   * Check for collisions
+   * Check collisions
    */
   checkCollisions() {
-    const head = this.snake[0];
-    
-    // Check wall collision (if not wrapping)
-    if (head.x < 0 || head.x >= this.canvas.width / this.gridSize ||
-        head.y < 0 || head.y >= this.canvas.height / this.gridSize) {
-      return true;
-    }
-    
-    // Check self collision
-    for (let i = 1; i < this.snake.length; i++) {
-      if (head.x === this.snake[i].x && head.y === this.snake[i].y) {
-        return true;
+    this.vehicles.forEach(vehicle => {
+      if (this.frog.x < vehicle.x + vehicle.width &&
+          this.frog.x + this.frog.size > vehicle.x &&
+          this.frog.y < vehicle.y + vehicle.height &&
+          this.frog.y + this.frog.size > vehicle.y) {
+        
+        // Collision detected
+        this.lives--;
+        this.container.updateLives(this.lives);
+        
+        if (this.lives <= 0) {
+          this.gameOver();
+          return;
+        }
+        
+        // Reset frog position
+        this.frog.x = Math.floor(this.cols/2);
+        this.frog.y = this.rows - 1;
       }
-    }
-    
-    return false;
+    });
   }
   
   /**
-   * Check food collision
+   * Handle level completion
    */
-  checkFoodCollision() {
-    const head = this.snake[0];
-    return head.x === this.food.x && head.y === this.food.y;
-  }
-  
-  /**
-   * Handle eating food
-   */
-  eatFood() {
-    this.score += 10;
-    this.growing = true;
-    
-    // Update score display
-    this.container.updateScore(this.score);
-    
-    // Generate new food
-    this.food = this.generateFood();
-    
-    // Increase speed every 5 food items
-    if (this.score % 50 === 0) {
-      this.increaseSpeed();
-    }
-    
-    // Check for level up
-    if (this.score % 100 === 0) {
-      this.levelUp();
-    }
-    
-    // Play sound if available
-    if (this.container.audio && typeof this.container.audio.beep === 'function') {
-      this.container.audio.beep(800, 100, 'square', 0.3);
-    }
-  }
-  
-  /**
-   * Generate new food position
-   */
-  generateFood() {
-    let food;
-    do {
-      food = {
-        x: Math.floor(Math.random() * (this.canvas.width / this.gridSize)),
-        y: Math.floor(Math.random() * (this.canvas.height / this.gridSize))
-      };
-    } while (this.snake.some(segment => segment.x === food.x && segment.y === food.y));
-    
-    return food;
-  }
-  
-  /**
-   * Increase game speed
-   */
-  increaseSpeed() {
-    this.gameSpeed = Math.max(50, this.gameSpeed - this.speedIncrease);
-    this.restartGameLoop();
-  }
-  
-  /**
-   * Level up
-   */
-  levelUp() {
+  levelComplete() {
     this.level++;
-    this.container.updateLives(this.level); // Reusing lives display for level
+    this.score += 100 * this.level;
+    this.container.updateScore(this.score);
+    this.container.updateLives(this.level);
     
-    // Show level up message
-    this.container.showStatus(`Level ${this.level}!`, 'success');
+    // Increase difficulty
+    this.vehicleSpeed *= 1.2;
     
-    // Play celebration sound if available
-    if (this.container.audio && typeof this.container.audio.beep === 'function') {
-      this.container.audio.beep(1000, 200, 'sine', 0.5);
-    }
-  }
-  
-  /**
-   * Restart game loop with new speed
-   */
-  restartGameLoop() {
-    this.stopGameLoop();
-    this.startGameLoop();
+    // Reset frog position
+    this.frog.x = Math.floor(this.cols/2);
+    this.frog.y = this.rows - 1;
+    
+    // Regenerate vehicles with higher speed
+    this.initVehicles();
+    
+    // Show level complete message
+    this.container.showStatus(`Level ${this.level - 1} Complete!`, 'success');
+    setTimeout(() => this.container.hideStatus(), 2000);
   }
   
   /**
@@ -333,156 +329,93 @@ export class WormyGame {
     this.ctx.fillStyle = '#000';
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     
-    // Draw grid (optional)
-    this.drawGrid();
+    // Draw road
+    this.drawRoad();
     
-    // Draw snake
-    this.drawSnake();
+    // Draw vehicles
+    this.drawVehicles();
     
-    // Draw food
-    this.drawFood();
+    // Draw frog
+    this.drawFrog();
     
     // Draw UI
     this.drawUI();
   }
   
   /**
-   * Draw the grid
+   * Draw the road
    */
-  drawGrid() {
-    this.ctx.strokeStyle = '#0f0';
-    this.ctx.lineWidth = 0.5;
-    this.ctx.globalAlpha = 0.2;
+  drawRoad() {
+    // Draw road surface
+    this.ctx.fillStyle = '#333';
+    this.ctx.fillRect(0, this.scale, this.canvas.width, this.canvas.height - this.scale * 2);
     
-    for (let x = 0; x <= this.canvas.width; x += this.gridSize) {
+    // Draw lane dividers
+    this.ctx.strokeStyle = '#fff';
+    this.ctx.lineWidth = 2;
+    this.ctx.setLineDash([10, 10]);
+    
+    for (let row = 1; row < this.rows - 1; row++) {
       this.ctx.beginPath();
-      this.ctx.moveTo(x, 0);
-      this.ctx.lineTo(x, this.canvas.height);
+      this.ctx.moveTo(0, row * this.scale);
+      this.ctx.lineTo(this.canvas.width, row * this.scale);
       this.ctx.stroke();
     }
     
-    for (let y = 0; y <= this.canvas.height; y += this.gridSize) {
-      this.ctx.beginPath();
-      this.ctx.moveTo(0, y);
-      this.ctx.lineTo(this.canvas.width, y);
-      this.ctx.stroke();
-    }
-    
-    this.ctx.globalAlpha = 1;
+    this.ctx.setLineDash([]);
   }
   
   /**
-   * Draw the snake
+   * Draw vehicles
    */
-  drawSnake() {
-    this.snake.forEach((segment, index) => {
-      if (index === 0) {
-        // Head
-        this.ctx.fillStyle = '#ffd700';
-        this.ctx.fillRect(
-          segment.x * this.gridSize + 2,
-          segment.y * this.gridSize + 2,
-          this.gridSize - 4,
-          this.gridSize - 4
-        );
-        
-        // Eyes
-        this.ctx.fillStyle = '#000';
-        const eyeSize = 3;
-        const eyeOffset = 4;
-        
-        if (this.direction.x === 1) { // Right
-          this.ctx.fillRect(
-            segment.x * this.gridSize + this.gridSize - eyeOffset,
-            segment.y * this.gridSize + eyeOffset,
-            eyeSize,
-            eyeSize
-          );
-          this.ctx.fillRect(
-            segment.x * this.gridSize + this.gridSize - eyeOffset,
-            segment.y * this.gridSize + this.gridSize - eyeOffset - eyeSize,
-            eyeSize,
-            eyeSize
-          );
-        } else if (this.direction.x === -1) { // Left
-          this.ctx.fillRect(
-            segment.x * this.gridSize + eyeOffset,
-            segment.y * this.gridSize + eyeOffset,
-            eyeSize,
-            eyeSize
-          );
-          this.ctx.fillRect(
-            segment.x * this.gridSize + eyeOffset,
-            segment.y * this.gridSize + this.gridSize - eyeOffset - eyeSize,
-            eyeSize,
-            eyeSize
-          );
-        } else if (this.direction.y === -1) { // Up
-          this.ctx.fillRect(
-            segment.x * this.gridSize + eyeOffset,
-            segment.y * this.gridSize + eyeOffset,
-            eyeSize,
-            eyeSize
-          );
-          this.ctx.fillRect(
-            segment.x * this.gridSize + this.gridSize - eyeOffset - eyeSize,
-            segment.y * this.gridSize + eyeOffset,
-            eyeSize,
-            eyeSize
-          );
-        } else if (this.direction.y === 1) { // Down
-          this.ctx.fillRect(
-            segment.x * this.gridSize + eyeOffset,
-            segment.y * this.gridSize + this.gridSize - eyeOffset - eyeSize,
-            eyeSize,
-            eyeSize
-          );
-          this.ctx.fillRect(
-            segment.x * this.gridSize + this.gridSize - eyeOffset - eyeSize,
-            segment.y * this.gridSize + this.gridSize - eyeOffset - eyeSize,
-            eyeSize,
-            eyeSize
-          );
-        }
-      } else {
-        // Body
-        this.ctx.fillStyle = '#0f0';
-        this.ctx.fillRect(
-          segment.x * this.gridSize + 1,
-          segment.y * this.gridSize + 1,
-          this.gridSize - 2,
-          this.gridSize - 2
-        );
-      }
+  drawVehicles() {
+    this.vehicles.forEach(vehicle => {
+      this.ctx.fillStyle = '#f00';
+      this.ctx.fillRect(
+        vehicle.x * this.scale,
+        vehicle.y * this.scale,
+        vehicle.width * this.scale,
+        vehicle.height * this.scale
+      );
+      
+      // Vehicle details
+      this.ctx.fillStyle = '#000';
+      this.ctx.fillRect(
+        vehicle.x * this.scale + 2,
+        vehicle.y * this.scale + 2,
+        (vehicle.width * this.scale) - 4,
+        (vehicle.height * this.scale) - 4
+      );
     });
   }
   
   /**
-   * Draw the food
+   * Draw the frog
    */
-  drawFood() {
-    this.ctx.fillStyle = '#f00';
-    this.ctx.beginPath();
-    this.ctx.arc(
-      this.food.x * this.gridSize + this.gridSize / 2,
-      this.food.y * this.gridSize + this.gridSize / 2,
-      this.gridSize / 2 - 2,
-      0,
-      2 * Math.PI
+  drawFrog() {
+    // Frog body
+    this.ctx.fillStyle = '#0f0';
+    this.ctx.fillRect(
+      this.frog.x * this.scale,
+      this.frog.y * this.scale,
+      this.frog.size * this.scale,
+      this.frog.size * this.scale
     );
-    this.ctx.fill();
     
-    // Add shine effect
-    this.ctx.fillStyle = '#fff';
-    this.ctx.beginPath();
-    this.ctx.arc(
-      this.food.x * this.gridSize + this.gridSize / 2 - 2,
-      this.food.y * this.gridSize + this.gridSize / 2 - 2,
-      2,
-      0,
-      2 * Math.PI
+    // Frog eyes
+    this.ctx.fillStyle = '#000';
+    this.ctx.fillRect(
+      this.frog.x * this.scale + 3,
+      this.frog.y * this.scale + 3,
+      3,
+      3
     );
-    this.ctx.fill();
+    this.ctx.fillRect(
+      this.frog.x * this.scale + this.frog.size * this.scale - 6,
+      this.frog.y * this.scale + 3,
+      3,
+      3
+    );
   }
   
   /**
@@ -494,7 +427,15 @@ export class WormyGame {
     this.ctx.font = '16px monospace';
     this.ctx.textAlign = 'left';
     this.ctx.fillText(`Score: ${this.score}`, 10, 20);
-    this.ctx.fillText(`Level: ${this.level}`, 10, 40);
+    this.ctx.fillText(`Lives: ${this.lives}`, 10, 40);
+    this.ctx.fillText(`Level: ${this.level}`, 10, 60);
+    
+    // Draw instructions
+    this.ctx.fillStyle = '#0f0';
+    this.ctx.font = '14px monospace';
+    this.ctx.textAlign = 'center';
+    this.ctx.fillText('Use arrow keys to cross the road safely!', this.canvas.width / 2, this.canvas.height - 40);
+    this.ctx.fillText('Reach the top to complete the level', this.canvas.width / 2, this.canvas.height - 20);
   }
   
   /**
@@ -505,15 +446,16 @@ export class WormyGame {
     this.render();
     
     // Draw menu text
-    this.ctx.fillStyle = '#ffd700';
-    this.ctx.font = '24px monospace';
+    this.ctx.fillStyle = '#ff0';
+    this.ctx.font = '32px monospace';
     this.ctx.textAlign = 'center';
-    this.ctx.fillText('WORMY', this.canvas.width / 2, this.canvas.height / 2 - 40);
+    this.ctx.fillText('ROAD DASH', this.canvas.width / 2, this.canvas.height / 2 - 60);
     
     this.ctx.fillStyle = '#0f0';
-    this.ctx.font = '16px monospace';
-    this.ctx.fillText('Press SPACE to start', this.canvas.width / 2, this.canvas.height / 2);
-    this.ctx.fillText('Use arrow keys to move', this.canvas.width / 2, this.canvas.height / 2 + 30);
+    this.ctx.font = '18px monospace';
+    this.ctx.fillText('Press SPACE to start', this.canvas.width / 2, this.canvas.height / 2 - 20);
+    this.ctx.fillText('Help the frog cross the road safely!', this.canvas.width / 2, this.canvas.height / 2 + 10);
+    this.ctx.fillText('Use arrow keys to move', this.canvas.width / 2, this.canvas.height / 2 + 40);
     
     // Listen for space key to start
     const startHandler = (e) => {
@@ -539,20 +481,19 @@ export class WormyGame {
    */
   resetGame() {
     this.score = 0;
+    this.lives = 3;
     this.level = 1;
-    this.gameSpeed = 150;
-    this.snake = [{ x: 10, y: 10 }];
-    this.direction = { x: 1, y: 0 };
-    this.nextDirection = { x: 1, y: 0 };
-    this.food = this.generateFood();
-    this.growing = false;
+    this.paused = false;
+    this.vehicleSpeed = 2;
+    
+    this.frog.x = Math.floor(this.cols/2);
+    this.frog.y = this.rows - 1;
+    
+    this.initVehicles();
     
     // Update displays
     this.container.updateScore(this.score);
     this.container.updateLives(this.lives);
-    
-    // Restart game loop
-    this.restartGameLoop();
   }
   
   /**
@@ -560,9 +501,8 @@ export class WormyGame {
    */
   pause() {
     if (this.gameState === 'playing') {
-      this.gameState = 'paused';
-      this.stopGameLoop();
-      this.container.showStatus('Game Paused - Press SPACE to resume', 'warning');
+      this.paused = true;
+      this.container.showStatus('Game Paused - Press P to resume', 'warning');
     }
   }
   
@@ -570,9 +510,8 @@ export class WormyGame {
    * Resume the game
    */
   resume() {
-    if (this.gameState === 'paused') {
-      this.gameState = 'playing';
-      this.startGameLoop();
+    if (this.gameState === 'playing') {
+      this.paused = false;
       this.container.hideStatus();
     }
   }
@@ -581,11 +520,19 @@ export class WormyGame {
    * Toggle pause state
    */
   togglePause() {
-    if (this.gameState === 'playing') {
-      this.pause();
-    } else if (this.gameState === 'paused') {
+    if (this.paused) {
       this.resume();
+    } else {
+      this.pause();
     }
+  }
+  
+  /**
+   * Reset current level
+   */
+  reset() {
+    this.frog.x = Math.floor(this.cols/2);
+    this.frog.y = this.rows - 1;
   }
   
   /**
@@ -606,7 +553,7 @@ export class WormyGame {
     this.ctx.textAlign = 'center';
     this.ctx.fillText('GAME OVER', this.canvas.width / 2, this.canvas.height / 2 - 40);
     
-    this.ctx.fillStyle = '#0f0';
+    this.ctx.fillStyle = '#fff';
     this.ctx.font = '20px monospace';
     this.ctx.fillText(`Final Score: ${this.score}`, this.canvas.width / 2, this.canvas.height / 2);
     this.ctx.fillText(`Level Reached: ${this.level}`, this.canvas.width / 2, this.canvas.height / 2 + 30);
@@ -621,7 +568,7 @@ export class WormyGame {
         this.startGame();
         document.removeEventListener('keydown', gameOverHandler);
       } else if (e.key === 'h' || e.key === 'H') {
-        window.location.href = '../index.html';
+        window.location.href = '../../index.html';
       }
     };
     document.addEventListener('keydown', gameOverHandler);
@@ -643,4 +590,4 @@ export class WormyGame {
   }
 }
 
-export default WormyGame;
+export default RoadDashGame;
