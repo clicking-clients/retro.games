@@ -1766,6 +1766,7 @@
             }
             
             placePipe(pipeData, x, y) {
+                console.log('📍 placePipe() called with:', pipeData, 'at position:', x, y);
                 const playArea = document.getElementById('playArea');
                 const pipeElement = document.createElement('div');
                 
@@ -1775,6 +1776,8 @@
                 pipeElement.dataset.pipeData = JSON.stringify(pipeData);
                 pipeElement.dataset.x = x;
                 pipeElement.dataset.y = y;
+                
+                console.log('🔧 Pipe element created with data:', pipeElement.dataset);
                 
                 // Make placed pipes draggable for repositioning
                 pipeElement.draggable = true;
@@ -1788,6 +1791,7 @@
                 let type = 'straight-h'; let rot = 0;
                 
                 if (pipeData.type === 'number') {
+                    console.log('🔢 Rendering number pipe:', pipeData.symbol);
                     // Number pipes get a special number display
                     pipeElement.innerHTML = `
                         <div style="
@@ -1809,6 +1813,7 @@
                         </div>
                     `;
                 } else if (pipeData.type === 'operator') {
+                    console.log('🔧 Rendering operator pipe:', pipeData.operation);
                     // Operator pipes get a special operator display
                     pipeElement.innerHTML = `
                         <div style="
@@ -1830,6 +1835,7 @@
                         </div>
                     `;
                 } else {
+                    console.log('🔗 Rendering connector pipe:', pipeData.symbol);
                     // Connector pipes use SVG rendering
                     switch(pipeData.symbol) {
                         case '━': type = 'straight-h'; break;
@@ -1866,11 +1872,15 @@
                     timestamp: Date.now()
                 };
                 
+                console.log('📝 Pipe info created:', pipeInfo);
+                
                 this.pipes.push(pipeInfo);
                 
                 // Store in history for undo
                 if (!this.pipeHistory) this.pipeHistory = [];
                 this.pipeHistory.push(pipeInfo);
+                
+                console.log('📊 Total pipes after placement:', this.pipes.length);
                 
                 // Play build sound
                 this.playSound('buildSound');
@@ -1879,6 +1889,9 @@
             }
             
             checkConnections() {
+                console.log('🔗 checkConnections() called');
+                console.log('📊 Pipes before connection check:', this.pipes);
+                
                 // Clear all previous connections and connecting states
                 this.pipes.forEach(pipe => {
                     pipe.connected = false;
@@ -1911,6 +1924,8 @@
                 const cellSize = gridConfig.cellSize;
                 const tolerance = 20; // Allow some positioning flexibility
                 
+                console.log('📐 Grid config for connections:', gridConfig, 'Cell size:', cellSize);
+                
                 // Group pipes by grid position
                 const gridPipes = {};
                 this.pipes.forEach(pipe => {
@@ -1921,6 +1936,8 @@
                     if (!gridPipes[key]) gridPipes[key] = [];
                     gridPipes[key].push(pipe);
                 });
+                
+                console.log('🗺️ Pipes grouped by grid position:', gridPipes);
                 
                 // Check for logical connections based on grid adjacency
                 Object.keys(gridPipes).forEach(key => {
@@ -1943,9 +1960,13 @@
                             currentPipes.forEach(pipe => {
                                 adjacentPipes.forEach(adjPipe => {
                                     if (!pipe.connected && !adjPipe.connected) {
+                                        console.log('🔍 Checking connection between:', pipe, 'and', adjPipe);
                                         // Check if these pipes can logically connect
                                         if (this.canPipesConnect(pipe, adjPipe)) {
+                                            console.log('✅ Connecting pipes:', pipe, 'and', adjPipe);
                                             this.connectPipes(pipe, adjPipe);
+                                        } else {
+                                            console.log('❌ Pipes cannot connect:', pipe, 'and', adjPipe);
                                         }
                                     }
                                 });
@@ -1956,21 +1977,33 @@
                 
                 // Special case: Check if start pipe connects to first placed pipe
                 if (this.pipes.length > 0 && this.startPipe) {
+                    console.log('🚰 Checking start pipe connection to first placed pipe');
+                    console.log('🚰 Start pipe:', this.startPipe);
+                    console.log('🔢 First placed pipe:', this.pipes[0]);
+                    
                     const firstPipe = this.pipes[0];
                     const startGridX = Math.floor(this.startPipe.x / cellSize);
                     const startGridY = Math.floor(this.startPipe.y / cellSize);
                     const firstGridX = Math.floor(firstPipe.x / cellSize);
                     const firstGridY = Math.floor(firstPipe.y / cellSize);
                     
+                    console.log('📍 Start grid position:', startGridX, startGridY);
+                    console.log('📍 First pipe grid position:', firstGridX, firstGridY);
+                    
                     // Check if they are adjacent
                     if ((Math.abs(startGridX - firstGridX) === 1 && startGridY === firstGridY) ||
                         (Math.abs(startGridY - firstGridY) === 1 && startGridX === firstGridX)) {
+                        console.log('✅ Start pipe and first pipe are adjacent - marking as connected');
                         // Mark first pipe as connected to start
                         firstPipe.connected = true;
                         firstPipe.element.classList.add('connected');
                         this.connectedPipes.push(firstPipe);
+                    } else {
+                        console.log('❌ Start pipe and first pipe are not adjacent');
                     }
                 }
+                
+                console.log('🔗 Final connected pipes:', this.connectedPipes);
                 
                 // Apply water flow effect if pipes are connected
                 if (this.connectedPipes.length > 0) {
@@ -1985,32 +2018,55 @@
             }
             
             canPipesConnect(pipe1, pipe2) {
+                console.log('🔍 canPipesConnect called for:', pipe1, 'and', pipe2);
+                console.log('🔍 Pipe1 data:', pipe1.data);
+                console.log('🔍 Pipe2 data:', pipe2.data);
+                
                 // Only number pipes can connect to other number pipes
                 // Connector pipes can connect to any pipe
                 if (pipe1.data.value > 0 && pipe2.data.value > 0) {
+                    console.log('🔍 Both pipes are numbers, checking math connection');
                     // Two number pipes - check if they can form a valid math expression
-                    return this.isValidMathConnection(pipe1, pipe2);
+                    const canConnect = this.isValidMathConnection(pipe1, pipe2);
+                    console.log('🔍 Math connection valid:', canConnect);
+                    return canConnect;
                 } else if (pipe1.data.value === 0 || pipe2.data.value === 0) {
+                    console.log('🔍 At least one connector pipe - allowing connection');
                     // At least one connector pipe - always allow connection
                     return true;
                 }
+                console.log('🔍 Pipes cannot connect - no valid connection type');
                 return false;
             }
             
             isValidMathConnection(pipe1, pipe2) {
+                console.log('🧮 isValidMathConnection called for:', pipe1, 'and', pipe2);
+                console.log('🧮 Current expression:', this.currentExpression);
+                
                 // Check if connecting these two number pipes would help solve the problem
                 const total = pipe1.data.value + pipe2.data.value;
+                console.log('🧮 Total of two pipes:', total);
                 
-                if (this.currentProblem.operator === '+') {
-                    return total === this.currentProblem.answer;
-                } else if (this.currentProblem.operator === '×') {
-                    return total === this.currentProblem.answer;
-                } else if (this.currentProblem.operator === '-') {
-                    // For subtraction, we need the larger number minus smaller
-                    const larger = Math.max(pipe1.data.value, pipe2.data.value);
-                    const smaller = Math.min(pipe1.data.value, pipe2.data.value);
-                    return (larger - smaller) === this.currentProblem.answer;
+                if (this.currentExpression.type === 'simple') {
+                    if (this.currentExpression.op === '+') {
+                        const result = total === this.correctAnswer;
+                        console.log('🧮 Addition check:', total, '===', this.correctAnswer, '=', result);
+                        return result;
+                    } else if (this.currentExpression.op === '×') {
+                        const result = total === this.correctAnswer;
+                        console.log('🧮 Multiplication check:', total, '===', this.correctAnswer, '=', result);
+                        return result;
+                    } else if (this.currentExpression.op === '-') {
+                        // For subtraction, we need the larger number minus smaller
+                        const larger = Math.max(pipe1.data.value, pipe2.data.value);
+                        const smaller = Math.min(pipe1.data.value, pipe2.data.value);
+                        const result = (larger - smaller) === this.correctAnswer;
+                        console.log('🧮 Subtraction check:', larger, '-', smaller, '===', this.correctAnswer, '=', result);
+                        return result;
+                    }
                 }
+                
+                console.log('🧮 No valid operator found or expression type not supported');
                 return false;
             }
             
@@ -2453,10 +2509,16 @@
             }
             
             testFlow() {
+                console.log('🌊 testFlow() called');
                 if (this.pipes.length === 0) {
+                    console.log('❌ No pipes placed');
                     alert('Place some pipes first!');
                     return;
                 }
+                
+                console.log('📊 Pipes available for flow test:', this.pipes);
+                console.log('🎯 Current expression:', this.currentExpression);
+                console.log('✅ Correct answer:', this.correctAnswer);
                 
                 // Play test sound
                 this.playSound('testSound');
@@ -2466,27 +2528,37 @@
             }
             
             animateFlow() {
+                console.log('🌊 animateFlow() called');
                 const playArea = document.getElementById('playArea');
                 
                 // Find the path from start to answer pipes
                 const path = this.findFlowPath();
+                console.log('🛤️ Path found for animation:', path);
                 
                 if (!path) {
+                    console.log('❌ No valid path found for animation');
                     this.showFlowError('No valid path found!');
                     return;
                 }
+                
+                console.log('✅ Valid path found, starting animation');
                 
                 // Animate water flow step by step
                 let currentValue = this.startPipe.value;
                 let step = 0;
                 
+                console.log('🚰 Starting flow with value:', currentValue);
+                
                 const animateStep = () => {
                     if (step >= path.length) {
+                        console.log('🏁 Animation complete, final value:', currentValue);
                         this.checkFlowResult(currentValue);
                         return;
                     }
                     
                     const pipe = path[step];
+                    console.log('➡️ Animating step', step, 'with pipe:', pipe);
+                    
                     const flowElement = this.createFlowElement(pipe.x, pipe.y);
                     playArea.appendChild(flowElement);
                     
@@ -2494,7 +2566,9 @@
                     if (pipe.data && pipe.data.type === 'operator') {
                         const nextPipe = path[step + 1];
                         if (nextPipe && nextPipe.data && nextPipe.data.type === 'number') {
+                            const oldValue = currentValue;
                             currentValue = this.applyOperation(currentValue, nextPipe.data.value, pipe.data.operation);
+                            console.log('🧮 Applied operation:', oldValue, pipe.data.operation, nextPipe.data.value, '=', currentValue);
                             step++; // Skip the number pipe since we processed it
                         }
                     }
@@ -2511,37 +2585,56 @@
             }
             
             findFlowPath() {
+                console.log('🔍 findFlowPath() called');
+                console.log('📊 Current pipes:', this.pipes);
+                console.log('🔗 Connected pipes:', this.connectedPipes);
+                console.log('🎯 Answer pipes:', this.answerPipes);
+                
                 // Improved pathfinding that handles more creative pipe setups
                 const path = [];
                 const visited = new Set();
                 
                 // Find all connected pipes and create a network graph
                 const pipeNetwork = this.buildPipeNetwork();
+                console.log('🌐 Pipe network built:', pipeNetwork);
                 
                 // Try to find path from start to any answer pipe
                 const gridConfig = this.getGridConfig();
                 const cellSize = gridConfig.cellSize;
+                console.log('📐 Grid config:', gridConfig, 'Cell size:', cellSize);
                 
                 // Find start pipe by looking for the start pipe element in the DOM
                 let startPipe = null;
                 const startElement = document.querySelector('.start-pipe');
+                console.log('🚰 Start element found:', startElement);
+                
                 if (startElement) {
                     const startX = parseInt(startElement.style.left);
                     const startY = parseInt(startElement.style.top);
+                    console.log('📍 Start position:', startX, startY);
+                    
                     startPipe = this.pipes.find(p => 
                         Math.abs(p.x - startX) < cellSize/2 && Math.abs(p.y - startY) < cellSize/2
                     );
+                    console.log('🔍 Start pipe found in pipes array:', startPipe);
                 }
                 
                 // Fallback: look for pipe at start position
                 if (!startPipe) {
                     startPipe = this.pipes.find(p => p.x === 0 && p.y === Math.floor(gridConfig.height / 2) * cellSize);
+                    console.log('🔄 Fallback start pipe:', startPipe);
                 }
                 
-                if (!startPipe) return null;
+                if (!startPipe) {
+                    console.log('❌ No start pipe found!');
+                    return null;
+                }
+                
+                console.log('✅ Start pipe identified:', startPipe);
                 
                 // If we have connected pipes, try to build a path through them
                 if (this.connectedPipes.length > 0) {
+                    console.log('🔗 Building path through connected pipes...');
                     // Start with the start pipe
                     path.push(startPipe);
                     visited.add(startPipe.timestamp);
@@ -2554,29 +2647,38 @@
                     while (attempts < maxAttempts && path.length < this.pipes.length) {
                         const nextPipe = this.findNextConnectedPipe(currentPipe, visited);
                         if (nextPipe && !visited.has(nextPipe.timestamp)) {
+                            console.log('➡️ Next connected pipe:', nextPipe);
                             path.push(nextPipe);
                             visited.add(nextPipe.timestamp);
                             currentPipe = nextPipe;
                         } else {
+                            console.log('🛑 No more connected pipes found');
                             break;
                         }
                         attempts++;
                     }
                     
+                    console.log('🛤️ Path built through connected pipes:', path);
+                    
                     // Check if this path leads to an answer
                     if (path.length > 1) {
+                        console.log('✅ Valid path found through connected pipes!');
                         return path;
                     }
                 }
                 
                 // Fallback: Try to reach any answer pipe using network
+                console.log('🔄 Trying network-based pathfinding...');
                 for (const answerPipe of this.answerPipes) {
+                    console.log('🎯 Trying to reach answer pipe:', answerPipe);
                     const pathToAnswer = this.findPathToAnswer(startPipe, answerPipe, pipeNetwork, visited);
                     if (pathToAnswer) {
+                        console.log('✅ Network path found to answer:', pathToAnswer);
                         return pathToAnswer;
                     }
                 }
                 
+                console.log('❌ No valid path found through any method');
                 return null;
             }
             
