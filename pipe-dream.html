@@ -887,6 +887,7 @@
             </div>
         </div>
     </div>
+    <script src="navigation.js"></script>
     <script>
         class PipeDream {
             constructor() {
@@ -1281,12 +1282,13 @@
                     
                     this.answerPipes.push(answerPipe);
                     
-                    // Create answer pipe element
+                    // Create answer pipe element - all start as decoys until solved
                     const answerElement = document.createElement('div');
-                    answerElement.className = `answer-pipe ${answer === this.correctAnswer ? 'correct' : 'decoy'}`;
+                    answerElement.className = 'answer-pipe decoy';
                     answerElement.textContent = answer;
                     answerElement.style.left = (x * 80) + 'px';
                     answerElement.style.top = (y * 80) + 'px'; // Center vertically in the grid cell
+                    answerElement.dataset.correctAnswer = answer === this.correctAnswer;
                     playArea.appendChild(answerElement);
                 });
             }
@@ -1311,6 +1313,11 @@
                     pipes.push(pipeTypes.find(p => p.value === this.currentExpression.b));
                     pipes.push(pipeTypes.find(p => p.value === this.currentExpression.c));
                     pipes.push(pipeTypes.find(p => p.value === this.currentExpression.d));
+                }
+                
+                // Ensure the answer is available if it's not already included
+                if (!pipes.some(p => p.value === this.correctAnswer)) {
+                    pipes.push(pipeTypes.find(p => p.value === this.correctAnswer));
                 }
                 
                 // Add some extra numbers to make players think strategically
@@ -2361,39 +2368,84 @@
             }
             
             findFlowPath() {
-                // Simple pathfinding from start to answer pipes
-                // This is a simplified version - in a full implementation you'd want proper pathfinding
+                // Improved pathfinding that handles more creative pipe setups
                 const path = [];
                 const visited = new Set();
                 
-                const dfs = (x, y, targetX, targetY) => {
-                    if (x === targetX && y === targetY) return true;
-                    if (x < 0 || y < 0 || x >= this.gridSize || y >= this.gridSize) return false;
-                    
-                    const key = `${x},${y}`;
-                    if (visited.has(key)) return false;
-                    visited.add(key);
-                    
-                    // Check if there's a pipe here
-                    const pipe = this.pipes.find(p => Math.floor(p.x / 80) === x && Math.floor(p.y / 80) === y);
-                    if (pipe) {
-                        path.push(pipe);
-                        
-                        // Try adjacent cells
-                        const directions = [[0, 1], [1, 0], [0, -1], [-1, 0]];
-                        for (const [dx, dy] of directions) {
-                            if (dfs(x + dx, y + dy, targetX, targetY)) return true;
-                        }
-                        
-                        path.pop();
+                // Find all connected pipes and create a network graph
+                const pipeNetwork = this.buildPipeNetwork();
+                
+                // Try to find path from start to any answer pipe
+                const startPipe = this.pipes.find(p => p.data && p.data.type === 'start') || 
+                                 this.pipes.find(p => p.x === 0 && p.y === Math.floor(this.gridSize / 2) * 80);
+                
+                if (!startPipe) return null;
+                
+                // Try to reach any answer pipe
+                for (const answerPipe of this.answerPipes) {
+                    const pathToAnswer = this.findPathToAnswer(startPipe, answerPipe, pipeNetwork, visited);
+                    if (pathToAnswer) {
+                        return pathToAnswer;
+                    }
+                }
+                
+                return null;
+            }
+            
+            buildPipeNetwork() {
+                const network = new Map();
+                
+                // Build adjacency map for all pipes
+                this.pipes.forEach(pipe => {
+                    const key = `${Math.floor(pipe.x / 80)},${Math.floor(pipe.y / 80)}`;
+                    if (!network.has(key)) {
+                        network.set(key, []);
                     }
                     
+                    // Check adjacent grid cells for other pipes
+                    const directions = [[0, 1], [1, 0], [0, -1], [-1, 0]];
+                    directions.forEach(([dx, dy]) => {
+                        const adjKey = `${Math.floor(pipe.x / 80) + dx},${Math.floor(pipe.y / 80) + dy}`;
+                        const adjPipe = this.pipes.find(p => 
+                            Math.floor(p.x / 80) === Math.floor(pipe.x / 80) + dx && 
+                            Math.floor(p.y / 80) === Math.floor(pipe.y / 80) + dy
+                        );
+                        
+                        if (adjPipe) {
+                            network.get(key).push(adjPipe);
+                        }
+                    });
+                });
+                
+                return network;
+            }
+            
+            findPathToAnswer(startPipe, answerPipe, network, visited) {
+                const path = [];
+                const localVisited = new Set();
+                
+                const dfs = (currentPipe, targetPipe) => {
+                    const key = `${Math.floor(currentPipe.x / 80)},${Math.floor(currentPipe.y / 80)}`;
+                    if (localVisited.has(key)) return false;
+                    localVisited.add(key);
+                    
+                    path.push(currentPipe);
+                    
+                    if (currentPipe === targetPipe) return true;
+                    
+                    // Get adjacent pipes from network
+                    const adjKey = `${Math.floor(currentPipe.x / 80)},${Math.floor(currentPipe.y / 80)}`;
+                    const adjacentPipes = network.get(adjKey) || [];
+                    
+                    for (const adjPipe of adjacentPipes) {
+                        if (dfs(adjPipe, targetPipe)) return true;
+                    }
+                    
+                    path.pop();
                     return false;
                 };
                 
-                // Try to find path to correct answer
-                const correctAnswer = this.answerPipes.find(p => p.isCorrect);
-                if (correctAnswer && dfs(1, Math.floor(this.gridSize / 2), correctAnswer.x, correctAnswer.y)) {
+                if (dfs(startPipe, answerPipe)) {
                     return path;
                 }
                 
@@ -2412,10 +2464,22 @@
                 const correctAnswer = this.answerPipes.find(p => p.isCorrect);
                 
                 if (finalValue === correctAnswer.value) {
+                    // Highlight the correct answer pipe
+                    this.highlightCorrectAnswer();
                     this.celebrateWin();
                 } else {
                     this.showFlowError(`Flow reached value ${finalValue}, but correct answer is ${correctAnswer.value}`);
                 }
+            }
+            
+            highlightCorrectAnswer() {
+                // Find and highlight the correct answer pipe
+                this.answerPipes.forEach(answerPipe => {
+                    const answerElement = document.querySelector(`[data-correct-answer="true"]`);
+                    if (answerElement) {
+                        answerElement.className = 'answer-pipe correct';
+                    }
+                });
             }
             
             showFlowError(message) {
