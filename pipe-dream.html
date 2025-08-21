@@ -152,8 +152,8 @@
         }
 
         .pipe-piece {
-            width: 80px;
-            height: 80px;
+            width: 60px;
+            height: 60px;
             display: grid;
             place-items: center;
             background: transparent;
@@ -246,7 +246,7 @@
 
         .play-area {
             width: 100%;
-            height: 400px;
+            height: 320px;
             background: #16213e;
             border: 3px solid #0f0;
             border-radius: 15px;
@@ -256,13 +256,13 @@
             background-image: 
                 linear-gradient(rgba(0, 255, 0, 0.1) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(0, 255, 0, 0.1) 1px, transparent 1px);
-            background-size: 80px 80px;
+            background-size: 60px 60px;
         }
 
         .placed-pipe {
             position: absolute;
-            width: 80px;
-            height: 80px;
+            width: 60px;
+            height: 60px;
             display: grid;
             place-items: center;
             background: transparent;
@@ -330,8 +330,8 @@
 
         .grid-highlight {
             position: absolute;
-            width: 80px;
-            height: 80px;
+            width: 60px;
+            height: 60px;
             border: 2px dashed #0f0;
             background: rgba(0, 255, 0, 0.1);
             pointer-events: none;
@@ -352,24 +352,24 @@
 
         .start-pipe {
             position: absolute;
-            width: 80px;
-            height: 80px;
+            width: 60px;
+            height: 60px;
             background: linear-gradient(135deg, #4CAF50, #66BB6A);
-            border: 4px solid #2E7D32;
-            border-radius: 20px;
+            border: 3px solid #2E7D32;
+            border-radius: 15px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.2rem;
+            font-size: 1rem;
             color: #fff;
             font-weight: bold;
             text-shadow: 1px 1px 2px #000;
             z-index: 10;
             box-shadow: 
-                0 4px 8px rgba(0, 0, 0, 0.4),
+                0 3px 6px rgba(0, 0, 0, 0.4),
                 inset 0 2px 4px rgba(255, 255, 255, 0.3),
                 inset 0 -2px 4px rgba(0, 0, 0, 0.2),
-                0 0 20px rgba(76, 175, 80, 0.5);
+                0 0 15px rgba(76, 175, 80, 0.5);
             animation: startPipeGlow 2s ease-in-out infinite;
         }
 
@@ -386,20 +386,20 @@
 
         .answer-pipe {
             position: absolute;
-            width: 80px;
-            height: 80px;
-            border: 4px solid #666;
-            border-radius: 20px;
+            width: 60px;
+            height: 60px;
+            border: 3px solid #666;
+            border-radius: 15px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.2rem;
+            font-size: 1rem;
             color: #fff;
             font-weight: bold;
             text-shadow: 1px 1px 2px #000;
             z-index: 10;
             box-shadow: 
-                0 4px 8px rgba(0, 0, 0, 0.4),
+                0 3px 6px rgba(0, 0, 0, 0.4),
                 inset 0 2px 4px rgba(255, 255, 255, 0.3),
                 inset 0 -2px 4px rgba(0, 0, 0, 0.2);
         }
@@ -655,27 +655,48 @@
             }
             
             .play-area {
-                height: 300px;
+                height: 240px;
+                background-size: 60px 60px;
             }
             
             .pipe-inventory {
-                grid-template-columns: repeat(4, 1fr);
-                gap: 10px;
+                grid-template-columns: repeat(5, 1fr);
+                gap: 8px;
             }
             
             .pipe-piece {
                 width: 50px;
                 height: 50px;
-                font-size: 1.2rem;
+                font-size: 1rem;
+            }
+            
+            .placed-pipe {
+                width: 50px;
+                height: 50px;
+            }
+            
+            .start-pipe, .answer-pipe {
+                width: 50px;
+                height: 50px;
+                font-size: 0.9rem;
             }
             
             .math-problem {
-                font-size: 1.5rem;
+                font-size: 1.3rem;
             }
             
             #sidebar {
                 width: 100%;
                 max-width: none;
+            }
+            
+            .level-info {
+                margin-bottom: 15px;
+            }
+            
+            .score-display div {
+                margin-bottom: 5px;
+                font-size: 0.9rem;
             }
         }
 
@@ -769,19 +790,7 @@
                     <p>Connect pipes to solve math problems and watch the water flow!</p>
                 </div>
         
-                <div class="level-info">
-                    <div class="score-display">
-                        <strong>Level:</strong> <span id="level">1</span>
-                        <strong>Score:</strong> <span id="score">0</span>
-                        <strong>Stars:</strong> <span id="stars">0</span>
-                    </div>
-                    <div class="pressure-gauge">
-                        <strong>Pressure:</strong> <span id="pressure">0</span>%
-                        <div class="pressure-bar">
-                            <div class="pressure-fill" id="pressureFill"></div>
-                        </div>
-                    </div>
-                </div>
+
 
                 <div class="math-problem" id="mathProblem" role="heading" aria-level="2">
                     5 + 3 = ?
@@ -808,6 +817,26 @@
                 <div id="sidebar">
                     <h1 id="title">Pipe Dream</h1>
 
+                    <div class="level-info" style="margin-bottom: 20px;">
+                        <div class="score-display" style="text-align: center; margin-bottom: 15px;">
+                            <div style="margin-bottom: 8px;">
+                                <strong>Level:</strong> <span id="level">1</span>
+                            </div>
+                            <div style="margin-bottom: 8px;">
+                                <strong>Score:</strong> <span id="score">0</span>
+                            </div>
+                            <div style="margin-bottom: 8px;">
+                                <strong>Stars:</strong> <span id="stars">0</span>
+                            </div>
+                        </div>
+                        <div class="pressure-gauge" style="text-align: center;">
+                            <strong>Pressure:</strong> <span id="pressure">0</span>%
+                            <div class="pressure-bar" style="margin: 10px auto;">
+                                <div class="pressure-fill" id="pressureFill"></div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div role="region" aria-label="Game Settings">
                         <div class="section-title">SETTINGS</div>
                         <div style="margin-bottom: 15px;">
@@ -820,9 +849,18 @@
                             
                             <label style="display: block; margin-bottom: 5px; color: #0f0;">Difficulty:</label>
                             <select id="difficulty" style="width: 100%; padding: 8px; background: #1a1a2e; color: #0f0; border: 2px solid #0f0; border-radius: 5px; margin-bottom: 10px;">
-                                <option value="easy">Easy (5×5 grid)</option>
-                                <option value="medium">Medium (7×7 grid)</option>
-                                <option value="hard">Hard (9×9 grid)</option>
+                                <option value="basic">Basic (Ages 5-7)</option>
+                                <option value="easy">Easy</option>
+                                <option value="medium">Medium</option>
+                                <option value="hard">Hard</option>
+                            </select>
+                            
+                            <label style="display: block; margin-bottom: 5px; color: #0f0;">Grid Size:</label>
+                            <select id="gridSize" style="width: 100%; padding: 8px; background: #1a1a2e; color: #0f0; border: 2px solid #0f0; border-radius: 5px; margin-bottom: 10px;">
+                                <option value="5x5">5×5 Grid</option>
+                                <option value="6x4">6×4 Grid</option>
+                                <option value="7x5">7×5 Grid</option>
+                                <option value="8x5" selected>8×5 Grid (Default)</option>
                             </select>
                         </div>
                         
@@ -887,12 +925,24 @@
             </div>
         </div>
     </div>
+    <!-- Sound Effects -->
+    <audio id="buildSound" preload="auto">
+        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT" type="audio/wav">
+    </audio>
+    <audio id="testSound" preload="auto">
+        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT" type="audio/wav">
+    </audio>
+    <audio id="celebrateSound" preload="auto">
+        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUarm7blmGgU7k9n1unEiBC13yO/eizEIHWq+8+OWT" type="audio/wav">
+    </audio>
+    
     <script src="navigation.js"></script>
     <script>
         class PipeDream {
             constructor() {
                 this.gameMode = 'practice'; // 'adventure', 'practice', 'timed'
-                this.difficulty = 'easy'; // 'easy', 'medium', 'hard', 'custom'
+                this.difficulty = 'basic'; // 'basic', 'easy', 'medium', 'hard'
+                this.gridSize = '8x5'; // Default grid size
                 this.operations = ['+']; // Available operations - default to addition only
                 this.allowNegatives = false;
                 this.showPrecedenceHints = true;
@@ -924,32 +974,67 @@
                 this.init();
             }
             
+            // Sound effects
+            playSound(soundId) {
+                try {
+                    const audio = document.getElementById(soundId);
+                    if (audio) {
+                        audio.currentTime = 0;
+                        audio.play().catch(e => console.log('Audio play failed:', e));
+                    }
+                } catch (e) {
+                    console.log('Sound play error:', e);
+                }
+            }
+            
             // Game configuration based on difficulty
             getGameConfig() {
                 const configs = {
+                    basic: {
+                        maxPathLength: 6,
+                        answerPipeCount: 2,
+                        allowCrossings: false,
+                        pressureRate: 0.3,
+                        maxNumber: 5,
+                        operations: ['+']
+                    },
                     easy: {
-                        gridSize: 5,
                         maxPathLength: 8,
                         answerPipeCount: 3,
                         allowCrossings: false,
-                        pressureRate: 0.5
+                        pressureRate: 0.5,
+                        maxNumber: 10,
+                        operations: ['+', '-']
                     },
                     medium: {
-                        gridSize: 7,
                         maxPathLength: 12,
                         answerPipeCount: 4,
                         allowCrossings: false,
-                        pressureRate: 1.0
+                        pressureRate: 1.0,
+                        maxNumber: 15,
+                        operations: ['+', '-', '×']
                     },
                     hard: {
-                        gridSize: 9,
                         maxPathLength: 16,
                         answerPipeCount: 5,
                         allowCrossings: true,
-                        pressureRate: 2.0
+                        pressureRate: 2.0,
+                        maxNumber: 20,
+                        operations: ['+', '-', '×', '÷']
                     }
                 };
-                return configs[this.difficulty] || configs.medium;
+                return configs[this.difficulty] || configs.basic;
+            }
+            
+            // Grid configuration based on grid size selection
+            getGridConfig() {
+                const gridConfigs = {
+                    '5x5': { width: 5, height: 5, cellSize: 60 },
+                    '6x4': { width: 6, height: 4, cellSize: 60 },
+                    '7x5': { width: 7, height: 5, cellSize: 60 },
+                    '8x5': { width: 8, height: 5, cellSize: 60 }
+                };
+                return gridConfigs[this.gridSize] || gridConfigs['8x5'];
             }
             
             // Enhanced pipe types with operators and special pieces
@@ -1007,7 +1092,6 @@
             
             init() {
                 this.pipeHistory = [];
-                this.gridSize = this.getGameConfig().gridSize;
                 this.createNewPuzzle();
                 this.setupEventListeners();
                 this.startPressureTimer();
@@ -1020,6 +1104,7 @@
                 // Set initial UI values
                 document.getElementById('gameMode').value = this.gameMode;
                 document.getElementById('difficulty').value = this.difficulty;
+                document.getElementById('gridSize').value = this.gridSize;
                 document.getElementById('opAdd').checked = this.operations.includes('+');
                 document.getElementById('opSub').checked = this.operations.includes('-');
                 document.getElementById('opMul').checked = this.operations.includes('×');
@@ -1035,20 +1120,17 @@
                 // Update game settings from UI
                 this.gameMode = document.getElementById('gameMode').value;
                 this.difficulty = document.getElementById('difficulty').value;
+                this.gridSize = document.getElementById('gridSize').value;
                 
-                // Update operations
-                this.operations = [];
-                if (document.getElementById('opAdd').checked) this.operations.push('+');
-                if (document.getElementById('opSub').checked) this.operations.push('-');
-                if (document.getElementById('opMul').checked) this.operations.push('×');
-                if (document.getElementById('opDiv').checked) this.operations.push('÷');
+                // Update operations based on difficulty
+                const config = this.getGameConfig();
+                this.operations = config.operations;
                 
-                // Ensure at least one operation is selected
-                if (this.operations.length === 0) {
-                    this.operations = ['+'];
-                    document.getElementById('opAdd').checked = true;
-                    alert('At least one operation must be selected. Defaulting to addition.');
-                }
+                // Update operation checkboxes to match difficulty
+                document.getElementById('opAdd').checked = this.operations.includes('+');
+                document.getElementById('opSub').checked = this.operations.includes('-');
+                document.getElementById('opMul').checked = this.operations.includes('×');
+                document.getElementById('opDiv').checked = this.operations.includes('÷');
                 
                 // Update other settings
                 this.allowNegatives = document.getElementById('allowNegatives').checked;
@@ -1085,7 +1167,12 @@
                 const config = this.getGameConfig();
                 let expression;
                 
-                if (this.difficulty === 'easy') {
+                if (this.difficulty === 'basic') {
+                    // Basic: Very simple addition for ages 5-7
+                    const a = Math.floor(Math.random() * 5) + 1; // 1-5
+                    const b = Math.floor(Math.random() * 5) + 1; // 1-5
+                    expression = { a, b, op: '+', type: 'simple' };
+                } else if (this.difficulty === 'easy') {
                     // Simple: a ⊕ b
                     const op = this.operations[Math.floor(Math.random() * this.operations.length)];
                     const a = this.getRandomNumber(op, 0, 10);
@@ -1134,9 +1221,11 @@
             }
             
             getRandomNumber(operation, min, max) {
+                const config = this.getGameConfig();
+                const maxNum = config.maxNumber || max;
                 let num;
                 do {
-                    num = Math.floor(Math.random() * (max - min + 1)) + min;
+                    num = Math.floor(Math.random() * (maxNum - min + 1)) + min;
                 } while (!this.allowNegatives && operation === '-' && num === 0);
                 return num;
             }
@@ -1209,23 +1298,23 @@
                 const playArea = document.getElementById('playArea');
                 playArea.innerHTML = '';
                 
-                // Set grid size
-                const config = this.getGameConfig();
-                this.gridSize = config.gridSize;
+                // Get grid configuration
+                const gridConfig = this.getGridConfig();
+                const cellSize = gridConfig.cellSize;
                 
                 // Update grid background
-                playArea.style.backgroundSize = `${80}px ${80}px`;
+                playArea.style.backgroundSize = `${cellSize}px ${cellSize}px`;
                 
                 // Create grid cells for visual reference
-                for (let x = 0; x < this.gridSize; x++) {
-                    for (let y = 0; y < this.gridSize; y++) {
+                for (let x = 0; x < gridConfig.width; x++) {
+                    for (let y = 0; y < gridConfig.height; y++) {
                         const cell = document.createElement('div');
                         cell.className = 'grid-cell';
                         cell.style.position = 'absolute';
-                        cell.style.left = (x * 80) + 'px';
-                        cell.style.top = (y * 80) + 'px';
-                        cell.style.width = '80px';
-                        cell.style.height = '80px';
+                        cell.style.left = (x * cellSize) + 'px';
+                        cell.style.top = (y * cellSize) + 'px';
+                        cell.style.width = cellSize + 'px';
+                        cell.style.height = cellSize + 'px';
                         cell.style.border = '1px solid rgba(0, 255, 0, 0.2)';
                         cell.style.pointerEvents = 'none';
                         cell.style.zIndex = '1';
@@ -1237,9 +1326,11 @@
             placeStartAndAnswerPipes() {
                 const playArea = document.getElementById('playArea');
                 const config = this.getGameConfig();
+                const gridConfig = this.getGridConfig();
+                const cellSize = gridConfig.cellSize;
                 
                 // Place start pipe on left side, centered vertically in the row
-                const startY = Math.floor(this.gridSize / 2);
+                const startY = Math.floor(gridConfig.height / 2);
                 this.startPipe = {
                     x: 0,
                     y: startY,
@@ -1252,7 +1343,7 @@
                 startElement.className = 'start-pipe';
                 startElement.textContent = this.currentExpression.a;
                 startElement.style.left = '0px';
-                startElement.style.top = (startY * 80) + 'px'; // Center vertically in the 80px grid cell
+                startElement.style.top = (startY * cellSize) + 'px';
                 playArea.appendChild(startElement);
                 
                 // Place answer pipes along right and bottom edges
@@ -1262,14 +1353,14 @@
                 shuffledAnswers.forEach((answer, index) => {
                     let x, y;
                     
-                    if (index < this.gridSize - 1) {
+                    if (index < gridConfig.height - 1) {
                         // Place along right edge
-                        x = this.gridSize - 1;
+                        x = gridConfig.width - 1;
                         y = index;
                     } else {
                         // Place along bottom edge
-                        x = index - (this.gridSize - 1);
-                        y = this.gridSize - 1;
+                        x = index - (gridConfig.height - 1);
+                        y = gridConfig.height - 1;
                     }
                     
                     const answerPipe = {
@@ -1286,8 +1377,8 @@
                     const answerElement = document.createElement('div');
                     answerElement.className = 'answer-pipe decoy';
                     answerElement.textContent = answer;
-                    answerElement.style.left = (x * 80) + 'px';
-                    answerElement.style.top = (y * 80) + 'px'; // Center vertically in the grid cell
+                    answerElement.style.left = (x * cellSize) + 'px';
+                    answerElement.style.top = (y * cellSize) + 'px';
                     answerElement.dataset.correctAnswer = answer === this.correctAnswer;
                     playArea.appendChild(answerElement);
                 });
@@ -1321,19 +1412,30 @@
                 }
                 
                 // Add some extra numbers to make players think strategically
-                const extraNumbers = [2, 3, 4, 6, 7, 8, 9].filter(num => {
-                    // Don't add numbers that are already in the expression
-                    if (this.currentExpression.type === 'simple') {
-                        return num !== this.currentExpression.a && num !== this.currentExpression.b;
-                    } else if (this.currentExpression.type === 'leftGrouped') {
-                        return num !== this.currentExpression.a && num !== this.currentExpression.b && num !== this.currentExpression.c;
-                    } else if (this.currentExpression.type === 'rightGrouped') {
-                        return num !== this.currentExpression.a && num !== this.currentExpression.b && num !== this.currentExpression.c;
-                    } else if (this.currentExpression.type === 'precedence') {
-                        return num !== this.currentExpression.a && num !== this.currentExpression.b && num !== this.currentExpression.c && num !== this.currentExpression.d;
-                    }
-                    return true;
-                });
+                let extraNumbers;
+                if (this.difficulty === 'basic') {
+                    // For basic difficulty, only use small numbers 1-5
+                    extraNumbers = [1, 2, 3, 4, 5].filter(num => {
+                        if (this.currentExpression.type === 'simple') {
+                            return num !== this.currentExpression.a && num !== this.currentExpression.b;
+                        }
+                        return true;
+                    });
+                } else {
+                    extraNumbers = [2, 3, 4, 6, 7, 8, 9].filter(num => {
+                        // Don't add numbers that are already in the expression
+                        if (this.currentExpression.type === 'simple') {
+                            return num !== this.currentExpression.a && num !== this.currentExpression.b;
+                        } else if (this.currentExpression.type === 'leftGrouped') {
+                            return num !== this.currentExpression.a && num !== this.currentExpression.b && num !== this.currentExpression.c;
+                        } else if (this.currentExpression.type === 'rightGrouped') {
+                            return num !== this.currentExpression.a && num !== this.currentExpression.b && num !== this.currentExpression.c;
+                        } else if (this.currentExpression.type === 'precedence') {
+                            return num !== this.currentExpression.a && num !== this.currentExpression.b && num !== this.currentExpression.c && num !== this.currentExpression.d;
+                        }
+                        return true;
+                    });
+                }
                 
                 // Add 2-3 random extra numbers
                 const extraCount = Math.min(3, extraNumbers.length);
@@ -1392,7 +1494,7 @@
                                 border: 3px solid #2E7D32;
                                 border-radius: 15px;
                                 color: white;
-                                font-size: 1.5rem;
+                                font-size: 1.2rem;
                                 font-weight: bold;
                                 text-shadow: 1px 1px 2px #000;
                                 box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
@@ -1401,14 +1503,14 @@
                                 ${pipe.symbol}
                                 <div style="
                                     position: absolute;
-                                    bottom: -25px;
+                                    bottom: -20px;
                                     left: 50%;
                                     transform: translateX(-50%);
                                     background: rgba(0,0,0,0.8);
                                     color: white;
                                     padding: 2px 6px;
                                     border-radius: 4px;
-                                    font-size: 0.7rem;
+                                    font-size: 0.6rem;
                                     white-space: nowrap;
                                 ">
                                     Number
@@ -1428,7 +1530,7 @@
                                 border: 3px solid #F57C00;
                                 border-radius: 15px;
                                 color: white;
-                                font-size: 1.8rem;
+                                font-size: 1.4rem;
                                 font-weight: bold;
                                 text-shadow: 1px 1px 2px #000;
                                 box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
@@ -1437,14 +1539,14 @@
                                 ${pipe.operation}
                                 <div style="
                                     position: absolute;
-                                    bottom: -25px;
+                                    bottom: -20px;
                                     left: 50%;
                                     transform: translateX(-50%);
                                     background: rgba(0,0,0,0.8);
                                     color: white;
                                     padding: 2px 6px;
                                     border-radius: 4px;
-                                    font-size: 0.7rem;
+                                    font-size: 0.6rem;
                                     white-space: nowrap;
                                 ">
                                     Operator
@@ -1516,14 +1618,15 @@
                         const rawX = touch.clientX - rect.left;
                         const rawY = touch.clientY - rect.top;
                         
-                        // Snap to grid
-                        const gridSize = 80;
-                        const x = Math.floor(rawX / gridSize) * gridSize;
-                        const y = Math.floor(rawY / gridSize) * gridSize;
+                        // Snap to grid using current grid configuration
+                        const gridConfig = this.getGridConfig();
+                        const cellSize = gridConfig.cellSize;
+                        const x = Math.floor(rawX / cellSize) * cellSize;
+                        const y = Math.floor(rawY / cellSize) * cellSize;
                         
                         // Ensure pipe stays within bounds
-                        const maxX = rect.width - gridSize;
-                        const maxY = rect.height - gridSize;
+                        const maxX = rect.width - cellSize;
+                        const maxY = rect.height - cellSize;
                         const clampedX = Math.max(0, Math.min(x, maxX));
                         const clampedY = Math.max(0, Math.min(y, maxY));
                         
@@ -1641,14 +1744,15 @@
                 const rawX = e.clientX - rect.left;
                 const rawY = e.clientY - rect.top;
                 
-                // Snap to grid
-                const gridSize = 80;
-                const x = Math.floor(rawX / gridSize) * gridSize;
-                const y = Math.floor(rawY / gridSize) * gridSize;
+                // Snap to grid using current grid configuration
+                const gridConfig = this.getGridConfig();
+                const cellSize = gridConfig.cellSize;
+                const x = Math.floor(rawX / cellSize) * cellSize;
+                const y = Math.floor(rawY / cellSize) * cellSize;
                 
                 // Ensure pipe stays within bounds
-                const maxX = rect.width - gridSize;
-                const maxY = rect.height - gridSize;
+                const maxX = rect.width - cellSize;
+                const maxY = rect.height - cellSize;
                 const clampedX = Math.max(0, Math.min(x, maxX));
                 const clampedY = Math.max(0, Math.min(y, maxY));
                 
@@ -1667,7 +1771,7 @@
                 
                 pipeElement.className = 'placed-pipe';
                 pipeElement.style.left = x + 'px';
-                pipeElement.style.top = y + 'px'; // Center vertically in the 80px grid cell
+                pipeElement.style.top = y + 'px'; // Center vertically in the grid cell
                 pipeElement.dataset.pipeData = JSON.stringify(pipeData);
                 pipeElement.dataset.x = x;
                 pipeElement.dataset.y = y;
@@ -1696,7 +1800,7 @@
                             border: 3px solid #2E7D32;
                             border-radius: 15px;
                             color: white;
-                            font-size: 1.5rem;
+                            font-size: 1.2rem;
                             font-weight: bold;
                             text-shadow: 1px 1px 2px #000;
                             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
@@ -1717,7 +1821,7 @@
                             border: 3px solid #F57C00;
                             border-radius: 15px;
                             color: white;
-                            font-size: 1.8rem;
+                            font-size: 1.4rem;
                             font-weight: bold;
                             text-shadow: 1px 1px 2px #000;
                             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
@@ -1768,6 +1872,9 @@
                 if (!this.pipeHistory) this.pipeHistory = [];
                 this.pipeHistory.push(pipeInfo);
                 
+                // Play build sound
+                this.playSound('buildSound');
+                
                 this.checkConnections();
             }
             
@@ -1800,14 +1907,15 @@
                 }
                 
                 // Create a grid-based connection system for more logical gameplay
-                const gridSize = 80; // Match pipe width
+                const gridConfig = this.getGridConfig();
+                const cellSize = gridConfig.cellSize;
                 const tolerance = 20; // Allow some positioning flexibility
                 
                 // Group pipes by grid position
                 const gridPipes = {};
                 this.pipes.forEach(pipe => {
-                    const gridX = Math.floor(pipe.x / gridSize);
-                    const gridY = Math.floor(pipe.y / gridSize);
+                    const gridX = Math.floor(pipe.x / cellSize);
+                    const gridY = Math.floor(pipe.y / cellSize);
                     const key = `${gridX},${gridY}`;
                     
                     if (!gridPipes[key]) gridPipes[key] = [];
@@ -1906,12 +2014,15 @@
             
             createConnectionEffect(pipe1, pipe2) {
                 const playArea = document.getElementById('playArea');
+                const gridConfig = this.getGridConfig();
+                const cellSize = gridConfig.cellSize;
+                const offset = cellSize / 2;
                 
                 // Create connection spark effect
                 const spark = document.createElement('div');
                 spark.className = 'connection-spark';
-                spark.style.left = ((pipe1.x + pipe2.x) / 2 + 40) + 'px';
-                spark.style.top = ((pipe1.y + pipe2.y) / 2 + 40) + 'px';
+                spark.style.left = ((pipe1.x + pipe2.x) / 2 + offset) + 'px';
+                spark.style.top = ((pipe1.y + pipe2.y) / 2 + offset) + 'px';
                 playArea.appendChild(spark);
                 
                 // Remove spark after animation
@@ -1924,12 +2035,15 @@
             
             createConnectionLine(pipe1, pipe2) {
                 const playArea = document.getElementById('playArea');
+                const gridConfig = this.getGridConfig();
+                const cellSize = gridConfig.cellSize;
+                const offset = cellSize / 2;
                 
                 // Calculate connection line position - pipes are now centered vertically
-                const x1 = pipe1.x + 40; // center of pipe1
-                const y1 = pipe1.y + 40; // center of pipe1 (grid position + 40px centering)
-                const x2 = pipe2.x + 40; // center of pipe2
-                const y2 = pipe2.y + 40; // center of pipe2 (grid position + 40px centering)
+                const x1 = pipe1.x + offset; // center of pipe1
+                const y1 = pipe1.y + offset; // center of pipe1
+                const x2 = pipe2.x + offset; // center of pipe2
+                const y2 = pipe2.y + offset; // center of pipe2
                 
                 const connectionLine = document.createElement('div');
                 connectionLine.className = 'connection-line';
@@ -2017,16 +2131,17 @@
             
             findAdjacentConnectedPipes(pipe) {
                 const adjacentPipes = [];
-                const gridSize = 80;
-                const pipeGridX = Math.floor(pipe.x / gridSize);
-                const pipeGridY = Math.floor(pipe.y / gridSize);
+                const gridConfig = this.getGridConfig();
+                const cellSize = gridConfig.cellSize;
+                const pipeGridX = Math.floor(pipe.x / cellSize);
+                const pipeGridY = Math.floor(pipe.y / cellSize);
                 
                 // Check all other connected pipes for adjacency
                 this.connectedPipes.forEach(otherPipe => {
                     if (otherPipe.timestamp === pipe.timestamp) return;
                     
-                    const otherGridX = Math.floor(otherPipe.x / gridSize);
-                    const otherGridY = Math.floor(otherPipe.y / gridSize);
+                    const otherGridX = Math.floor(otherPipe.x / cellSize);
+                    const otherGridY = Math.floor(otherPipe.y / cellSize);
                     
                     // Check if pipes are adjacent (including diagonals for better flow)
                     const distance = Math.abs(otherGridX - pipeGridX) + Math.abs(otherGridY - pipeGridY);
@@ -2065,22 +2180,25 @@
             animateWaterFlow(pipe1, pipe2) {
                 // Create water flow animation between connected pipes
                 const playArea = document.getElementById('playArea');
+                const gridConfig = this.getGridConfig();
+                const cellSize = gridConfig.cellSize;
+                const offset = cellSize / 2;
                 
                 // Create multiple water droplets for better effect
                 for (let i = 0; i < 5; i++) {
                     setTimeout(() => {
                         const flow = document.createElement('div');
                         flow.className = 'water-flow';
-                        flow.style.left = (pipe1.x + 40 + (Math.random() - 0.5) * 20) + 'px';
-                        flow.style.top = (pipe1.y + 40 + (Math.random() - 0.5) * 20) + 'px';
+                        flow.style.left = (pipe1.x + offset + (Math.random() - 0.5) * 20) + 'px';
+                        flow.style.top = (pipe1.y + offset + (Math.random() - 0.5) * 20) + 'px';
                         
                         playArea.appendChild(flow);
                         
                         // Animate water flow towards pipe2
                         const startX = parseFloat(flow.style.left);
                         const startY = parseFloat(flow.style.top);
-                        const endX = pipe2.x + 40;
-                        const endY = pipe2.y + 40;
+                        const endX = pipe2.x + offset;
+                        const endY = pipe2.y + offset;
                         
                         let progress = 0;
                         const animate = () => {
@@ -2112,6 +2230,9 @@
             celebrateWin() {
                 this.score += 100 * this.level;
                 this.updateDisplay();
+                
+                // Play celebration sound
+                this.playSound('celebrateSound');
                 
                 // Create splash effect
                 const playArea = document.getElementById('playArea');
@@ -2261,14 +2382,15 @@
             showGridHighlights() {
                 const playArea = document.getElementById('playArea');
                 const rect = playArea.getBoundingClientRect();
-                const gridSize = 80;
+                const gridConfig = this.getGridConfig();
+                const cellSize = gridConfig.cellSize;
                 
                 // Clear existing highlights
                 this.clearGridHighlights();
                 
                 // Create grid highlights
-                for (let x = 0; x < rect.width; x += gridSize) {
-                    for (let y = 0; y < rect.height; y += gridSize) {
+                for (let x = 0; x < rect.width; x += cellSize) {
+                    for (let y = 0; y < rect.height; y += cellSize) {
                         const highlight = document.createElement('div');
                         highlight.className = 'grid-highlight';
                         highlight.style.left = x + 'px';
@@ -2317,6 +2439,9 @@
                     alert('Place some pipes first!');
                     return;
                 }
+                
+                // Play test sound
+                this.playSound('testSound');
                 
                 // Simulate water flow through the pipe network
                 this.animateFlow();
@@ -2376,8 +2501,10 @@
                 const pipeNetwork = this.buildPipeNetwork();
                 
                 // Try to find path from start to any answer pipe
+                const gridConfig = this.getGridConfig();
+                const cellSize = gridConfig.cellSize;
                 const startPipe = this.pipes.find(p => p.data && p.data.type === 'start') || 
-                                 this.pipes.find(p => p.x === 0 && p.y === Math.floor(this.gridSize / 2) * 80);
+                                 this.pipes.find(p => p.x === 0 && p.y === Math.floor(gridConfig.height / 2) * cellSize);
                 
                 if (!startPipe) return null;
                 
@@ -2394,10 +2521,12 @@
             
             buildPipeNetwork() {
                 const network = new Map();
+                const gridConfig = this.getGridConfig();
+                const cellSize = gridConfig.cellSize;
                 
                 // Build adjacency map for all pipes
                 this.pipes.forEach(pipe => {
-                    const key = `${Math.floor(pipe.x / 80)},${Math.floor(pipe.y / 80)}`;
+                    const key = `${Math.floor(pipe.x / cellSize)},${Math.floor(pipe.y / cellSize)}`;
                     if (!network.has(key)) {
                         network.set(key, []);
                     }
@@ -2405,10 +2534,10 @@
                     // Check adjacent grid cells for other pipes
                     const directions = [[0, 1], [1, 0], [0, -1], [-1, 0]];
                     directions.forEach(([dx, dy]) => {
-                        const adjKey = `${Math.floor(pipe.x / 80) + dx},${Math.floor(pipe.y / 80) + dy}`;
+                        const adjKey = `${Math.floor(pipe.x / cellSize) + dx},${Math.floor(pipe.y / cellSize) + dy}`;
                         const adjPipe = this.pipes.find(p => 
-                            Math.floor(p.x / 80) === Math.floor(pipe.x / 80) + dx && 
-                            Math.floor(p.y / 80) === Math.floor(pipe.y / 80) + dy
+                            Math.floor(p.x / cellSize) === Math.floor(pipe.x / cellSize) + dx && 
+                            Math.floor(p.y / cellSize) === Math.floor(pipe.y / cellSize) + dy
                         );
                         
                         if (adjPipe) {
@@ -2425,7 +2554,7 @@
                 const localVisited = new Set();
                 
                 const dfs = (currentPipe, targetPipe) => {
-                    const key = `${Math.floor(currentPipe.x / 80)},${Math.floor(currentPipe.y / 80)}`;
+                    const key = `${Math.floor(currentPipe.x / cellSize)},${Math.floor(currentPipe.y / cellSize)}`;
                     if (localVisited.has(key)) return false;
                     localVisited.add(key);
                     
@@ -2434,7 +2563,7 @@
                     if (currentPipe === targetPipe) return true;
                     
                     // Get adjacent pipes from network
-                    const adjKey = `${Math.floor(currentPipe.x / 80)},${Math.floor(currentPipe.y / 80)}`;
+                    const adjKey = `${Math.floor(currentPipe.x / cellSize)},${Math.floor(currentPipe.y / cellSize)}`;
                     const adjacentPipes = network.get(adjKey) || [];
                     
                     for (const adjPipe of adjacentPipes) {
@@ -2455,8 +2584,11 @@
             createFlowElement(x, y) {
                 const flow = document.createElement('div');
                 flow.className = 'water-flow';
-                flow.style.left = (x + 40) + 'px';
-                flow.style.top = (y + 40) + 'px'; // Account for vertical centering
+                const gridConfig = this.getGridConfig();
+                const cellSize = gridConfig.cellSize;
+                const offset = cellSize / 2;
+                flow.style.left = (x + offset) + 'px';
+                flow.style.top = (y + offset) + 'px';
                 return flow;
             }
             
@@ -2597,3 +2729,4 @@
    
 </body>
 </html>
+
