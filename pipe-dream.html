@@ -1651,6 +1651,18 @@
                 this.pipes.forEach(pipe => {
                     pipe.connected = false;
                     pipe.element.classList.remove('connected');
+                    pipe.element.classList.remove('flowing');
+                    
+                    // Clear any water flow styling
+                    if (pipe.data.type === 'number') {
+                        pipe.element.querySelector('div').style.background = 'linear-gradient(135deg, #4CAF50, #66BB6A)';
+                        pipe.element.querySelector('div').style.borderColor = '#2E7D32';
+                        pipe.element.querySelector('div').style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.4)';
+                    } else if (pipe.data.type === 'operator') {
+                        pipe.element.querySelector('div').style.background = 'linear-gradient(135deg, #FF9800, #FFB74D)';
+                        pipe.element.querySelector('div').style.borderColor = '#F57C00';
+                        pipe.element.querySelector('div').style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.4)';
+                    }
                 });
                 this.connectedPipes = [];
                 
@@ -1713,6 +1725,9 @@
                 if (this.connectedPipes.length > 0) {
                     setTimeout(() => this.applyWaterFlowEffect(), 100);
                 }
+                
+                // Create continuous flow path across all connected pipes
+                this.createContinuousFlowPath();
                 
                 // Update undo button state
                 this.updateUndoButton();
@@ -1816,6 +1831,86 @@
                 // Store reference for later removal
                 if (!this.connectionLines) this.connectionLines = [];
                 this.connectionLines.push(connectionLine);
+            }
+            
+            createContinuousFlowPath() {
+                if (this.connectedPipes.length === 0) return;
+                
+                // Find all connected pipes and create a continuous flow
+                const flowPath = this.findCompleteFlowPath();
+                if (!flowPath || flowPath.length === 0) return;
+                
+                // Apply water flow effect to all pipes in the path
+                flowPath.forEach((pipe, index) => {
+                    const progress = index / (flowPath.length - 1);
+                    const blueIntensity = Math.floor(progress * 255);
+                    const color = `rgb(0, ${blueIntensity}, 255)`;
+                    
+                    if (pipe.data.type === 'number') {
+                        pipe.element.querySelector('div').style.background = `linear-gradient(135deg, ${color}, ${color}dd)`;
+                        pipe.element.querySelector('div').style.borderColor = color;
+                        pipe.element.querySelector('div').style.boxShadow = `0 0 20px ${color}`;
+                    } else if (pipe.data.type === 'operator') {
+                        pipe.element.querySelector('div').style.background = `linear-gradient(135deg, ${color}, ${color}dd)`;
+                        pipe.element.querySelector('div').style.borderColor = color;
+                        pipe.element.querySelector('div').style.boxShadow = `0 0 20px ${color}`;
+                    } else {
+                        // For connector pipes, add a glow effect
+                        pipe.element.style.filter = `drop-shadow(0 0 10px ${color})`;
+                    }
+                    
+                    pipe.element.classList.add('flowing');
+                });
+            }
+            
+            findCompleteFlowPath() {
+                // Find a continuous path through all connected pipes
+                const visited = new Set();
+                const path = [];
+                
+                // Start with any connected pipe
+                const startPipe = this.connectedPipes[0];
+                if (!startPipe) return [];
+                
+                const dfs = (pipe) => {
+                    if (visited.has(pipe.timestamp)) return;
+                    visited.add(pipe.timestamp);
+                    path.push(pipe);
+                    
+                    // Find adjacent connected pipes
+                    const adjacentPipes = this.findAdjacentConnectedPipes(pipe);
+                    adjacentPipes.forEach(adjPipe => {
+                        if (!visited.has(adjPipe.timestamp)) {
+                            dfs(adjPipe);
+                        }
+                    });
+                };
+                
+                dfs(startPipe);
+                return path;
+            }
+            
+            findAdjacentConnectedPipes(pipe) {
+                const adjacentPipes = [];
+                const gridSize = 80;
+                const pipeGridX = Math.floor(pipe.x / gridSize);
+                const pipeGridY = Math.floor(pipe.y / gridSize);
+                
+                // Check all other connected pipes for adjacency
+                this.connectedPipes.forEach(otherPipe => {
+                    if (otherPipe.timestamp === pipe.timestamp) return;
+                    
+                    const otherGridX = Math.floor(otherPipe.x / gridSize);
+                    const otherGridY = Math.floor(otherPipe.y / gridSize);
+                    
+                    // Check if pipes are adjacent (including diagonals for better flow)
+                    const distance = Math.abs(otherGridX - pipeGridX) + Math.abs(otherGridY - pipeGridY);
+                    if (distance === 1) {
+                        adjacentPipes.push(otherPipe);
+                    }
+                });
+                
+                return adjacentPipes;
             }
             
             // Method to apply gradual blue water flow effect
