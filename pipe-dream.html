@@ -251,19 +251,31 @@
             border: 3px solid #0f0;
             border-radius: 15px;
             position: relative;
-            margin: 20px 0;
-            overflow: hidden;
+            margin: 20px auto;
+            overflow: visible;
             background-image: 
                 linear-gradient(rgba(0, 255, 0, 0.1) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(0, 255, 0, 0.1) 1px, transparent 1px);
             background-size: 60px 60px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
         }
         
         /* Mobile responsive play area */
         @media (max-width: 768px) {
             .play-area {
                 min-height: 400px;
-                margin: 10px 0;
+                margin: 10px auto;
+                max-width: 100vw;
+            }
+        }
+        
+        /* Small mobile devices */
+        @media (max-width: 480px) {
+            .play-area {
+                min-height: 350px;
+                margin: 5px auto;
             }
         }
 
@@ -992,6 +1004,12 @@
             .play-area {
                 margin: 10px auto;
                 max-width: 100vw;
+                transform-origin: top center;
+            }
+            
+            .game-container {
+                overflow-x: auto;
+                padding: 10px;
             }
         }
     </style>
@@ -1083,10 +1101,10 @@
                             
                             <label style="display: block; margin-bottom: 5px; color: #0f0;">Grid Size:</label>
                             <select id="gridSize" style="width: 100%; padding: 8px; background: #1a1a2e; color: #0f0; border: 2px solid #0f0; border-radius: 5px; margin-bottom: 10px;">
-                                <option value="5x5" id="5x5-option">5×5 Grid</option>
+                                <option value="5x5">5×5 Grid</option>
                                 <option value="6x4">6×4 Grid</option>
                                 <option value="7x5">7×5 Grid</option>
-                                <option value="8x5" id="8x5-option">8×5 Grid (Default)</option>
+                                <option value="8x5">8×5 Grid</option>
                             </select>
                         </div>
                         
@@ -1179,6 +1197,12 @@
                     this.gridSize = '8x5'; // Desktop default
                 }
                 
+                // Ensure grid size is valid
+                const validGridSizes = ['5x5', '6x4', '7x5', '8x5'];
+                if (!validGridSizes.includes(this.gridSize)) {
+                    this.gridSize = '8x5'; // Fallback to default
+                }
+                
                 this.operations = ['+']; // Available operations - default to addition only
                 this.allowNegatives = false;
                 this.showPrecedenceHints = true;
@@ -1265,9 +1289,20 @@
             getGridConfig() {
                 // Determine cell size based on screen size and grid dimensions
                 let baseCellSize = 60;
-                if (window.innerWidth <= 768) {
-                    // Mobile: use larger cells to ensure grid is fully visible
-                    baseCellSize = 80;
+                const screenWidth = window.innerWidth;
+                
+                if (screenWidth <= 480) {
+                    // Small mobile: use smaller cells to fit 8x5 grid
+                    baseCellSize = Math.min(50, Math.floor((screenWidth - 40) / 8));
+                } else if (screenWidth <= 768) {
+                    // Mobile: use medium cells to ensure grid is fully visible
+                    baseCellSize = Math.min(70, Math.floor((screenWidth - 40) / 8));
+                } else if (screenWidth <= 1024) {
+                    // Tablet: use medium-large cells
+                    baseCellSize = 65;
+                } else {
+                    // Desktop: use standard size
+                    baseCellSize = 60;
                 }
                 
                 const gridConfigs = {
@@ -1346,12 +1381,18 @@
                 // Set initial UI values
                 document.getElementById('gameMode').value = this.gameMode;
                 document.getElementById('difficulty').value = this.difficulty;
-                document.getElementById('gridSize').value = this.gridSize;
                 
-                // Update the selected attribute based on current grid size
+                // Set grid size dropdown value and selected attribute
+                const gridSizeSelect = document.getElementById('gridSize');
+                gridSizeSelect.value = this.gridSize;
+                
+                // Update the selected attribute for all options
                 document.querySelectorAll('#gridSize option').forEach(option => {
                     option.selected = option.value === this.gridSize;
                 });
+                
+                // Ensure the correct option is visually selected
+                gridSizeSelect.selectedIndex = Array.from(gridSizeSelect.options).findIndex(option => option.value === this.gridSize);
                 
                 document.getElementById('opAdd').checked = this.operations.includes('+');
                 document.getElementById('opSub').checked = this.operations.includes('-');
@@ -1369,6 +1410,9 @@
                 this.gameMode = document.getElementById('gameMode').value;
                 this.difficulty = document.getElementById('difficulty').value;
                 this.gridSize = document.getElementById('gridSize').value;
+                
+                // Update the dropdown selection to reflect the new grid size
+                this.updateGridSizeDropdown();
                 
                 // Update operations based on difficulty
                 const config = this.getGameConfig();
@@ -1559,6 +1603,20 @@
                 playArea.style.height = playAreaHeight + 'px';
                 playArea.style.maxWidth = '100%';
                 playArea.style.margin = '20px auto';
+                playArea.style.overflow = 'visible';
+                
+                // Ensure the grid fits within the viewport
+                const viewportWidth = window.innerWidth;
+                const maxWidth = Math.min(playAreaWidth, viewportWidth - 40);
+                if (playAreaWidth > maxWidth) {
+                    const scale = maxWidth / playAreaWidth;
+                    playArea.style.transform = `scale(${scale})`;
+                    playArea.style.transformOrigin = 'top center';
+                    // Adjust container height to account for scaling
+                    playArea.style.height = (playAreaHeight * scale) + 'px';
+                } else {
+                    playArea.style.transform = 'none';
+                }
                 
                 // Update grid background
                 playArea.style.backgroundSize = `${cellSize}px ${cellSize}px`;
@@ -1578,6 +1636,36 @@
                         cell.style.zIndex = '1';
                         playArea.appendChild(cell);
                     }
+                }
+                
+                // Ensure grid is centered and visible
+                this.centerGrid();
+            }
+            
+            centerGrid() {
+                const playArea = document.getElementById('playArea');
+                const gameContainer = document.querySelector('.game-container');
+                
+                if (!gameContainer) return;
+                
+                // Get the actual grid dimensions
+                const gridConfig = this.getGridConfig();
+                const gridWidth = gridConfig.width * gridConfig.cellSize;
+                const gridHeight = gridConfig.height * gridConfig.cellSize;
+                
+                // Center the grid within the container
+                playArea.style.margin = '20px auto';
+                playArea.style.display = 'block';
+                
+                // Ensure the container can accommodate the grid
+                const containerWidth = gameContainer.offsetWidth;
+                if (gridWidth > containerWidth - 40) {
+                    // Grid is too wide, enable horizontal scrolling
+                    gameContainer.style.overflowX = 'auto';
+                    gameContainer.style.overflowY = 'hidden';
+                } else {
+                    // Grid fits, center it
+                    gameContainer.style.overflow = 'visible';
                 }
             }
             
@@ -1868,7 +1956,11 @@
                 // Settings events
                 document.getElementById('gameMode').addEventListener('change', () => this.applySettings());
                 document.getElementById('difficulty').addEventListener('change', () => this.applySettings());
-                document.getElementById('gridSize').addEventListener('change', () => this.applySettings());
+                document.getElementById('gridSize').addEventListener('change', () => {
+                    this.gridSize = document.getElementById('gridSize').value;
+                    this.updateGridSizeDropdown();
+                    this.createNewPuzzle();
+                });
                 
                 // Operation checkboxes
                 document.querySelectorAll('input[name="operation"]').forEach(checkbox => {
@@ -1900,7 +1992,29 @@
                     this.gridSize = newGridSize;
                     document.getElementById('gridSize').value = newGridSize;
                     this.createNewPuzzle(); // Recreate puzzle with new grid size
+                } else {
+                    // Even if grid size didn't change, recreate grid to adjust sizing
+                    this.createGrid();
                 }
+                
+                // Update the dropdown selection
+                this.updateGridSizeDropdown();
+            }
+            
+            updateGridSizeDropdown() {
+                const gridSizeSelect = document.getElementById('gridSize');
+                if (!gridSizeSelect) return;
+                
+                // Set the value
+                gridSizeSelect.value = this.gridSize;
+                
+                // Update the selected attribute for all options
+                document.querySelectorAll('#gridSize option').forEach(option => {
+                    option.selected = option.value === this.gridSize;
+                });
+                
+                // Ensure the correct option is visually selected
+                gridSizeSelect.selectedIndex = Array.from(gridSizeSelect.options).findIndex(option => option.value === this.gridSize);
             }
             
             handleDragStart(e) {
