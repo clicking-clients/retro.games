@@ -6,6 +6,30 @@
     <title>Pipe Dream - Retro Games Collection</title>
     <link rel="stylesheet" href="styles.css">
     <style>
+        :root{
+            --wall:#0bb;
+            --bg:#000;
+            --score:#0f0;
+            --title:#ffd700;
+            --focus-outline: #0ff;
+        }
+
+        .app{ 
+            height: 80%;
+            display:flex;
+            flex-direction: column;
+            gap:15px;
+            align-items:center;
+            justify-content:center;
+            padding:15px;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .game-wrap {
+            position: relative;
+        }
+
         .game-container {
             background: #1a1a2e;
             border: 3px solid #0f0;
@@ -14,6 +38,54 @@
             margin: 20px auto;
             max-width: 800px;
             text-align: center;
+        }
+
+        #sidebar{
+            width: 100%;
+            max-width: 220px;
+            color:var(--score);
+            display:flex;
+            flex-direction:column;
+            gap:14px
+        }
+
+        #title { 
+            text-transform: uppercase; 
+            font-size: clamp(1.5rem, 4vw, 2rem);
+            color: var(--title); 
+            text-shadow: 0 0 8px #f00; 
+            text-align: center;
+            margin: 0;
+        }
+
+        .section-title{
+            color:var(--title);
+            font-weight:700;
+            margin-bottom:8px
+        }
+
+        #scoreboard{
+            border:2px solid var(--score);
+            padding:12px;
+            display:grid;
+            grid-template-columns:1fr 1fr;
+            gap:8px;
+            align-items:center;
+            border-radius: 6px;
+        }
+
+        #scoreboard .section-title{
+            text-align:left;
+            margin:0
+        }
+
+        #scoreboard div.value{
+            text-align:right
+        }
+
+        #instructions{
+            font-size:13px;
+            line-height:1.4
         }
 
         .game-header {
@@ -499,8 +571,37 @@
             50% { opacity: 0.7; }
         }
 
+        /* Responsive breakpoints */
+        @media (min-width: 768px) {
+            .app {
+                flex-direction: row;
+                align-items: flex-start;
+                gap: 20px;
+                padding: 18px;
+            }
+            
+            .game-wrap {
+                flex: 1;
+            }
+            
+            .game-container {
+                max-width: 800px;
+                margin: 0;
+            }
+            
+            #sidebar {
+                width: 220px;
+                flex-shrink: 0;
+            }
+        }
+
         /* Mobile responsiveness */
-        @media (max-width: 768px) {
+        @media (max-width: 767px) {
+            .app {
+                flex-direction: column;
+                padding: 10px;
+            }
+            
             .game-container {
                 margin: 10px;
                 padding: 15px;
@@ -532,6 +633,11 @@
             
             .math-problem {
                 font-size: 1.5rem;
+            }
+            
+            #sidebar {
+                width: 100%;
+                max-width: none;
             }
         }
 
@@ -613,125 +719,24 @@
     </style>
 </head>
 <body>
-    <div class="game-nav">
-        <strong>🎮 Pipe Dream</strong>
-        <a href="index.html">← Back to Games</a>
-        <a href="chompy.html">Chompy</a>
-        <a href="block-stack.html">Block Stack</a>
-        <a href="wormy.html">Wormy</a>
-        <a href="bubble-pop.html">Bubble Pop</a>
-        <a href="road-dash.html">Road Dash</a>
-        <a href="paddle-ball.html">Paddle Ball</a>
-        <a href="number-defenders.html">Number Defenders</a>
-        <a href="word-defenders.html">Word Defenders</a>
-    </div>
+    <nav id="gameNav" style="padding:10px; background:#111; color:#0f0; font-family:monospace;">
+        <strong>Games:</strong>
+    </nav>
 
-    <div class="game-settings" style="background: rgba(0, 255, 0, 0.1); padding: 20px; border-radius: 15px; margin: 20px auto; max-width: 800px; border: 2px solid #0f0;">
-        <h3 style="color: #ffd700; margin-bottom: 15px;">⚙️ Game Settings</h3>
-        
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
-            <div>
-                <h4 style="color: #0f0; margin-bottom: 10px;">🎮 Game Mode</h4>
-                <select id="gameMode" style="width: 100%; padding: 8px; background: #1a1a2e; color: #0f0; border: 2px solid #0f0; border-radius: 5px;">
-                    <option value="practice">Practice (Free Build)</option>
-                    <option value="adventure">Adventure (Levels)</option>
-                    <option value="timed">Timed Rush</option>
-                </select>
-            </div>
-            
-            <div>
-                <h4 style="color: #0f0; margin-bottom: 10px;">📊 Difficulty</h4>
-                <select id="difficulty" style="width: 100%; padding: 8px; background: #1a1a2e; color: #0f0; border: 2px solid #0f0; border-radius: 5px;">
-                    <option value="easy">Easy (5×5 grid, simple)</option>
-                    <option value="medium">Medium (7×7 grid, grouped)</option>
-                    <option value="hard">Hard (9×9 grid, precedence)</option>
-                </select>
-            </div>
-        </div>
-        
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
-            <div>
-                <h4 style="color: #0f0; margin-bottom: 10px;">🔢 Operations</h4>
-                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <label style="display: flex; align-items: center; gap: 5px; color: #0f0;">
-                        <input type="checkbox" id="opAdd" checked style="accent-color: #0f0;"> +
-                    </label>
-                    <label style="display: flex; align-items: center; gap: 5px; color: #0f0;">
-                        <input type="checkbox" id="opSub" style="accent-color: #0f0;"> −
-                    </label>
-                    <label style="display: flex; align-items: center; gap: 5px; color: #0f0;">
-                        <input type="checkbox" id="opMul" style="accent-color: #0f0;"> ×
-                    </label>
-                    <label style="display: flex; align-items: center; gap: 5px; color: #0f0;">
-                        <input type="checkbox" id="opDiv" style="accent-color: #0f0;"> ÷
-                    </label>
+    <div class="app">
+        <div class="game-wrap">
+            <div class="game-container">
+                <div class="game-header">
+                    <h1>🚰 Pipe Dream</h1>
+                    <p>Connect pipes to solve math problems and watch the water flow!</p>
                 </div>
-            </div>
-            
-            <div>
-                <h4 style="color: #0f0; margin-bottom: 10px;">🎯 Options</h4>
-                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <label style="display: flex; align-items: center; gap: 5px; color: #0f0;">
-                        <input type="checkbox" id="allowNegatives" style="accent-color: #0f0;"> Allow Negatives
-                    </label>
-                    <label style="display: flex; align-items: center; gap: 5px; color: #0f0;">
-                        <input type="checkbox" id="showPrecedenceHints" checked style="accent-color: #0f0;"> Show Hints
-                    </label>
-                </div>
-            </div>
-        </div>
-        
-        <button id="applySettings" style="background: #0f0; color: #000; border: none; padding: 12px 25px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1.1rem;">
-            Apply Settings & New Game
-        </button>
-    </div>
 
     <div class="game-container">
         <div class="game-header">
             <h1>🚰 Pipe Dream</h1>
             <p>Connect pipes to solve math problems and watch the water flow!</p>
             
-            <div style="background: rgba(0, 255, 0, 0.1); padding: 20px; border-radius: 15px; margin: 20px 0; border: 2px solid #0f0;">
-                <h3 style="color: #ffd700; margin-bottom: 15px;">🎯 Game Objective</h3>
-                <p style="margin-bottom: 15px; line-height: 1.6;">
-                    <strong>Your goal:</strong> Build a pipe network that routes water from the start pipe (green) to the correct answer pipe (red) while solving math expressions step by step.
-                </p>
-                
-                <h4 style="color: #0f0; margin: 15px 0 10px 0;">📋 How to Play:</h4>
-                <ol style="text-align: left; margin-left: 20px; line-height: 1.8;">
-                    <li><strong>Start pipe (green)</strong> emits the first number in the expression</li>
-                    <li><strong>Drag pipes from inventory</strong> to build your network on the grid</li>
-                    <li><strong>Use operator pipes</strong> (+, −, ×, ÷) to perform calculations</li>
-                    <li><strong>Connect with pipes</strong> (┌, ┐, └, ┘, ─, │) to route water flow</li>
-                    <li><strong>Route to correct answer</strong> (red pipe) while avoiding decoys (blue)</li>
-                    <li><strong>Press "Flow Test"</strong> to see water flow through your network</li>
-                    <li><strong>Watch pressure gauge</strong> - leaks and wrong answers increase pressure!</li>
-                </ol>
-                
-                <h4 style="color: #0f0; margin: 15px 0 10px 0;">🔧 Pipe Types:</h4>
-                <ul style="text-align: left; margin-left: 20px; line-height: 1.8;">
-                    <li><strong>Number pipes (1-9):</strong> Supply values for calculations</li>
-                    <li><strong>Operator pipes (+, −, ×, ÷):</strong> Perform math operations on water flow</li>
-                    <li><strong>Connector pipes:</strong> Route water without changing values</li>
-                    <li><strong>Special pipes:</strong> Splitters (Y), valves (▶), crossovers (⊕) for advanced puzzles</li>
-                </ul>
-                
-                <h4 style="color: #0f0; margin: 15px 0 10px 0;">🎮 Game Mechanics:</h4>
-                <ul style="text-align: left; margin-left: 20px; line-height: 1.8;">
-                    <li><strong>Grid-based placement:</strong> Pipes snap to 80x80 grid positions</li>
-                    <li><strong>Repositioning:</strong> Drag placed pipes to new positions on the grid</li>
-                    <li><strong>Rotation:</strong> Double-click connector pipes to rotate them 90°</li>
-                    <li><strong>Strategic thinking:</strong> Extra numbers are included to make you think!</li>
-                    <li><strong>Pressure system:</strong> Time pressure increases, correct connections reduce it</li>
-                    <li><strong>Multiple answers:</strong> One correct (red), others are decoys (blue)</li>
-                    <li><strong>Flow testing:</strong> See water flow step-by-step with calculations</li>
-                    <li><strong>Precedence matters:</strong> × ÷ happen before + − in complex expressions</li>
-                </ul>
-                
-                <div style="background: rgba(255, 215, 0, 0.1); padding: 15px; border-radius: 10px; margin: 15px 0; border: 1px solid #ffd700;">
-                    <strong>💡 Example:</strong> For "5 + 3 × 2 = ?", start with 5, route through + and 3, then × and 2. The correct answer is 11 (5 + (3 × 2)), not 16 ((5 + 3) × 2)!
-                </div>
-            </div>
+            
         </div>
 
         <div class="level-info">
@@ -766,6 +771,88 @@
             <button class="control-btn" id="undoBtn" aria-label="Undo last pipe placement">Undo</button>
             <button class="control-btn" id="flowTestBtn" aria-label="Test water flow">Flow Test</button>
             <button class="control-btn" id="hintBtn" aria-label="Get a hint for current problem">Hint</button>
+        </div>
+            </div>
+        </div>
+
+        <div id="sidebar">
+            <h1 id="title">Pipe Dream</h1>
+
+            <div role="region" aria-label="Game Settings">
+                <div class="section-title">SETTINGS</div>
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 5px; color: #0f0;">Game Mode:</label>
+                    <select id="gameMode" style="width: 100%; padding: 8px; background: #1a1a2e; color: #0f0; border: 2px solid #0f0; border-radius: 5px; margin-bottom: 10px;">
+                        <option value="practice">Practice (Free Build)</option>
+                        <option value="adventure">Adventure (Levels)</option>
+                        <option value="timed">Timed Rush</option>
+                    </select>
+                    
+                    <label style="display: block; margin-bottom: 5px; color: #0f0;">Difficulty:</label>
+                    <select id="difficulty" style="width: 100%; padding: 8px; background: #1a1a2e; color: #0f0; border: 2px solid #0f0; border-radius: 5px; margin-bottom: 10px;">
+                        <option value="easy">Easy (5×5 grid)</option>
+                        <option value="medium">Medium (7×7 grid)</option>
+                        <option value="hard">Hard (9×9 grid)</option>
+                    </select>
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <div class="section-title">OPERATIONS</div>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px;">
+                        <label style="display: flex; align-items: center; gap: 5px; color: #0f0;">
+                            <input type="checkbox" id="opAdd" checked style="accent-color: #0f0;"> +
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 5px; color: #0f0;">
+                            <input type="checkbox" id="opSub" style="accent-color: #0f0;"> −
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 5px; color: #0f0;">
+                            <input type="checkbox" id="opMul" style="accent-color: #0f0;"> ×
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 5px; color: #0f0;">
+                            <input type="checkbox" id="opDiv" style="accent-color: #0f0;"> ÷
+                        </label>
+                    </div>
+                    
+                    <div style="margin-bottom: 10px;">
+                        <label style="display: flex; align-items: center; gap: 5px; color: #0f0;">
+                            <input type="checkbox" id="allowNegatives" style="accent-color: #0f0;"> Allow Negatives
+                        </label>
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <label style="display: flex; align-items: center; gap: 5px; color: #0f0;">
+                            <input type="checkbox" id="showPrecedenceHints" checked style="accent-color: #0f0;"> Show Hints
+                        </label>
+                    </div>
+                </div>
+                
+                <button id="applySettings" style="width: 100%; background: #0f0; color: #000; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem;">
+                    Apply Settings & New Game
+                </button>
+            </div>
+
+            <div id="scoreboard" role="region" aria-label="Game Score">
+                <div class="section-title">CURRENT</div>
+                <div class="section-title">Level</div><div class="value" id="levelDisplay">1</div>
+                <div class="section-title">Score</div><div class="value" id="scoreDisplay">0</div>
+                <div class="section-title">Pressure</div><div class="value" id="pressureDisplay">0%</div>
+            </div>
+
+            <div id="instructions">
+                <div class="section-title">CONTROLS</div>
+                Drag & Drop — place pipes<br>
+                Double-click — rotate pipes<br>
+                Drag placed pipes — reposition
+                
+                <div style="margin-top: 15px" class="section-title">RULES</div>
+                <div style="font-size: 13px; line-height: 1.4;">
+                    • Connect start pipe (green) to answer pipe (red)<br>
+                    • Use operator pipes (+, −, ×, ÷) for math<br>
+                    • Route through connector pipes<br>
+                    • Water flows when pipes connect<br>
+                    • Solve the math expression correctly
+                </div>
+            </div>
         </div>
     </div>
 
@@ -2329,6 +2416,15 @@
                 document.getElementById('stars').textContent = this.stars;
                 document.getElementById('pressure').textContent = Math.round(this.pressure);
                 
+                // Update sidebar display elements
+                const levelDisplay = document.getElementById('levelDisplay');
+                const scoreDisplay = document.getElementById('scoreDisplay');
+                const pressureDisplay = document.getElementById('pressureDisplay');
+                
+                if (levelDisplay) levelDisplay.textContent = this.level;
+                if (scoreDisplay) scoreDisplay.textContent = this.score;
+                if (pressureDisplay) pressureDisplay.textContent = Math.round(this.pressure) + '%';
+                
                 // Update pressure bar
                 const pressureFill = document.getElementById('pressureFill');
                 if (pressureFill) {
@@ -2403,5 +2499,7 @@
             el.innerHTML = svgForPipe(type, rot, active);
         }
     </script>
+
+    <script src="navigation.js"></script>
 </body>
 </html>
