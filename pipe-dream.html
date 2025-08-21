@@ -26,6 +26,12 @@
             max-width: 1200px;
         }
 
+        #gameNav {
+            width: 100%;
+            max-width: 220px;
+            margin-bottom: 20px;
+        }
+
         .game-wrap {
             position: relative;
         }
@@ -38,6 +44,30 @@
             margin: 20px auto;
             max-width: 800px;
             text-align: center;
+        }
+
+        #gameNav, 
+        #gameNav a {
+        display: block;
+        margin-top: 5px;
+        text-transform: uppercase;
+        color: var(--score);
+        text-decoration: none;
+        padding: 8px;
+        border-radius: 4px;
+        transition: background-color 0.2s;
+        }
+
+        #gameNav a:hover,
+        #gameNav a:focus {
+        background-color: rgba(0, 255, 0, 0.1);
+        }
+
+        #gameNav a.active {
+        color: #ff0;
+        font-weight: bold;
+        text-decoration: underline;
+        background-color: rgba(255, 255, 0, 0.1);
         }
 
         #sidebar{
@@ -580,8 +610,15 @@
                 padding: 18px;
             }
             
+            #gameNav {
+                width: 220px;
+                flex-shrink: 0;
+                order: 1;
+            }
+            
             .game-wrap {
                 flex: 1;
+                order: 2;
             }
             
             .game-container {
@@ -592,6 +629,7 @@
             #sidebar {
                 width: 220px;
                 flex-shrink: 0;
+                order: 3;
             }
         }
 
@@ -719,11 +757,11 @@
     </style>
 </head>
 <body>
-    <nav id="gameNav" style="padding:10px; background:#111; color:#0f0; font-family:monospace;">
-        <strong>Games:</strong>
-    </nav>
-
     <div class="app">
+        <nav id="gameNav" style="padding:10px; background:#111; color:#0f0; font-family:monospace;">
+            <strong>Games:</strong>
+        </nav>
+        
         <div class="game-wrap">
             <div class="game-container">
                 <div class="game-header">
@@ -2492,7 +2530,6 @@
             el.innerHTML = svgForPipe(type, rot, active);
         }
     </script>
-
-    <script src="navigation.js"></script>
+   
 </body>
 </html>
