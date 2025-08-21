@@ -519,31 +519,120 @@
         }
 
         .game-controls {
-            margin: 20px 0;
+            margin-top: 20px;
+            text-align: center;
         }
-
+        
+        .control-row {
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .control-row:first-child {
+            justify-content: flex-start;
+            margin-left: 20px;
+        }
+        
         .control-btn {
-            background: transparent;
-            color: #0f0;
-            border: 2px solid #0f0;
-            padding: 12px 25px;
-            margin: 0 10px;
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #2E7D32, #4CAF50);
+            color: white;
+            border: none;
             border-radius: 8px;
+            font-size: 14px;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-
+        
         .control-btn:hover {
-            background: #0f0;
-            color: #000;
-            box-shadow: 0 0 20px #0f0;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+            background: linear-gradient(135deg, #388E3C, #66BB6A);
         }
-
-        .control-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
+        
+        .control-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .water-btn {
+            background: linear-gradient(135deg, #1565C0, #42A5F5);
+            border: 3px solid #0D47A1;
+            box-shadow: 0 4px 15px rgba(21, 101, 192, 0.4);
+            position: relative;
+            overflow: hidden;
+            animation: waterRipple 3s infinite;
+        }
+        
+        .water-btn:hover {
+            background: linear-gradient(135deg, #1976D2, #64B5F6);
+            box-shadow: 0 6px 20px rgba(21, 101, 192, 0.6);
+            transform: translateY(-3px) scale(1.05);
+        }
+        
+        .water-btn:active {
+            transform: translateY(0) scale(0.98);
+        }
+        
+        .water-btn::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transform: rotate(45deg);
+            animation: waterShine 2s infinite;
+        }
+        
+        .tap-icon {
+            display: inline-block;
+            margin-right: 8px;
+            font-size: 18px;
+            animation: tapBounce 2s infinite;
+        }
+        
+        @keyframes waterRipple {
+            0%, 100% { box-shadow: 0 4px 15px rgba(21, 101, 192, 0.4); }
+            50% { box-shadow: 0 4px 25px rgba(21, 101, 192, 0.7), 0 0 30px rgba(21, 101, 192, 0.3); }
+        }
+        
+        @keyframes waterShine {
+            0% { transform: rotate(45deg) translateX(-100%); }
+            100% { transform: rotate(45deg) translateX(100%); }
+        }
+        
+        @keyframes tapBounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-5px); }
+            60% { transform: translateY(-3px); }
+        }
+        
+        @keyframes waterRippleExpand {
+            0% { 
+                transform: scale(0.8); 
+                opacity: 1; 
+                border-width: 2px;
+            }
+            100% { 
+                transform: scale(2); 
+                opacity: 0; 
+                border-width: 1px;
+            }
+        }
+        
+        .water-ripple {
+            position: absolute;
+            pointer-events: none;
+            z-index: 100;
         }
 
         .score-display {
@@ -831,6 +920,25 @@
                 user-select: none;
             }
         }
+
+        @keyframes waterRippleExpand {
+            0% { 
+                transform: scale(0.8); 
+                opacity: 1; 
+                border-width: 2px;
+            }
+            100% { 
+                transform: scale(2); 
+                opacity: 0; 
+                border-width: 1px;
+            }
+        }
+        
+        .water-ripple {
+            position: absolute;
+            pointer-events: none;
+            z-index: 100;
+        }
     </style>
 </head>
 <body>
@@ -861,11 +969,18 @@
                 </div>
 
                 <div class="game-controls">
-                    <button class="control-btn" id="newLevelBtn" aria-label="Start new level">New Level</button>
-                    <button class="control-btn" id="resetBtn" aria-label="Reset current level">Reset</button>
-                    <button class="control-btn" id="undoBtn" aria-label="Undo last pipe placement">Undo</button>
-                    <button class="control-btn" id="flowTestBtn" aria-label="Test water flow">Flow Test</button>
-                    <button class="control-btn" id="hintBtn" aria-label="Get a hint for current problem">Hint</button>
+                    <div class="control-row">
+                        <button class="control-btn water-btn" id="flowTestBtn" aria-label="Start water flow">
+                            <span class="tap-icon">💧</span>
+                            Start Tap
+                        </button>
+                    </div>
+                    <div class="control-row">
+                        <button class="control-btn" id="newLevelBtn" aria-label="Start new level">New Level</button>
+                        <button class="control-btn" id="resetBtn" aria-label="Reset current level">Reset</button>
+                        <button class="control-btn" id="undoBtn" aria-label="Undo last pipe placement">Undo</button>
+                        <button class="control-btn" id="hintBtn" aria-label="Get a hint for current problem">Hint</button>
+                    </div>
                 </div>
                     </div>
                 </div>
@@ -1743,6 +1858,7 @@
                 pipeElement.dataset.pipeData = JSON.stringify(pipeData);
                 pipeElement.dataset.x = x;
                 pipeElement.dataset.y = y;
+                pipeElement.dataset.pipeId = Date.now(); // Add unique ID for water flow styling
                 
                 console.log('🔧 Pipe element created with data:', pipeElement.dataset);
                 
@@ -2477,6 +2593,11 @@
                 let finalValue = this.calculatePathValue(path);
                 console.log('🧮 Calculated final value from path:', finalValue);
                 
+                // Apply water flow styling to start pipe
+                if (this.startPipe && this.startPipe.element) {
+                    this.applyWaterFlowStyling({ element: this.startPipe.element, timestamp: 'start' });
+                }
+                
                 // Animate water flow step by step
                 let currentValue = this.startPipe.value;
                 let step = 0;
@@ -2487,11 +2608,16 @@
                     if (step >= path.length) {
                         console.log('🏁 Animation complete, final value:', finalValue);
                         this.checkFlowResult(finalValue);
+                        // Reset all pipes to normal appearance
+                        this.resetPipeAppearances();
                         return;
                     }
                     
                     const pipe = path[step];
                     console.log('➡️ Animating step', step, 'with pipe:', pipe);
+                    
+                    // Apply water flow styling to current pipe
+                    this.applyWaterFlowStyling(pipe);
                     
                     const flowElement = this.createFlowElement(pipe.x, pipe.y);
                     playArea.appendChild(flowElement);
@@ -2505,6 +2631,99 @@
                 };
                 
                 animateStep();
+            }
+            
+            applyWaterFlowStyling(pipe) {
+                // Find the DOM element for this pipe by timestamp
+                const pipeElement = document.querySelector(`[data-pipe-id="${pipe.timestamp}"]`);
+                if (!pipeElement) {
+                    console.log('⚠️ Could not find pipe element by timestamp, trying fallback');
+                    // Fallback: try to find by position
+                    const allPipes = document.querySelectorAll('.placed-pipe');
+                    let foundElement = null;
+                    
+                    allPipes.forEach(element => {
+                        const elementX = parseInt(element.style.left);
+                        const elementY = parseInt(element.style.top);
+                        if (Math.abs(elementX - pipe.x) < 5 && Math.abs(elementY - pipe.y) < 5) {
+                            foundElement = element;
+                        }
+                    });
+                    
+                    if (!foundElement) {
+                        console.log('❌ Could not find pipe element for styling');
+                        return;
+                    }
+                    
+                    pipeElement = foundElement;
+                }
+                
+                console.log('✅ Found pipe element for water flow styling:', pipeElement);
+                
+                // Apply water flow styling
+                pipeElement.style.filter = 'hue-rotate(200deg) brightness(1.2)';
+                pipeElement.style.boxShadow = '0 0 20px rgba(33, 150, 243, 0.8)';
+                pipeElement.style.border = '3px solid #2196F3';
+                pipeElement.style.transform = 'scale(1.1)';
+                pipeElement.style.transition = 'all 0.3s ease';
+                
+                // Add water ripple effect
+                this.createWaterRippleEffect(pipeElement);
+            }
+            
+            createWaterRippleEffect(pipeElement) {
+                const ripple = document.createElement('div');
+                ripple.className = 'water-ripple';
+                ripple.style.cssText = `
+                    position: absolute;
+                    top: -10px;
+                    left: -10px;
+                    right: -10px;
+                    bottom: -10px;
+                    border: 2px solid #2196F3;
+                    border-radius: 50%;
+                    animation: waterRippleExpand 1s ease-out forwards;
+                    pointer-events: none;
+                    z-index: 100;
+                `;
+                
+                pipeElement.appendChild(ripple);
+                
+                // Remove ripple after animation
+                setTimeout(() => {
+                    if (ripple.parentNode) {
+                        ripple.parentNode.removeChild(ripple);
+                    }
+                }, 1000);
+            }
+            
+            resetPipeAppearances() {
+                // Reset all placed pipes to normal appearance
+                document.querySelectorAll('.placed-pipe').forEach(pipe => {
+                    pipe.style.filter = '';
+                    pipe.style.boxShadow = '';
+                    pipe.style.border = '';
+                    pipe.style.transform = '';
+                    pipe.style.transition = '';
+                });
+                
+                // Reset start pipe to normal appearance
+                if (this.startPipe && this.startPipe.element) {
+                    this.startPipe.element.style.filter = '';
+                    this.startPipe.element.style.boxShadow = '';
+                    this.startPipe.element.style.border = '';
+                    this.startPipe.element.style.transform = '';
+                    this.startPipe.element.style.transition = '';
+                }
+                
+                // Reset answer pipe to normal appearance
+                if (this.answerPipe && this.answerPipe.element) {
+                    this.answerPipe.element.style.filter = '';
+                    this.answerPipe.element.style.boxShadow = '';
+                    this.answerPipe.element.style.border = '';
+                    this.answerPipe.element.style.transform = '';
+                    this.answerPipe.element.style.transition = '';
+                }
             }
             
             calculatePathValue(path) {
