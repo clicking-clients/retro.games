@@ -1,273 +1,346 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Control a growing worm, eat food, and avoid hitting walls or yourself in this classic snake game.">
-    <meta name="keywords" content="snake, worm, food, classic, retro, arcade">
-    <meta name="author" content="Retro Games Collection">
-    <meta name="robots" content="index, follow">
-    
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="game">
-    <meta property="og:url" content="https://retrogames.com/wormy">
-    <meta property="og:title" content="Wormy - Retro Games Collection">
-    <meta property="og:description" content="Control a growing worm, eat food, and avoid hitting walls or yourself in this classic snake game.">
-    <meta property="og:image" content="https://retrogames.com/images/wormy.jpg">
-    
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://retrogames.com/wormy">
-    <meta property="twitter:title" content="Wormy - Retro Games Collection">
-    <meta property="twitter:description" content="Control a growing worm, eat food, and avoid hitting walls or yourself in this classic snake game.">
-    <meta property="twitter:image" content="https://retrogames.com/images/wormy.jpg">
-    
-    <title>Wormy - Retro Games Collection</title>
-    
-    <!-- Core CSS -->
-    <link rel="stylesheet" href="../../core/base.css">
-    <link rel="stylesheet" href="../../core/components.css">
-    <link rel="stylesheet" href="../../core/responsive.css">
-    
-    <!-- Game-specific CSS -->
-    <link rel="stylesheet" href="styles.css">
-    
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="../../favicon.ico">
-    <link rel="apple-touch-icon" sizes="180x180" href="../../apple-touch-icon.png">
-    
-    
-    <!-- Structured Data -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "VideoGame",
-      "name": "Wormy",
-      "description": "Control a growing worm, eat food, and avoid hitting walls or yourself in this classic snake game.",
-      "genre": "arcade",
-      "gamePlatform": "Web Browser",
-      "applicationCategory": "Game",
-      "operatingSystem": "Any",
-      "url": "https://retrogames.com/wormy",
-      "author": {
-        "@type": "Organization",
-        "name": "Retro Games Collection"
-      },
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "USD"
-      }
-    }
-    </script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Number Defenders</title>
+<style>
+:root { --green:#0f0; --yellow:#ff0; --red:#f00; --bg:#000; }
+html, body { height:100%; margin:0; padding:0; background: var(--bg); font-family: monospace; color: var(--green); overflow:hidden; }
+#container { display:flex; justify-content:center; align-items:flex-start; gap:20px; padding:20px; position:relative; }
+#gameNav, 
+#gameNav a {
+  display: block;
+  margin-top: 5px;
+  text-transform: uppercase;
+  color: #0f0;
+  text-decoration: none;
+}
+
+#gameNav a.active {
+  color: #ff0;       /* highlight color */
+  font-weight: bold;  /* optional emphasis */
+  text-decoration: underline;
+}
+#game { border:4px solid var(--green); width:540px; height:640px; background: var(--bg); image-rendering: pixelated; display:block; position:relative; z-index:1; }
+#sidebar { width:450px; display:flex; flex-direction:column; gap:10px; }
+#title { text-transform: uppercase; font-size: 2rem; color: #ff0; text-shadow: 0 0 8px #f00; text-align: center; }
+#scoreboard { border:2px solid var(--green); padding:8px; font-size:0.9rem; }
+.section-title { color: var(--yellow); font-weight:bold; margin-bottom:4px; }
+#controls { font-size:0.9rem; }
+.pill { border:1px solid var(--green); padding:6px 8px; display:inline-block; cursor:pointer; margin-right:4px; user-select:none; }
+.toggle input { accent-color: var(--green); }
+#wordList { width:100%; height:80px; background:#001100; color: var(--green); border:1px solid var(--green); padding:6px; font-family:monospace; }
+input[type=range] { width:100%; }
+#quotes { margin-top:8px; font-size:0.9rem; height:24px; text-align:center; }
+#rocketOverlay { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:999; }
+#splashScreen { position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); color:#fff; font-size:2rem; display:none; justify-content:center; align-items:center; flex-direction:column; text-align:center; z-index:1000; }
+#splashScreen button { margin-top:20px; padding:10px 20px; font-size:1rem; cursor:pointer; }
+.mode-settings { margin-top:8px; font-size:0.9rem; }
+</style>
 </head>
 <body>
-    <!-- Skip to main content link for accessibility -->
-    <a href="#gameContent" class="sr-only sr-only-focusable">Skip to main content</a>
-    
-    <!-- Game Container -->
-    <div class="game-container" data-game="number-defenders" id="gameContainer">
-        <!-- Game Header -->
-        <header class="game-header">
-            <h1 class="game-title" id="gameTitle">Wormy</h1>
-            <div class="game-meta">
-                <span class="game-category">🎮 Arcade</span>
-                <span class="game-difficulty">⭐ Easy</span>
-                <span class="game-time">⏱️ 2-8 minutes</span>
-            </div>
-        </header>
-        
-        <!-- Main Game Content -->
-        <main class="game-content" id="gameContent">
-            <!-- Game Canvas Area -->
-            <div class="game-canvas-area">
-                <canvas 
-                    id="gameCanvas" 
-                    class="game-canvas"
-                    width="400"
-                    height="400"
-                    style="aspect-ratio: 400/400;"
-                    tabindex="0"
-                    role="application"
-                    aria-label="Wormy game canvas"
-                    aria-describedby="gameInstructions">
-                </canvas>
-                
-                <!-- Game Overlay Elements -->
-                <div id="gameOverlay" class="game-overlay" style="display: none;">
-                    <div class="overlay-content">
-                        <h2 id="overlayTitle">Game Over</h2>
-                        <p id="overlayMessage">Your final score: <span id="finalScore">0</span></p>
-                        <div class="overlay-buttons">
-                            <button id="restartButton" class="btn btn-primary">Play Again</button>
-                            <button id="menuButton" class="btn btn-secondary">Main Menu</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Game Sidebar -->
-            <aside class="game-sidebar">
-                <!-- Scoreboard -->
-                <div class="sidebar-section scoreboard">
-                    <h3 class="section-title">Score</h3>
-                    <div class="score-grid">
-                        <div class="score-item">
-                            <span class="score-label">Score:</span>
-                            <span class="score-value" id="scoreValue">0</span>
-                        </div>
-                        <div class="score-item">
-                            <span class="score-label">Lives:</span>
-                            <span class="score-value" id="livesValue">3</span>
-                        </div>
-                        <div class="score-item">
-                            <span class="score-label">Level:</span>
-                            <span class="score-value" id="levelValue">1</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Controls -->
-                <div class="sidebar-section">
-                    <h3 class="section-title">Controls</h3>
-                    <div class="controls-list">
-                        <div class="control-item">
-                            <span class="control-name">Arrow Keys</span>
-                            <span class="control-description">Use arrow keys to move</span>
-                        </div>
-                        <div class="control-item">
-                            <span class="control-name">Touch</span>
-                            <span class="control-description">Touch-friendly controls</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Game Stats -->
-                <div class="sidebar-section">
-                    <h3 class="section-title">Stats</h3>
-                    <div class="stats-list">
-                        <div class="stat-item">
-                            <span class="stat-label">Category:</span>
-                            <span class="stat-value">Arcade</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-label">Difficulty:</span>
-                            <span class="stat-value">Easy</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-label">Play Time:</span>
-                            <span class="stat-value">2-8 minutes</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Quick Actions -->
-                <div class="sidebar-section">
-                    <h3 class="section-title">Quick Actions</h3>
-                    <div class="action-buttons">
-                        <button id="pauseButton" class="btn btn-secondary btn-small">⏸️ Pause</button>
-                        <button id="muteButton" class="btn btn-secondary btn-small">🔊 Mute</button>
-                        <button id="fullscreenButton" class="btn btn-secondary btn-small">⛶ Fullscreen</button>
-                    </div>
-                </div>
-            </aside>
-        </main>
-        
-        <!-- Touch Controls (Mobile) -->
-        <div id="touchControls" class="touch-controls">
-            <button class="touch-button" data-key="ArrowUp" aria-label="Up">⬆️</button>
-            <div class="touch-row">
-                <button class="touch-button" data-key="ArrowLeft" aria-label="Left">⬅️</button>
-                <button class="touch-button" data-key="ArrowRight" aria-label="Right">➡️</button>
-            </div>
-            <button class="touch-button" data-key="ArrowDown" aria-label="Down">⬇️</button>
-        </div>
-        
-        <!-- Game Instructions -->
-        <section class="game-instructions" id="gameInstructions">
-            <h2>How to Play</h2>
-            <p>Control a growing worm, eat food, and avoid hitting walls or yourself.</p>
-            <h3>Features:</h3>
-            <ul class="feature-list">
-                <li>Score Tracking</li>
-                <li>Speed Increase</li>
-                <li>Food Spawning</li>
-            </ul>
-        </section>
-        
-        <!-- Game Footer -->
-        <footer class="game-footer">
-            <div class="game-info">
-                <span>Version 1.0.0</span>
-                <span>Last updated: 2025-01-01</span>
-            </div>
-            <div class="game-tags">
-                <span class="game-tag">snake</span>
-                <span class="game-tag">worm</span>
-                <span class="game-tag">food</span>
-                <span class="game-tag">simple</span>
-            </div>
-        </footer>
+
+<div id="splashScreen"><div id="splashText">Level Complete!</div><button id="splashBtn">Next Level</button></div>
+<div id="container">  
+   <nav id="gameNav" style="padding:10px; background:#111; color:#0f0; font-family:monospace;">
+    <strong>Games:</strong>
+  </nav>
+  <script src="navigation.js"></script>
+  <canvas id="game" width="540" height="640"></canvas>
+  <div id="sidebar">
+    <div id="title">NUMBER DEFENDERS</div>
+    <div id="scoreboard">
+      <div class="section-title">SCORE</div>
+      <div>Score: <span id="score">0</span> | Problems Left: <span id="wordsLeft">0</span></div>
+      <div>Timer: <span id="timerDisplay">0:00</span></div>
     </div>
-    
-    <!-- Home Button -->
-    <a href="../../index.html" class="home-button" aria-label="Back to games collection">
-        🏠 Back to Games
-    </a>
-    
-    <!-- Loading Indicator -->
-    <div id="loadingIndicator" class="loading-overlay">
-        <div class="loading-spinner">
-            <div class="loading"></div>
-            <p>Loading Wormy...</p>
-        </div>
+    <div id="controls">
+      <div class="section-title">CONTROLS</div>
+      ←: Move Left<br>
+      →: Move Right<br>
+      Type numbers: Solve problem in lane<br>
+      Space: Start / Pause<br>
+      R: Reset Level
     </div>
-    
-    <!-- Error Boundary -->
-    <div id="errorBoundary" class="error-overlay" style="display: none;">
-        <div class="error-content">
-            <h2>Oops! Something went wrong</h2>
-            <p>There was an error loading Wormy.</p>
-            <button onclick="location.reload()" class="btn btn-primary">Try Again</button>
-            <a href="../../index.html" class="btn btn-secondary">Back to Games</a>
-        </div>
+
+    <div style="display:flex; gap:10px;">
+      <div>
+        <div class="section-title">SPEED</div>
+        <input type="range" id="speedSlider" min="1" max="10" step="1" value="2">
+        <div id="speedVal">2</div>
+      </div>
+      <div>
+        <div class="section-title">LANES</div>
+        <input type="range" id="laneSlider" min="1" max="8" step="1" value="4">
+        <div id="laneVal">4</div>
+      </div>
+      <div>
+        <div class="section-title">TIMER</div>
+        <input type="range" id="timerSlider" min="1" max="10" step="1" value="3">
+        <div id="timerVal">3</div>
+        <label><input type="checkbox" id="timerToggle"> Enable Timer</label>
+      </div>
     </div>
-    
-    <!-- Core Scripts -->
-    <script type="module" src="../../core/gameLoader.js"></script>
-    <script type="module" src="game.js"></script>
-    
-    <!-- Service Worker Registration -->
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('../../core/serviceWorker.js')
-                    .then(registration => console.log('SW registered'))
-                    .catch(error => console.log('SW registration failed'));
-            });
-        }
-    </script>
-    
-    <!-- Analytics (if needed) -->
-    <script>
-        // Game analytics tracking
-        window.gameAnalytics = {
-            gameId: 'wormy',
-            gameTitle: 'Wormy',
-            category: 'arcade',
-            difficulty: 'easy',
-            startTime: Date.now()
-        };
-        
-        // Track game start
-        window.addEventListener('load', () => {
-            if (typeof gtag !== 'undefined') {
-                gtag('event', 'game_start', {
-                    game_id: 'wormy',
-                    game_title: 'Wormy'
-                });
-            }
-        });
-    </script>
+
+    <div class="mode-settings">
+      <div class="section-title">MODE</div>
+      <label><input type="radio" name="mode" value="both" checked> + / - </label>
+      <label><input type="radio" name="mode" value="+"> Addition </label>
+      <label><input type="radio" name="mode" value="-"> Subtraction </label><br>
+      <label><input type="checkbox" id="allowNeg"> Allow negative answers</label>
+    </div>
+
+    <div id="quotes"></div>
+  </div>
+  <canvas id="rocketOverlay" width="1200" height="720"></canvas>
+</div>
+<script>
+(() => {
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+let W = canvas.width, H = canvas.height;
+let lanes = 4, playerLane = 0; // Start in leftmost lane
+let laneW = W/lanes, floorY = H-48;
+
+let score=0, lives=3, running=true, gameOver=false;
+let speedValue=parseFloat(document.getElementById('speedSlider').value)/4;
+let words=[], wordsLeft=0, totalWordsInLevel=20, spawnedCount=0;
+let rocketLaunched=false, lastOutcomeSuccess=false;
+let startTime, timerDuration=180;
+let level=1, maxOperand=20;
+
+const speedSlider=document.getElementById('speedSlider');
+const laneSlider=document.getElementById('laneSlider');
+const speedVal=document.getElementById('speedVal');
+const laneVal=document.getElementById('laneVal');
+const scoreEl=document.getElementById('score');
+const wordsLeftEl=document.getElementById('wordsLeft');
+const timerToggle=document.getElementById('timerToggle');
+const timerSlider=document.getElementById('timerSlider');
+const timerVal=document.getElementById('timerVal');
+const timerDisplay=document.getElementById('timerDisplay');
+const quotesEl=document.getElementById('quotes');
+const splashScreen=document.getElementById('splashScreen');
+const splashBtn=document.getElementById('splashBtn');
+const splashText=document.getElementById('splashText');
+
+const rocketOverlay=document.getElementById('rocketOverlay');
+const rocketCtx=rocketOverlay.getContext('2d');
+
+/* ===== Audio ===== */
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+const actx = new AudioCtx();
+function beep(freq=440,dur=0.07,type='square',vol=0.02){
+  const o=actx.createOscillator();
+  const g=actx.createGain();
+  o.type=type; o.frequency.value=freq;
+  o.connect(g); g.connect(actx.destination); g.gain.value=vol;
+  o.start(); o.stop(actx.currentTime+dur);
+}
+function rocketRumble(){
+  const g=actx.createGain(); g.gain.value=0.04; g.connect(actx.destination);
+  const o1=actx.createOscillator(), o2=actx.createOscillator();
+  o1.type='sawtooth'; o2.type='square';
+  o1.frequency.setValueAtTime(90, actx.currentTime);
+  o2.frequency.setValueAtTime(55, actx.currentTime);
+  o1.frequency.exponentialRampToValueAtTime(140, actx.currentTime+0.6);
+  o2.frequency.exponentialRampToValueAtTime(70, actx.currentTime+0.6);
+  o1.connect(g); o2.connect(g);
+  const end=actx.currentTime+0.7;
+  g.gain.setValueAtTime(0.045, actx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.01, end);
+  o1.start(); o2.start(); o1.stop(end); o2.stop(end);
+}
+function fireworksPop(){
+  [900,1100,1300].forEach((f,i)=>{
+    const delay= i*0.08;
+    const o=actx.createOscillator(), g=actx.createGain();
+    o.type='triangle'; o.frequency.value=f;
+    o.connect(g); g.connect(actx.destination);
+    g.gain.setValueAtTime(0.03, actx.currentTime+delay);
+    g.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime+delay+0.2);
+    o.start(actx.currentTime+delay); o.stop(actx.currentTime+delay+0.22);
+  });
+}
+
+/* ===== quotes ===== */
+const QUOTES=["You are brave and strong!","Trust yourself—you can do it!","Every step shows courage!","You are unstoppable!"];
+let quoteIndex=0;
+function rotateQuotes(){ quotesEl.textContent=QUOTES[quoteIndex]; quoteIndex=(quoteIndex+1)%QUOTES.length; }
+setInterval(rotateQuotes,5000); rotateQuotes();
+
+/* ===== words & lanes ===== */
+function laneX(l){ return l*laneW+laneW/2; }
+function randColor(){ const colors=["#0f0","#0ff","#ff0","#f0f","#f60","#0fa","#ff3","#f3f","#3ff","#f06","#f33","#33f","#fff"];
+  return colors[Math.floor(Math.random()*colors.length)];
+}
+
+/* ===== Math problem generator ===== */
+function generateMathProblem(){
+  let a = Math.floor(Math.random()*maxOperand);
+  let b = Math.floor(Math.random()*maxOperand);
+  let op = document.querySelector('input[name="mode"]:checked').value;
+  if(op==='both'){ op = Math.random()<0.5 ? '+' : '-'; }
+  if(!document.getElementById('allowNeg').checked && op==='-' && b>a){
+    [a,b]=[b,a];
+  }
+  const text = `${a}${op}${b}`;
+  const answer = op==='+' ? a+b : a-b;
+  return { text, answer };
+}
+
+/* Random spawn timing */
+let nextSpawnAt=0;
+function scheduleNextSpawn(){ nextSpawnAt = Date.now() + 350 + Math.random()*1100; }
+function spawnWord(){
+  if(wordsLeft<=0 || spawnedCount>=totalWordsInLevel) return;
+  if(Date.now() < nextSpawnAt) return;
+  const l = Math.floor(Math.random()*lanes);
+  const crowded=words.some(w=>w.lane===l && w.y<80 && !w.fly);
+  if(!crowded){
+    const problem = generateMathProblem();
+    words.push({ text: problem.text, answer: problem.answer, lane:l, y:-10, progress:0, input:'', done:false, fly:false, alpha:1, color: randColor() });
+    spawnedCount++;
+  }
+  scheduleNextSpawn();
+}
+
+/* ===== Rocket Class ===== */
+class Rocket{
+  constructor(canvas, audioFuncs, levelCompleteCb){
+    this.canvas = canvas; this.ctx = canvas.getContext('2d'); this.levelCompleteCb = levelCompleteCb;
+    this.x=60; this.y=H-80; this.height=40; this.width=20; this.audio=audioFuncs; this.flying=false;
+    this.draw();
+  }
+  draw(){
+    const ctx=this.ctx; ctx.clearRect(0,0,this.canvas.width,this.canvas.height);
+    ctx.fillStyle='#fff'; ctx.fillRect(this.x,this.y,this.width,this.height);
+  }
+  grow(){ this.height +=6; this.y-=6; this.draw(); this.audio.rocketRumble(); }
+  launch(){
+    this.flying=true; let interval = setInterval(()=>{
+      if(this.y<-50){ clearInterval(interval); this.audio.fireworksPop(); this.levelCompleteCb(); return; }
+      this.y-=6; this.draw();
+    },16);
+  }
+  resetForLevel(){ this.height=40; this.y=H-80; this.draw(); this.flying=false; }
+}
+
+/* ===== Level Reset ===== */
+let rocket;
+function resetLevel(keepLevelNumber=false){
+  if(!keepLevelNumber) level=1;
+  score=0; lives=3; running=true; gameOver=false; words=[]; rocketLaunched=false; lastOutcomeSuccess=false;
+  lanes=parseInt(laneSlider.value); laneW=W/lanes;
+  speedValue=parseFloat(speedSlider.value)/4;
+  totalWordsInLevel = 20;
+  spawnedCount=0;
+  wordsLeft=totalWordsInLevel;
+  startTime = Date.now();
+  timerDuration=parseInt(timerSlider.value)*60*1000;
+  maxOperand = level<=2 ? 10 : 20;
+  updateScore();
+  scheduleNextSpawn();
+  draw();
+  if(!rocket){
+    rocket = new Rocket(
+      rocketOverlay,
+      { fireworksPop, rocketRumble, actx },
+      ()=>{ splashLevelOver(true); level++; }
+    );
+  } else { rocket.resetForLevel(); }
+}
+function startNextLevel(){ resetLevel(true); }
+
+/* ===== scoreboard ===== */
+function updateScore(){ scoreEl.textContent=score; wordsLeftEl.textContent=wordsLeft; }
+
+/* ===== draw ===== */
+function drawWord(w){
+  const x=laneX(w.lane), y=w.y;
+  ctx.font='28px monospace'; ctx.textAlign='center';
+  ctx.fillStyle=w.color;
+  let displayText = w.text + (w.input ? ` (${w.input})` : '');
+  if(w.fly){ w.y-=6; w.alpha-=0.07; ctx.fillStyle=`rgba(255,255,255,${w.alpha})`; ctx.fillText(displayText,x,y); if(w.alpha<=0) w.done=true; return; }
+  if(w.done && !w.fly){ ctx.fillStyle="#f00"; ctx.save(); ctx.translate(x,y); ctx.rotate(Math.PI); ctx.fillText(displayText,0,0); ctx.restore(); return; }
+  ctx.fillText(displayText,x,y);
+}
+function draw(){
+  ctx.fillStyle="#000"; ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle="#0f0"; ctx.lineWidth=1;
+  for(let l=1;l<lanes;l++){ ctx.beginPath(); ctx.moveTo(l*laneW+0.5,0); ctx.lineTo(l*laneW+0.5,H); ctx.stroke(); }
+  ctx.beginPath(); ctx.moveTo(0,floorY+12); ctx.lineTo(W,floorY+12); ctx.stroke();
+  for(const w of words) drawWord(w);
+  ctx.fillStyle="#0f0"; ctx.font='16px monospace'; ctx.textAlign='left'; ctx.fillText(`LIVES: ${lives}`,8,16);
+  ctx.textAlign='center'; ctx.fillStyle='#ff0'; ctx.fillRect(laneX(playerLane)-15,floorY-12,30,12);
+  ctx.fillStyle='#0f0'; ctx.textAlign='right'; ctx.fillText(running?'RUN':'PAUSE',W-8,16);
+}
+
+/* ===== game step ===== */
+function step(){
+  if(!running){ draw(); requestAnimationFrame(step); return; }
+  if(timerToggle && timerToggle.checked){
+    const elapsed=Date.now()-startTime, remaining=Math.max(0,timerDuration-elapsed);
+    timerDisplay.textContent=Math.floor(remaining/60000)+":"+("0"+Math.floor((remaining%60000)/1000)).slice(-2);
+    if(remaining<=0){ gameOver=true; running=false; lastOutcomeSuccess=false; splashLevelOver(false); return; }
+  }
+  spawnWord();
+  for(const w of words) if(!w.done && !w.fly) w.y+=speedValue;
+
+  for(const w of words){
+    if(!w.done && !w.fly && w.y>=floorY){ lives--; w.done=true; wordsLeft = Math.max(0, wordsLeft-1); updateScore(); beep(140,0.08); if(lives<=0){ gameOver=true; running=false; lastOutcomeSuccess=false; splashLevelOver(false); } }
+  }
+
+  draw();
+  requestAnimationFrame(step);
+}
+
+/* ===== keyboard input ===== */
+document.addEventListener('keydown',(e)=>{
+  if(e.key===' '){ running=!running; return; }
+  if(e.key.toLowerCase()==='r'){ resetLevel(true); return; }
+
+  if(e.key==='ArrowLeft'){ playerLane=Math.max(0,playerLane-1); return; }
+  if(e.key==='ArrowRight'){ playerLane=Math.min(lanes-1,playerLane+1); return; }
+
+  const target = words.find(w=>!w.done && w.lane===playerLane);
+  if(!target) return;
+  if(/[0-9\-]/.test(e.key)){
+    if(e.key==='-' && target.input.includes('-')) return;
+    target.input = (target.input||'') + e.key;
+  }
+
+  if(parseInt(target.input) === target.answer){
+    target.fly=true; target.done=true; wordsLeft = Math.max(0, wordsLeft-1); updateScore();
+    score+=1; rocket && rocket.grow();
+    if(wordsLeft===0 && !gameOver){ rocketLaunched=true; rocket && rocket.launch(); }
+  } else if(!target.answer.toString().startsWith(target.input)){ beep(180,0.03); target.input=''; }
+});
+
+/* ===== sliders ===== */
+speedSlider.addEventListener('input',()=>{ speedValue=parseFloat(speedSlider.value)/4; speedVal.textContent=speedSlider.value; });
+laneSlider.addEventListener('input',()=>{ 
+  lanes=parseInt(laneSlider.value); 
+  laneW=W/lanes; 
+  laneVal.textContent=lanes; 
+  // Ensure player lane is within new lane count
+  playerLane = Math.min(playerLane, lanes-1);
+  draw(); // Redraw to show updated lane indicator
+});
+
+/* ===== splash ===== */
+splashBtn.addEventListener('click',()=>{ splashScreen.style.display='none'; startNextLevel(); });
+function splashLevelOver(success){
+  splashText.textContent = success? "Level Complete!" : "Game Over!";
+  splashScreen.style.display='flex';
+}
+
+resetLevel();
+draw(); // Draw immediately to show player lane indicator
+step();
+})();
+</script>
+
 </body>
 </html>
