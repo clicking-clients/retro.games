@@ -238,7 +238,7 @@ export class ChompyGame {
   startGameLoop() {
     this.gameLoop = setInterval(() => {
       this.update();
-    }, 16); // 60 FPS
+    }, 100); // 10 FPS - appropriate for Pac-Man style game
   }
   
   /**

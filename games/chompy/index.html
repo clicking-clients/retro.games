@@ -36,9 +36,6 @@
     <link rel="icon" type="image/x-icon" href="../../favicon.ico">
     <link rel="apple-touch-icon" sizes="180x180" href="../../apple-touch-icon.png">
     
-    <!-- Preload critical resources -->
-    <link rel="preload" href="../../core/gameLoader.js" as="script">
-    <link rel="preload" href="game.js" as="script">
     
     <!-- Structured Data -->
     <script type="application/ld+json">
@@ -69,7 +66,7 @@
     <a href="#gameContent" class="sr-only sr-only-focusable">Skip to main content</a>
     
     <!-- Game Container -->
-    <div class="game-container" data-game="wormy" id="gameContainer">
+    <div class="game-container" data-game="chompy" id="gameContainer">
         <!-- Game Header -->
         <header class="game-header">
                     <h1 class="game-title" id="gameTitle">Chompy</h1>
@@ -245,7 +242,7 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('../../sw.js')
+                navigator.serviceWorker.register('../../core/serviceWorker.js')
                     .then(registration => console.log('SW registered'))
                     .catch(error => console.log('SW registration failed'));
             });

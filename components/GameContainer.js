@@ -321,15 +321,20 @@ export class GameContainer {
    */
   async loadModule(moduleName) {
     const moduleMap = {
-      audio: 'core/audio.js',
-      fireworks: 'core/fireworks.js',
-      rocket: 'core/rocket.js'
+      audio: '../../core/audio.js',
+      fireworks: '../../core/fireworks.js',
+      rocket: '../../core/rocket.js'
     };
     
     if (moduleMap[moduleName]) {
-      const module = await import(moduleMap[moduleName]);
-      this[moduleName] = module.default || module;
-      this.emit('moduleLoaded', { name: moduleName, module: this[moduleName] });
+      try {
+        const module = await import(moduleMap[moduleName]);
+        this[moduleName] = module.default || module;
+        this.emit('moduleLoaded', { name: moduleName, module: this[moduleName] });
+      } catch (error) {
+        console.warn(`Module ${moduleName} not available, continuing without it`);
+        // Don't fail the game if optional modules aren't available
+      }
     }
   }
   

@@ -41,13 +41,28 @@ export class GameLoader {
    */
   detectGameFromURL() {
     const path = window.location.pathname;
-    const gameId = path.split('/').pop().replace('.html', '');
+    console.log('Full path:', path);
     
-    if (gameId && gameId !== 'index' && GAME_CONFIGS[gameId]) {
+    // Extract game ID from path like /games/block-stack/index.html
+    const pathParts = path.split('/');
+    let gameId = null;
+    
+    // Look for the games directory and get the next part
+    for (let i = 0; i < pathParts.length; i++) {
+      if (pathParts[i] === 'games' && i + 1 < pathParts.length) {
+        gameId = pathParts[i + 1];
+        break;
+      }
+    }
+    
+    console.log('Extracted game ID:', gameId);
+    
+    if (gameId && GAME_CONFIGS[gameId]) {
       this.currentGameId = gameId;
     } else {
       // Default to first game if none specified
       this.currentGameId = Object.keys(GAME_CONFIGS)[0];
+      console.warn(`Game ID '${gameId}' not found in configs, defaulting to: ${this.currentGameId}`);
     }
     
     console.log(`Detected game: ${this.currentGameId}`);
