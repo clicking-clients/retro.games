@@ -94,6 +94,56 @@
   }
 }
 
+/* LHS/RHS Layout Structure */
+.game-area-lhs {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+  max-width: 70%;
+}
+
+.game-sidebar-rhs {
+  width: 300px;
+  min-width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  color: var(--retro-green);
+}
+
+.game-canvas-area {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .game-sidebar-rhs {
+    width: 280px;
+    min-width: 250px;
+  }
+}
+
+@media (max-width: 768px) {
+  .game-content {
+    flex-direction: column;
+  }
+  
+  .game-area-lhs {
+    max-width: 100%;
+    order: 2;
+  }
+  
+  .game-sidebar-rhs {
+    width: 100%;
+    order: 3;
+  }
+}
+
 /* ===== GAME TITLE ===== */
 .game-title {
   font-size: clamp(var(--font-size-2xl), 4vw, var(--font-size-4xl));

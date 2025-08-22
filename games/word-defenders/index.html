@@ -10,19 +10,6 @@
 <link rel="stylesheet" href="styles.css">
 <style>
 /* Word Defenders specific styles */
-.word-defenders-container {
-    display: flex;
-    gap: 20px;
-    align-items: flex-start;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-}
-
-.game-area {
-    flex: 1;
-    text-align: center;
-}
 
 .game-title {
     text-transform: uppercase;
@@ -107,13 +94,7 @@
     margin-top: 10px;
 }
 
-.sidebar {
-    width: 300px;
-    color: #0f0;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
+
 
 .section-title {
     color: #ffd700;
@@ -202,7 +183,7 @@
 
 /* Mobile responsive */
 @media (max-width: 768px) {
-    .word-defenders-container {
+    .game-content {
         flex-direction: column;
         padding: 10px;
     }
@@ -220,12 +201,12 @@
         display: block;
     }
     
-    .sidebar {
+    .game-sidebar-rhs {
         width: 100%;
         order: 3;
     }
     
-    .game-area {
+    .game-area-lhs {
         order: 2;
     }
     
@@ -241,8 +222,8 @@
 </head>
 <body>
 <!-- Enhanced Navigation will be automatically inserted here -->
-<div class="word-defenders-container">
-    <div class="game-area">
+<div class="game-content">
+    <div class="game-area-lhs">
         <h1 class="game-title">Word Defenders</h1>
 
         
@@ -297,7 +278,9 @@
         </div>
     </div>
     
-    <div class="sidebar">
+    </div>
+    
+    <div class="game-sidebar-rhs">
         <div class="scoreboard" role="region" aria-label="Game Score">
             <div class="section-title">SCORE</div>
             <div>Score: <span id="score" aria-live="polite">0</span> | Words Left: <span id="wordsLeft" aria-live="polite">0</span> | WPM: <span id="wpm" aria-live="polite">0</span></div>
