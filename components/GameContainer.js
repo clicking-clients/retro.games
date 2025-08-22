@@ -338,7 +338,7 @@ export class GameContainer {
    */
   async loadModule(moduleName) {
     const moduleMap = {
-      audio: '../../core/audio.js',
+      audio: '../../audio.js',
       fireworks: '../../core/fireworks.js',
       rocket: '../../core/rocket.js'
     };

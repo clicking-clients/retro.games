@@ -364,7 +364,7 @@
 /* For mobile browsers with dynamic toolbars */
 @supports (height: 100dvh) {
   .game-container {
-    min-height: 100dvh;
+    min-height: 85dvh;
   }
 }
 
