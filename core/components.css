@@ -15,6 +15,68 @@
   margin: 0 auto;
 }
 
+/* ===== COMPACT NAVIGATION STYLES ===== */
+.compact-nav {
+  margin-bottom: var(--space-sm);
+  border-width: 1px;
+}
+
+.compact-nav .nav-content {
+  padding: var(--space-sm);
+}
+
+.compact-nav .compact-header {
+  margin-bottom: var(--space-sm);
+}
+
+.compact-nav .compact-header .nav-title {
+  font-size: var(--font-size-lg);
+  margin-bottom: var(--space-xs);
+}
+
+.compact-nav .compact-header .nav-subtitle {
+  font-size: var(--font-size-sm);
+  opacity: 0.7;
+}
+
+.compact-nav .compact-filters {
+  margin-bottom: var(--space-sm);
+  gap: var(--space-sm);
+}
+
+.compact-nav .compact-filters .search-input,
+.compact-nav .compact-filters .filter-select {
+  padding: var(--space-xs);
+  font-size: var(--font-size-sm);
+}
+
+.compact-nav .compact-games {
+  max-height: 300px;
+  overflow-y: auto;
+  margin-bottom: var(--space-sm);
+}
+
+.compact-nav .compact-games .game-item {
+  padding: var(--space-sm);
+  margin-bottom: var(--space-xs);
+}
+
+.compact-nav .compact-games .game-item-title {
+  font-size: var(--font-size-base);
+}
+
+.compact-nav .compact-games .game-item-description {
+  font-size: var(--font-size-xs);
+}
+
+.compact-nav .nav-footer {
+  padding-top: var(--space-sm);
+}
+
+.compact-nav .nav-stats {
+  font-size: var(--font-size-xs);
+}
+
 .game-content {
   display: flex;
   flex-direction: column;
@@ -72,6 +134,45 @@
   color: var(--retro-green);
 }
 
+/* ===== COMPACT SIDEBAR STYLES ===== */
+.compact-sidebar {
+  max-width: 280px;
+  gap: var(--space-md);
+}
+
+.compact-sidebar .sidebar-section {
+  padding: var(--space-sm);
+  border-width: 1px;
+}
+
+.compact-sidebar .section-title {
+  font-size: var(--font-size-base);
+  margin-bottom: var(--space-xs);
+}
+
+.compact-sidebar .scoreboard {
+  padding: var(--space-sm);
+  gap: var(--space-xs);
+}
+
+.compact-sidebar .scoreboard .value {
+  font-size: var(--font-size-base);
+}
+
+.compact-sidebar .instructions {
+  font-size: var(--font-size-xs);
+  line-height: 1.4;
+}
+
+.compact-sidebar .control-group {
+  gap: var(--space-xs);
+}
+
+.compact-sidebar .control-label {
+  font-size: var(--font-size-xs);
+}
+
+/* ===== ORIGINAL SIDEBAR STYLES ===== */
 .sidebar-section {
   border: 2px solid var(--retro-green);
   padding: var(--space-md);

@@ -97,7 +97,7 @@ export class GameContainer {
    */
   createSidebar() {
     this.elements.sidebar = document.createElement('div');
-    this.elements.sidebar.className = 'game-sidebar';
+    this.elements.sidebar.className = 'game-sidebar compact-sidebar';
     
     // Create scoreboard
     this.createScoreboard();

@@ -39,6 +39,19 @@
     min-width: 48px;
     font-size: var(--font-size-lg);
   }
+  
+  /* Compact navigation mobile styles */
+  .compact-nav {
+    margin-bottom: var(--space-xs);
+  }
+  
+  .compact-nav .nav-content {
+    padding: var(--space-xs);
+  }
+  
+  .compact-nav .compact-games {
+    max-height: 200px;
+  }
 }
 
 /* ===== MEDIUM MOBILE (480px+) ===== */
@@ -81,6 +94,10 @@
     order: 0; /* Reset order for desktop */
   }
   
+  .compact-sidebar {
+    max-width: 280px;
+  }
+  
   .touch-controls {
     display: none; /* Hide touch controls on desktop */
   }
@@ -100,6 +117,17 @@
   
   .mobile-only {
     display: none;
+  }
+  
+  /* Compact navigation adjustments */
+  .compact-nav {
+    max-height: 400px;
+    overflow: hidden;
+  }
+  
+  .compact-nav .nav-content {
+    max-height: 350px;
+    overflow-y: auto;
   }
 }
 

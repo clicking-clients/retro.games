@@ -65,6 +65,11 @@ export class EnhancedNavigation {
         document.body.insertBefore(this.navElement, firstElement);
       }
     }
+    
+    // If we're on a game page, make navigation more compact
+    if (this.currentGameId) {
+      this.makeNavigationCompact();
+    }
   }
   
   /**
@@ -103,6 +108,31 @@ export class EnhancedNavigation {
     this.createNavigationFooter(contentWrapper);
     
     this.navElement.appendChild(contentWrapper);
+  }
+  
+  /**
+   * Make navigation more compact for game pages
+   */
+  makeNavigationCompact() {
+    this.navElement.classList.add('compact-nav');
+    
+    // Reduce header size
+    const header = this.navElement.querySelector('.nav-header');
+    if (header) {
+      header.classList.add('compact-header');
+    }
+    
+    // Make filters more compact
+    const filters = this.navElement.querySelector('.nav-filters');
+    if (filters) {
+      filters.classList.add('compact-filters');
+    }
+    
+    // Reduce games list height
+    const gamesList = this.navElement.querySelector('.games-list');
+    if (gamesList) {
+      gamesList.classList.add('compact-games');
+    }
   }
   
   /**
@@ -333,7 +363,7 @@ export class EnhancedNavigation {
     gameMeta.appendChild(playTime);
     
     const playButton = document.createElement('a');
-    playButton.href = `../games/${game.id}/index.html`;
+    playButton.href = `../${game.id}/index.html`;
     playButton.className = 'game-item-play';
     playButton.textContent = 'Play Now';
     
@@ -433,7 +463,7 @@ export class EnhancedNavigation {
   goToRandomGame() {
     const games = GameConfigManager.getRandomGame();
     if (games) {
-      window.location.href = `../games/${games.id}/index.html`;
+      window.location.href = `../${games.id}/index.html`;
     }
   }
   
