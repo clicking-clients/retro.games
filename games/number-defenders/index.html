@@ -294,7 +294,11 @@ function drawWord(w){
   ctx.fillText(displayText,x,y);
 }
 function draw(){
-  ctx.fillStyle="#000"; ctx.fillRect(0,0,W,H);
+  // Only clear the canvas if fireworks/rocket are not active
+  if (!rocket || (!rocket.launched && !rocket.inFireworks)) {
+    ctx.fillStyle="#000"; ctx.fillRect(0,0,W,H);
+  }
+  
   ctx.strokeStyle="#0f0"; ctx.lineWidth=1;
   for(let l=1;l<lanes;l++){ ctx.beginPath(); ctx.moveTo(l*laneW+0.5,0); ctx.lineTo(l*laneW+0.5,H); ctx.stroke(); }
   ctx.beginPath(); ctx.moveTo(0,floorY+12); ctx.lineTo(W,floorY+12); ctx.stroke();

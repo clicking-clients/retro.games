@@ -176,8 +176,8 @@ export class Rocket {
         this.currentHeight = this.targetHeight;
       }
 
-      // Clear overlay each frame
-      this.ctx.clearRect(0, 0, this.width, this.height);
+      // Don't clear the canvas - this was wiping out the game!
+      // The game loop will handle clearing when needed
 
       if (this.launched) {
         if (!this._lastT) this._lastT = now;

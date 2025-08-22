@@ -31,17 +31,9 @@ export class Fireworks {
 
     // Create multiple firework bursts
     for (let b = 0; b < numBursts; b++) {
-      // Scale the base position to match the fireworks canvas
-      const scaleX = this.width / 1200; // Scale from game width to fireworks canvas
-      const scaleY = this.height / 720;  // Scale from game height to fireworks canvas
-      
-      // Convert game coordinates to fireworks canvas coordinates
-      const scaledX = baseX * scaleX;
-      const scaledY = baseY * scaleY;
-      
-      // Ensure fireworks stay within canvas bounds
-      const bx = Math.max(50, Math.min(this.width - 50, scaledX + (Math.random() * 60 - 30)));
-      const by = Math.max(50, Math.min(this.height - 50, scaledY + (Math.random() * 40 - 20)));
+      // Use the exact coordinates provided (no scaling needed)
+      const bx = Math.max(50, Math.min(this.width - 50, baseX + (Math.random() * 60 - 30)));
+      const by = Math.max(50, Math.min(this.height - 50, baseY + (Math.random() * 40 - 20)));
       const count = 25 + Math.floor(Math.random() * 20);
       const parts = [];
       
@@ -68,7 +60,10 @@ export class Fireworks {
     const start = performance.now();
     const animate = (now) => {
       const t = (now - start) / 1000;
-      this.ctx.clearRect(0, 0, this.width, this.height);
+      
+      // DON'T clear the entire canvas - this was wiping out the game!
+      // Instead, save the current canvas state and restore it after fireworks
+      this.ctx.save();
       this.ctx.globalCompositeOperation = 'lighter';
 
       // Animate each firework particle
@@ -99,7 +94,8 @@ export class Fireworks {
       if (t < 1.5) {
         requestAnimationFrame(animate);
       } else {
-        this.ctx.clearRect(0, 0, this.width, this.height);
+        // Restore the canvas state - don't clear it!
+        this.ctx.restore();
         this.isActive = false;
         if (onComplete) onComplete();
       }
