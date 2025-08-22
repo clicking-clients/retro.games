@@ -34,17 +34,7 @@ html, body { height:100%; margin:0; padding:0; background: var(--bg); font-famil
 #wordList { width:100%; height:80px; background:#001100; color: var(--green); border:1px solid var(--green); padding:6px; font-family:monospace; }
 input[type=range] { width:100%; }
 #quotes { margin-top:8px; font-size:0.9rem; height:24px; text-align:center; }
-#rocketOverlay { 
-  position:absolute; 
-  top:0; 
-  left:0; 
-  width:540px; 
-  height:640px; 
-  pointer-events:none; 
-  z-index:999; 
-  background: transparent;
-  border: 1px solid rgba(255,0,0,0.3); /* Debug border to see overlay */
-}
+/* Fireworks are now drawn directly on the main game canvas */
 #splashScreen { position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); color:#fff; font-size:2rem; display:none; justify-content:center; align-items:center; flex-direction:column; text-align:center; z-index:1000; }
 #splashScreen button { margin-top:20px; padding:10px 20px; font-size:1rem; cursor:pointer; }
 .level-settings { margin-top:8px; font-size:0.9rem; }
@@ -61,7 +51,6 @@ input[type=range] { width:100%; }
   <script src="navigation.js"></script>
   <div id="game-wrapper">
     <canvas id="game" width="540" height="640"></canvas>
-    <canvas id="rocketOverlay" width="540" height="640"></canvas>
   </div>
   <div id="sidebar">
     <div id="title">NUMBER DEFENDERS</div>
@@ -150,8 +139,7 @@ const splashScreen=document.getElementById('splashScreen');
 const splashBtn=document.getElementById('splashBtn');
 const splashText=document.getElementById('splashText');
 
-const rocketOverlay=document.getElementById('rocketOverlay');
-const rocketCtx=rocketOverlay.getContext('2d');
+// Fireworks will be drawn directly on the main game canvas
 
 // Initialize modular components
 let audio, fireworks, rocket;
@@ -159,11 +147,11 @@ let audio, fireworks, rocket;
 async function initModularComponents() {
   try {
     audio = new GameAudio();
-    fireworks = new Fireworks(rocketOverlay, audio);
+    fireworks = new Fireworks(canvas, audio); // Use main game canvas
     
     // Create rocket instance
     rocket = new Rocket(
-      rocketOverlay,
+      canvas, // Use main game canvas instead of overlay
       audio,
       fireworks,
       () => { splashLevelOver(true); level++; }
