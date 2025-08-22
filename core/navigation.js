@@ -136,6 +136,33 @@ export class EnhancedNavigation {
   }
   
   /**
+   * Toggle navigation collapse state
+   */
+  toggleNavigationCollapse() {
+    const navElement = this.navElement;
+    const filters = navElement.querySelector('.nav-filters');
+    const gamesList = navElement.querySelector('.games-list');
+    const footer = navElement.querySelector('.nav-footer');
+    const collapseBtn = navElement.querySelector('.nav-collapse-btn');
+    
+    if (navElement.classList.contains('collapsed')) {
+      // Expand navigation
+      navElement.classList.remove('collapsed');
+      if (filters) filters.style.display = 'block';
+      if (gamesList) gamesList.style.display = 'block';
+      if (footer) footer.style.display = 'block';
+      if (collapseBtn) collapseBtn.innerHTML = '<span class="collapse-icon">◀</span>';
+    } else {
+      // Collapse navigation
+      navElement.classList.add('collapsed');
+      if (filters) filters.style.display = 'none';
+      if (gamesList) gamesList.style.display = 'none';
+      if (footer) footer.style.display = 'none';
+      if (collapseBtn) collapseBtn.innerHTML = '<span class="collapse-icon">▶</span>';
+    }
+  }
+  
+  /**
    * Create mobile toggle button
    */
   createMobileToggle() {
@@ -166,8 +193,20 @@ export class EnhancedNavigation {
     subtitle.textContent = 'Choose your adventure';
     subtitle.className = 'nav-subtitle';
     
+    // Add collapsible controls
+    const controls = document.createElement('div');
+    controls.className = 'nav-controls';
+    
+    const collapseBtn = document.createElement('button');
+    collapseBtn.className = 'nav-collapse-btn';
+    collapseBtn.setAttribute('aria-label', 'Collapse navigation');
+    collapseBtn.innerHTML = '<span class="collapse-icon">◀</span>';
+    collapseBtn.addEventListener('click', () => this.toggleNavigationCollapse());
+    
+    controls.appendChild(collapseBtn);
     header.appendChild(title);
     header.appendChild(subtitle);
+    header.appendChild(controls);
     container.appendChild(header);
   }
   

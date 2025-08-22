@@ -168,6 +168,58 @@
   gap: var(--space-xs);
 }
 
+/* ===== COLLAPSIBLE NAVIGATION STYLES ===== */
+.nav-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.nav-collapse-btn {
+  background: var(--retro-green);
+  color: var(--retro-bg);
+  border: 2px solid var(--retro-white);
+  border-radius: 4px;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  transition: background-color 0.2s;
+}
+
+.nav-collapse-btn:hover {
+  background: var(--retro-green-dark);
+}
+
+.collapse-icon {
+  display: inline-block;
+  transition: transform 0.2s;
+}
+
+.enhanced-navigation.collapsed {
+  width: auto;
+  min-width: 200px;
+}
+
+.enhanced-navigation.collapsed .nav-filters,
+.enhanced-navigation.collapsed .games-list,
+.enhanced-navigation.collapsed .nav-footer {
+  display: none;
+}
+
+.enhanced-navigation.collapsed .nav-header {
+  text-align: center;
+}
+
+.enhanced-navigation.collapsed .nav-title {
+  font-size: var(--font-size-lg);
+  margin-bottom: 5px;
+}
+
+.enhanced-navigation.collapsed .nav-subtitle {
+  font-size: var(--font-size-sm);
+  margin-bottom: 10px;
+}
+
 .compact-sidebar .control-label {
   font-size: var(--font-size-xs);
 }

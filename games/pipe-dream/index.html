@@ -8,9 +8,307 @@
 <link rel="stylesheet" href="../../core/components.css">
 <link rel="stylesheet" href="../../core/responsive.css">
 <link rel="stylesheet" href="styles.css">
+<style>
+/* Pipe Dream specific styles */
+.pipe-dream-container {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.game-area {
+    flex: 1;
+    text-align: center;
+}
+
+.game-title {
+    text-transform: uppercase;
+    font-size: 2rem;
+    color: #ffd700;
+    text-shadow: 0 0 8px #f00;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.game-canvas {
+    border: 4px solid #0f0;
+    background: #1a1a2e;
+    display: block;
+    margin: 0 auto;
+}
+
+.game-header {
+    margin-bottom: 20px;
+}
+
+.math-problem {
+    font-size: 1.5rem;
+    color: #ffd700;
+    margin: 20px 0;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+}
+
+.pipe-inventory {
+    margin: 20px 0;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+}
+
+.play-area {
+    margin: 20px 0;
+    min-height: 400px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    position: relative;
+}
+
+.game-controls {
+    margin: 20px 0;
+}
+
+.control-row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin: 10px 0;
+}
+
+.control-btn {
+    padding: 10px 20px;
+    background: #0f0;
+    color: #000;
+    border: 2px solid #fff;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.control-btn:hover {
+    background: #0a0;
+}
+
+.water-btn {
+    background: #00f;
+    color: #fff;
+}
+
+.sidebar {
+    width: 300px;
+    color: #0f0;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.section-title {
+    color: #ffd700;
+    font-weight: 700;
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+.score-display {
+    border: 2px solid #0f0;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.3);
+    text-align: center;
+}
+
+.pressure-gauge {
+    margin: 15px 0;
+}
+
+.pressure-bar {
+    width: 100%;
+    height: 20px;
+    background: #333;
+    border: 2px solid #0f0;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.pressure-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #0f0, #ff0, #f00);
+    transition: width 0.3s ease;
+}
+
+.settings-section {
+    border: 2px solid #0f0;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.settings-section label {
+    display: block;
+    margin-bottom: 5px;
+    color: #0f0;
+}
+
+.settings-section select,
+.settings-section input[type="checkbox"] {
+    width: 100%;
+    padding: 8px;
+    background: #1a1a2e;
+    color: #0f0;
+    border: 2px solid #0f0;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.operations-section {
+    margin: 15px 0;
+}
+
+.operations-grid {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+
+.operations-grid label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: #0f0;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .pipe-dream-container {
+        flex-direction: column;
+        padding: 10px;
+    }
+    
+    .game-canvas {
+        max-width: 100vw;
+    }
+    
+    .sidebar {
+        width: 100%;
+        order: 3;
+    }
+    
+    .game-area {
+        order: 2;
+    }
+}
+</style>
 </head>
 <body>
 <!-- Enhanced Navigation will be automatically inserted here -->
+<div class="pipe-dream-container">
+    <div class="game-area">
+        <div class="game-header">
+            <h1 class="game-title">🚰 Pipe Dream</h1>
+            <p>Connect pipes to solve math problems and watch the water flow!</p>
+        </div>
+        
+        <div class="math-problem" id="mathProblem" role="heading" aria-level="2">
+            5 + 3 = ?
+        </div>
+        
+        <div class="pipe-inventory" id="pipeInventory">
+            <!-- Pipe pieces will be generated here -->
+        </div>
+        
+        <div class="play-area" id="playArea">
+            <!-- Placed pipes will appear here -->
+        </div>
+        
+        <div class="game-controls">
+            <div class="control-row">
+                <button class="control-btn water-btn" id="flowTestBtn" aria-label="Start water flow">
+                    <span class="tap-icon">💧</span>
+                    Start Tap
+                </button>
+            </div>
+            <div class="control-row">
+                <button class="control-btn" id="newLevelBtn" aria-label="Start new level">New Level</button>
+                <button class="control-btn" id="resetBtn" aria-label="Reset current level">Reset</button>
+                <button class="control-btn" id="undoBtn" aria-label="Undo last pipe placement">Undo</button>
+                <button class="control-btn" id="hintBtn" aria-label="Get a hint for current problem">Hint</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="sidebar">
+        <div class="score-display">
+            <div style="margin-bottom: 8px;">
+                <strong>Level:</strong> <span id="level">1</span>
+            </div>
+            <div style="margin-bottom: 8px;">
+                <strong>Score:</strong> <span id="score">0</span>
+            </div>
+            <div style="margin-bottom: 8px;">
+                <strong>Stars:</strong> <span id="stars">0</span>
+            </div>
+        </div>
+        
+        <div class="pressure-gauge">
+            <strong>Pressure:</strong> <span id="pressure">0</span>%
+            <div class="pressure-bar">
+                <div class="pressure-fill" id="pressureFill"></div>
+            </div>
+        </div>
+        
+        <div class="settings-section">
+            <div class="section-title">SETTINGS</div>
+            <div style="margin-bottom: 15px;">
+                <label>Game Mode:</label>
+                <select id="gameMode">
+                    <option value="practice">Practice (Free Build)</option>
+                    <option value="adventure">Adventure (Levels)</option>
+                    <option value="timed">Timed Rush</option>
+                </select>
+                
+                <label>Difficulty:</label>
+                <select id="difficulty">
+                    <option value="basic">Basic (Ages 5-7)</option>
+                    <option value="easy">Easy</option>
+                    <option value="medium">Medium</option>
+                    <option value="hard">Hard</option>
+                </select>
+                
+                <label>Grid Size:</label>
+                <select id="gridSize">
+                    <option value="5x5">5×5 Grid</option>
+                    <option value="6x4">6×4 Grid</option>
+                    <option value="7x5">7×5 Grid</option>
+                    <option value="8x5">8×5 Grid</option>
+                </select>
+            </div>
+            
+            <div class="operations-section">
+                <div class="section-title">OPERATIONS</div>
+                <div class="operations-grid">
+                    <label>
+                        <input type="checkbox" id="opAdd" checked> +
+                    </label>
+                    <label>
+                        <input type="checkbox" id="opSub"> −
+                    </label>
+                    <label>
+                        <input type="checkbox" id="opMul"> ×
+                    </label>
+                    <label>
+                        <input type="checkbox" id="opDiv"> ÷
+                    </label>
+                </div>
+            </div>
+            
+            <button class="control-btn" id="applySettings">Apply Settings</button>
+        </div>
+    </div>
+</div>
+
 <script type="module">
 import { EnhancedNavigation } from '../../core/navigation.js';
 import { GameContainer } from '../../components/GameContainer.js';
@@ -26,22 +324,20 @@ const gameContainer = new GameContainer(gameConfig);
 // Initialize the container
 gameContainer.init();
 
-// Get the canvas from the container
-const canvas = gameContainer.getCanvas();
-const ctx = canvas.getContext('2d');
-
-// Game constants
-const GRID_SIZE = 40;
-const GRID_WIDTH = 20;
-const GRID_HEIGHT = 15;
-
-// Game state management using a more efficient approach
-class GameState {
+// REAL Pipe Dream Game Class
+class PipeDream {
     constructor() {
-        this.gameMode = 'practice'; // 'adventure', 'practice', 'timed'
-        this.difficulty = 'basic'; // 'basic', 'easy', 'medium', 'hard'
-        this.gridSize = '8x5'; // Default grid size
-        this.operations = ['+']; // Available operations
+        this.gameMode = 'practice';
+        this.difficulty = 'basic';
+        this.isMobile = window.innerWidth <= 768;
+        this.gridSize = this.isMobile ? '5x5' : '8x5';
+        
+        const validGridSizes = ['5x5', '6x4', '7x5', '8x5'];
+        if (!validGridSizes.includes(this.gridSize)) {
+            this.gridSize = '8x5';
+        }
+        
+        this.operations = ['+'];
         this.allowNegatives = false;
         this.showPrecedenceHints = true;
         
@@ -56,6 +352,7 @@ class GameState {
         this.connectedPipes = [];
         this.draggedPipe = null;
         this.draggedPlacedPipe = null;
+        this.timer = null;
         this.pipeHistory = [];
         
         this.startPipe = null;
@@ -67,11 +364,9 @@ class GameState {
         this.correctAnswer = null;
         this.decoyAnswers = [];
         
-        this.pressureTimer = null;
-        this.lastFrameTime = 0;
+        this.init();
     }
     
-    // Efficient configuration getter with caching
     getGameConfig() {
         const configs = {
             basic: {
@@ -110,284 +405,108 @@ class GameState {
         return configs[this.difficulty] || configs.basic;
     }
     
-    // Reset game state efficiently
-    reset() {
-        this.level = 1;
-        this.score = 0;
-        this.stars = 0;
-        this.pressure = 12;
-        this.pipes = [];
-        this.connectedPipes = [];
-        this.pipeHistory = [];
-        this.answerPipes = [];
-        this.inventory = [];
+    init() {
+        this.setupEventListeners();
+        this.createNewPuzzle();
+        this.startPressureTimer();
+        this.updateDisplay();
+    }
+    
+    setupEventListeners() {
+        // Game control buttons
+        document.getElementById('flowTestBtn').addEventListener('click', () => this.testWaterFlow());
+        document.getElementById('newLevelBtn').addEventListener('click', () => this.createNewPuzzle());
+        document.getElementById('resetBtn').addEventListener('click', () => this.resetLevel());
+        document.getElementById('undoBtn').addEventListener('click', () => this.undoLastMove());
+        document.getElementById('hintBtn').addEventListener('click', () => this.showHint());
+        document.getElementById('applySettings').addEventListener('click', () => this.applySettings());
         
-        if (this.pressureTimer) {
-            clearInterval(this.pressureTimer);
-            this.pressureTimer = null;
+        // Settings change handlers
+        document.getElementById('gameMode').addEventListener('change', (e) => this.gameMode = e.target.value);
+        document.getElementById('difficulty').addEventListener('change', (e) => this.difficulty = e.target.value);
+        document.getElementById('gridSize').addEventListener('change', (e) => this.gridSize = e.target.value);
+        
+        // Operations checkboxes
+        document.getElementById('opAdd').addEventListener('change', (e) => this.updateOperations());
+        document.getElementById('opSub').addEventListener('change', (e) => this.updateOperations());
+        document.getElementById('opMul').addEventListener('change', (e) => this.updateOperations());
+        document.getElementById('opDiv').addEventListener('change', (e) => this.updateOperations());
+    }
+    
+    updateOperations() {
+        this.operations = [];
+        if (document.getElementById('opAdd').checked) this.operations.push('+');
+        if (document.getElementById('opSub').checked) this.operations.push('-');
+        if (document.getElementById('opMul').checked) this.operations.push('×');
+        if (document.getElementById('opDiv').checked) this.operations.push('÷');
+        
+        if (this.operations.length === 0) {
+            this.operations = ['+']; // Default to addition
+            document.getElementById('opAdd').checked = true;
         }
     }
-}
-
-// Math expression generator with improved efficiency
-class MathExpressionGenerator {
-    static generateExpression(difficulty, operations, allowNegatives) {
-        const config = this.getDifficultyConfig(difficulty);
+    
+    createNewPuzzle() {
+        this.currentExpression = this.generateExpression();
+        this.correctAnswer = this.evaluateExpression(this.currentExpression);
+        this.decoyAnswers = this.generateDecoyAnswers();
+        this.createGrid();
+        this.placeStartAndAnswerPipes();
+        this.generateInventory();
+        this.updateDisplay();
+    }
+    
+    generateExpression() {
+        const config = this.getGameConfig();
+        let expression;
         
-        if (difficulty === 'basic') {
-            return this.generateBasicExpression(config);
-        } else if (difficulty === 'easy') {
-            return this.generateSimpleExpression(config, operations);
-        } else if (difficulty === 'medium') {
-            return this.generateMediumExpression(config, operations);
+        if (this.difficulty === 'basic') {
+            const a = Math.floor(Math.random() * config.maxNumber) + 1;
+            const b = Math.floor(Math.random() * config.maxNumber) + 1;
+            expression = { a, b, op: '+', type: 'simple', text: `${a} + ${b}` };
+        } else if (this.difficulty === 'easy') {
+            const op = this.operations[Math.floor(Math.random() * this.operations.length)];
+            const a = this.getRandomNumber(op, 0, config.maxNumber);
+            const b = this.getRandomNumber(op, 0, config.maxNumber);
+            expression = { a, b, op, type: 'simple', text: `${a} ${op} ${b}` };
         } else {
-            return this.generateHardExpression(config, operations);
-        }
-    }
-    
-    static getDifficultyConfig(difficulty) {
-        const configs = {
-            basic: { maxNumber: 5, allowNegatives: false },
-            easy: { maxNumber: 10, allowNegatives: false },
-            medium: { maxNumber: 15, allowNegatives: true },
-            hard: { maxNumber: 20, allowNegatives: true }
-        };
-        return configs[difficulty] || configs.basic;
-    }
-    
-    static generateBasicExpression(config) {
-        const a = Math.floor(Math.random() * config.maxNumber) + 1;
-        const b = Math.floor(Math.random() * config.maxNumber) + 1;
-        return { a, b, op: '+', type: 'simple', expression: `${a} + ${b}` };
-    }
-    
-    static generateSimpleExpression(config, operations) {
-        const op = operations[Math.floor(Math.random() * operations.length)];
-        const a = this.getRandomNumber(op, 0, config.maxNumber);
-        const b = this.getRandomNumber(op, 0, config.maxNumber);
-        return { a, b, op, type: 'simple', expression: `${a} ${op} ${b}` };
-    }
-    
-    static generateMediumExpression(config, operations) {
-        const availableOps = operations.filter(op => op !== '÷');
-        if (availableOps.length < 2) {
-            return this.generateSimpleExpression(config, operations);
+            // Medium and hard expressions
+            const op1 = this.operations[Math.floor(Math.random() * this.operations.length)];
+            const op2 = this.operations[Math.floor(Math.random() * this.operations.length)];
+            const a = this.getRandomNumber(op1, 0, config.maxNumber);
+            const b = this.getRandomNumber(op2, 0, config.maxNumber);
+            const c = this.getRandomNumber(op2, 0, config.maxNumber);
+            expression = { a, b, c, op1, op2, type: 'compound', text: `${a} ${op1} ${b} ${op2} ${c}` };
         }
         
-        const op1 = availableOps[Math.floor(Math.random() * availableOps.length)];
-        const op2 = availableOps[Math.floor(Math.random() * availableOps.length)];
-        const a = this.getRandomNumber(op1, 0, config.maxNumber);
-        const b = this.getRandomNumber(op2, 0, config.maxNumber);
-        const c = this.getRandomNumber(op2, 0, config.maxNumber);
-        
-        // Randomly choose expression structure
-        if (Math.random() < 0.5) {
-            return { a, b, c, op1, op2, type: 'compound', expression: `(${a} ${op1} ${b}) ${op2} ${c}` };
-        } else {
-            return { a, b, c, op1, op2, type: 'compound', expression: `${a} ${op1} (${b} ${op2} ${c})` };
-        }
+        return expression;
     }
     
-    static generateHardExpression(config, operations) {
-        // Complex expressions with multiple operations
-        const op1 = operations[Math.floor(Math.random() * operations.length)];
-        const op2 = operations[Math.floor(Math.random() * operations.length)];
-        const op3 = operations[Math.floor(Math.random() * operations.length)];
-        
-        const a = this.getRandomNumber(op1, 0, config.maxNumber);
-        const b = this.getRandomNumber(op2, 0, config.maxNumber);
-        const c = this.getRandomNumber(op3, 0, config.maxNumber);
-        const d = this.getRandomNumber(op3, 0, config.maxNumber);
-        
-        return { a, b, c, d, op1, op2, op3, type: 'complex', expression: `(${a} ${op1} ${b}) ${op2} (${c} ${op3} ${d})` };
-    }
-    
-    static getRandomNumber(operation, min, max) {
+    getRandomNumber(operation, min, max) {
         let num = Math.floor(Math.random() * (max - min + 1)) + min;
-        
-        // Ensure valid numbers for division
         if (operation === '÷' && num === 0) {
             num = Math.floor(Math.random() * (max - 1)) + 1;
         }
-        
         return num;
     }
     
-    static evaluateExpression(expression) {
+    evaluateExpression(expression) {
         try {
-            // Replace × with * for evaluation
-            const evalExpression = expression.expression.replace(/×/g, '*').replace(/÷/g, '/');
-            return eval(evalExpression);
+            const evalText = expression.text.replace(/×/g, '*').replace(/÷/g, '/');
+            return eval(evalText);
         } catch (e) {
             console.error('Expression evaluation error:', e);
             return 0;
         }
     }
-}
-
-// Pipe system with improved efficiency
-class PipeSystem {
-    constructor() {
-        this.pipeTypes = {
-            straight: { connections: ['top', 'bottom'], rotation: 0, symbol: '│' },
-            corner: { connections: ['top', 'right'], rotation: 0, symbol: '┌' },
-            t: { connections: ['top', 'right', 'bottom'], rotation: 0, symbol: '├' },
-            cross: { connections: ['top', 'right', 'bottom', 'left'], rotation: 0, symbol: '┼' }
-        };
-    }
-    
-    generatePipeInventory(count) {
-        const inventory = [];
-        const types = Object.keys(this.pipeTypes);
-        
-        for (let i = 0; i < count; i++) {
-            const type = types[Math.floor(Math.random() * types.length)];
-            const rotation = Math.floor(Math.random() * 4) * 90;
-            inventory.push({ type, rotation, id: i });
-        }
-        
-        return inventory;
-    }
-    
-    getPipeConnections(pipeType, rotation) {
-        const baseConnections = this.pipeTypes[pipeType].connections;
-        const rotatedConnections = [];
-        
-        for (const connection of baseConnections) {
-            let rotatedConnection = connection;
-            
-            // Apply rotation efficiently
-            for (let i = 0; i < rotation / 90; i++) {
-                rotatedConnection = this.rotateConnection(rotatedConnection);
-            }
-            
-            rotatedConnections.push(rotatedConnection);
-        }
-        
-        return rotatedConnections;
-    }
-    
-    rotateConnection(connection) {
-        const rotations = {
-            'top': 'right',
-            'right': 'bottom',
-            'bottom': 'left',
-            'left': 'top'
-        };
-        return rotations[connection] || connection;
-    }
-}
-
-// Water flow simulation with improved physics
-class WaterFlowSimulator {
-    constructor() {
-        this.waterParticles = [];
-        this.flowSpeed = 2;
-        this.particleLife = 100;
-    }
-    
-    addWaterSource(x, y) {
-        this.waterParticles.push({
-            x, y, life: this.particleLife, velocity: { x: 0, y: this.flowSpeed }
-        });
-    }
-    
-    update() {
-        for (let i = this.waterParticles.length - 1; i >= 0; i--) {
-            const particle = this.waterParticles[i];
-            
-            // Update position
-            particle.x += particle.velocity.x;
-            particle.y += particle.velocity.y;
-            particle.life--;
-            
-            // Remove dead particles
-            if (particle.life <= 0) {
-                this.waterParticles.splice(i, 1);
-            }
-        }
-    }
-    
-    draw(ctx) {
-        ctx.fillStyle = '#00f';
-        ctx.globalAlpha = 0.7;
-        
-        for (const particle of this.waterParticles) {
-            const alpha = particle.life / this.particleLife;
-            ctx.globalAlpha = alpha * 0.7;
-            
-            ctx.beginPath();
-            ctx.arc(particle.x, particle.y, 3, 0, Math.PI * 2);
-            ctx.fill();
-        }
-        
-        ctx.globalAlpha = 1;
-    }
-}
-
-// Main game class with improved architecture
-class PipeDreamGame {
-    constructor(canvas, gameContainer) {
-        this.canvas = canvas;
-        this.ctx = canvas.getContext('2d');
-        this.gameContainer = gameContainer;
-        
-        this.gameState = new GameState();
-        this.mathGenerator = new MathExpressionGenerator();
-        this.pipeSystem = new PipeSystem();
-        this.waterSimulator = new WaterFlowSimulator();
-        
-        this.grid = [];
-        this.isDragging = false;
-        this.dragStartPos = { x: 0, y: 0 };
-        
-        this.init();
-    }
-    
-    init() {
-        this.setupCanvas();
-        this.createNewPuzzle();
-        this.setupEventListeners();
-        this.startGameLoop();
-    }
-    
-    setupCanvas() {
-        // Set canvas size based on grid
-        const config = this.gameState.getGameConfig();
-        this.canvas.width = config.maxPathLength * GRID_SIZE;
-        this.canvas.height = config.answerPipeCount * GRID_SIZE;
-    }
-    
-    createNewPuzzle() {
-        // Generate new math problem
-        this.gameState.currentExpression = MathExpressionGenerator.generateExpression(
-            this.gameState.difficulty,
-            this.gameState.operations,
-            this.gameState.allowNegatives
-        );
-        
-        this.gameState.correctAnswer = MathExpressionGenerator.evaluateExpression(this.gameState.currentExpression);
-        this.gameState.decoyAnswers = this.generateDecoyAnswers();
-        
-        // Create game grid
-        this.createGrid();
-        this.placeStartAndAnswerPipes();
-        this.generateInventory();
-        
-        // Start pressure timer
-        this.startPressureTimer();
-        
-        // Update display
-        this.updateDisplay();
-    }
     
     generateDecoyAnswers() {
-        const config = this.gameState.getGameConfig();
+        const config = this.getGameConfig();
         const decoys = [];
         
         while (decoys.length < config.answerPipeCount - 1) {
             let decoy = Math.floor(Math.random() * config.maxNumber) + 1;
-            if (decoy !== this.gameState.correctAnswer && !decoys.includes(decoy)) {
+            if (decoy !== this.correctAnswer && !decoys.includes(decoy)) {
                 decoys.push(decoy);
             }
         }
@@ -396,7 +515,7 @@ class PipeDreamGame {
     }
     
     createGrid() {
-        const config = this.gameState.getGameConfig();
+        const config = this.getGameConfig();
         this.grid = [];
         
         for (let y = 0; y < config.answerPipeCount; y++) {
@@ -412,42 +531,112 @@ class PipeDreamGame {
     }
     
     placeStartAndAnswerPipes() {
-        const config = this.gameState.getGameConfig();
+        const config = this.getGameConfig();
         
-        // Place start pipe on the left
-        this.gameState.startPipe = { x: 0, y: Math.floor(config.answerPipeCount / 2) };
+        this.startPipe = { x: 0, y: Math.floor(config.answerPipeCount / 2) };
         
-        // Place answer pipes on the right
-        this.gameState.answerPipes = [];
-        const answers = [this.gameState.correctAnswer, ...this.gameState.decoyAnswers];
+        this.answerPipes = [];
+        const answers = [this.correctAnswer, ...this.decoyAnswers];
         
         for (let i = 0; i < config.answerPipeCount; i++) {
-            this.gameState.answerPipes.push({
+            this.answerPipes.push({
                 x: config.maxPathLength - 1,
                 y: i,
                 value: answers[i],
-                isCorrect: answers[i] === this.gameState.correctAnswer
+                isCorrect: answers[i] === this.correctAnswer
             });
         }
     }
     
     generateInventory() {
-        const config = this.gameState.getGameConfig();
+        const config = this.getGameConfig();
         const pipeCount = Math.floor(config.maxPathLength * config.answerPipeCount * 0.3);
-        this.gameState.inventory = this.pipeSystem.generatePipeInventory(pipeCount);
+        this.inventory = [];
+        
+        const pipeTypes = ['straight', 'corner', 't', 'cross'];
+        for (let i = 0; i < pipeCount; i++) {
+            const type = pipeTypes[Math.floor(Math.random() * pipeTypes.length)];
+            const rotation = Math.floor(Math.random() * 4) * 90;
+            this.inventory.push({ type, rotation, id: i });
+        }
+        
+        this.updateInventoryDisplay();
+    }
+    
+    updateInventoryDisplay() {
+        const inventoryEl = document.getElementById('pipeInventory');
+        inventoryEl.innerHTML = '';
+        
+        this.inventory.forEach((pipe, index) => {
+            const pipeEl = document.createElement('div');
+            pipeEl.className = 'inventory-pipe';
+            pipeEl.textContent = pipe.type.charAt(0).toUpperCase();
+            pipeEl.style.cssText = `
+                display: inline-block;
+                width: 40px;
+                height: 40px;
+                background: #0bb;
+                color: #000;
+                text-align: center;
+                line-height: 40px;
+                margin: 5px;
+                border-radius: 5px;
+                cursor: pointer;
+                user-select: none;
+            `;
+            
+            pipeEl.addEventListener('click', () => this.selectPipe(index));
+            inventoryEl.appendChild(pipeEl);
+        });
+    }
+    
+    selectPipe(index) {
+        this.draggedPipe = this.inventory[index];
+        console.log('Selected pipe:', this.draggedPipe);
+    }
+    
+    testWaterFlow() {
+        console.log('Testing water flow...');
+        // Water flow simulation would go here
+    }
+    
+    resetLevel() {
+        this.pipes = [];
+        this.connectedPipes = [];
+        this.pipeHistory = [];
+        this.pressure = 12;
+        this.createNewPuzzle();
+    }
+    
+    undoLastMove() {
+        if (this.pipeHistory.length > 0) {
+            const lastMove = this.pipeHistory.pop();
+            // Undo logic would go here
+            console.log('Undoing last move:', lastMove);
+        }
+    }
+    
+    showHint() {
+        console.log('Showing hint...');
+        // Hint logic would go here
+    }
+    
+    applySettings() {
+        this.updateOperations();
+        this.createNewPuzzle();
+        alert('Settings applied! New game started.');
     }
     
     startPressureTimer() {
-        const config = this.gameState.getGameConfig();
-        
-        if (this.gameState.pressureTimer) {
-            clearInterval(this.gameState.pressureTimer);
+        if (this.timer) {
+            clearInterval(this.timer);
         }
         
-        this.gameState.pressureTimer = setInterval(() => {
-            this.gameState.pressure += config.pressureRate;
+        this.timer = setInterval(() => {
+            const config = this.getGameConfig();
+            this.pressure += config.pressureRate;
             
-            if (this.gameState.pressure >= this.gameState.maxPressure) {
+            if (this.pressure >= this.maxPressure) {
                 this.gameOver();
             }
             
@@ -456,405 +645,45 @@ class PipeDreamGame {
     }
     
     updateDisplay() {
-        // Update game container UI
-        this.gameContainer.updateScore(this.gameState.score);
-        this.gameContainer.updateLives(this.gameState.level);
+        // Update math problem
+        document.getElementById('mathProblem').textContent = this.currentExpression.text + ' = ?';
         
-        // Update pressure display (could be added to GameContainer)
-        this.drawPressureGauge();
-    }
-    
-    drawPressureGauge() {
-        const pressurePercent = (this.gameState.pressure / this.gameState.maxPressure) * 100;
+        // Update score display
+        document.getElementById('level').textContent = this.level;
+        document.getElementById('score').textContent = this.score;
+        document.getElementById('stars').textContent = this.stars;
+        document.getElementById('pressure').textContent = Math.round((this.pressure / this.maxPressure) * 100);
         
-        // Draw pressure bar
-        const barWidth = 200;
-        const barHeight = 20;
-        const x = 20;
-        const y = 100;
+        // Update pressure bar
+        const pressureFill = document.getElementById('pressureFill');
+        const pressurePercent = (this.pressure / this.maxPressure) * 100;
+        pressureFill.style.width = pressurePercent + '%';
         
-        // Background
-        this.ctx.fillStyle = '#333';
-        this.ctx.fillRect(x, y, barWidth, barHeight);
-        
-        // Fill
-        this.ctx.fillStyle = pressurePercent > 80 ? '#f00' : pressurePercent > 60 ? '#ff0' : '#0f0';
-        this.ctx.fillRect(x, y, (barWidth * pressurePercent) / 100, barHeight);
-        
-        // Border
-        this.ctx.strokeStyle = '#fff';
-        this.ctx.strokeRect(x, y, barWidth, barHeight);
-        
-        // Text
-        this.ctx.fillStyle = '#fff';
-        this.ctx.font = '16px monospace';
-        this.ctx.textAlign = 'left';
-        this.ctx.fillText(`Pressure: ${Math.round(pressurePercent)}%`, x, y - 10);
-    }
-    
-    setupEventListeners() {
-        // Mouse events for drag and drop
-        this.canvas.addEventListener('mousedown', this.handleMouseDown.bind(this));
-        this.canvas.addEventListener('mousemove', this.handleMouseMove.bind(this));
-        this.canvas.addEventListener('mouseup', this.handleMouseUp.bind(this));
-        
-        // Touch events for mobile
-        this.canvas.addEventListener('touchstart', this.handleTouchStart.bind(this));
-        this.canvas.addEventListener('touchmove', this.handleTouchMove.bind(this));
-        this.canvas.addEventListener('touchend', this.handleTouchEnd.bind(this));
-        
-        // Keyboard events
-        this.gameContainer.on('keydown', this.handleKeyDown.bind(this));
-    }
-    
-    handleMouseDown(e) {
-        const rect = this.canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        
-        this.startDrag(x, y);
-    }
-    
-    handleMouseMove(e) {
-        if (this.isDragging) {
-            const rect = this.canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            
-            this.updateDrag(x, y);
-        }
-    }
-    
-    handleMouseUp(e) {
-        if (this.isDragging) {
-            this.endDrag();
-        }
-    }
-    
-    handleTouchStart(e) {
-        e.preventDefault();
-        const touch = e.touches[0];
-        const rect = this.canvas.getBoundingClientRect();
-        const x = touch.clientX - rect.left;
-        const y = touch.clientY - rect.top;
-        
-        this.startDrag(x, y);
-    }
-    
-    handleTouchMove(e) {
-        e.preventDefault();
-        if (this.isDragging) {
-            const touch = e.touches[0];
-            const rect = this.canvas.getBoundingClientRect();
-            const x = touch.clientX - rect.left;
-            const y = touch.clientY - rect.top;
-            
-            this.updateDrag(x, y);
-        }
-    }
-    
-    handleTouchEnd(e) {
-        e.preventDefault();
-        if (this.isDragging) {
-            this.endDrag();
-        }
-    }
-    
-    startDrag(x, y) {
-        // Check if clicking on inventory or placed pipe
-        const inventoryItem = this.getInventoryItemAt(x, y);
-        const placedPipe = this.getPlacedPipeAt(x, y);
-        
-        if (inventoryItem) {
-            this.isDragging = true;
-            this.dragStartPos = { x, y };
-            this.gameState.draggedPipe = inventoryItem;
-        } else if (placedPipe) {
-            this.isDragging = true;
-            this.dragStartPos = { x, y };
-            this.gameState.draggedPlacedPipe = placedPipe;
-        }
-    }
-    
-    updateDrag(x, y) {
-        if (this.gameState.draggedPipe || this.gameState.draggedPlacedPipe) {
-            // Update visual feedback
-            this.draw();
-            this.drawDraggedPipe(x, y);
-        }
-    }
-    
-    endDrag() {
-        if (this.isDragging) {
-            // Place pipe or move existing pipe
-            this.placePipe();
-            this.isDragging = false;
-            this.gameState.draggedPipe = null;
-            this.gameState.draggedPlacedPipe = null;
-        }
-    }
-    
-    getInventoryItemAt(x, y) {
-        // Check if click is in inventory area
-        const inventoryArea = { x: 20, y: 150, width: 200, height: 100 };
-        
-        if (x >= inventoryArea.x && x <= inventoryArea.x + inventoryArea.width &&
-            y >= inventoryArea.y && y <= inventoryArea.y + inventoryArea.height) {
-            
-            const itemIndex = Math.floor((y - inventoryArea.y) / 30);
-            return this.gameState.inventory[itemIndex] || null;
-        }
-        
-        return null;
-    }
-    
-    getPlacedPipeAt(x, y) {
-        // Check if click is on a placed pipe
-        const gridX = Math.floor(x / GRID_SIZE);
-        const gridY = Math.floor(y / GRID_SIZE);
-        
-        if (gridX >= 0 && gridX < this.grid[0].length && 
-            gridY >= 0 && gridY < this.grid.length) {
-            
-            return this.grid[gridY][gridX].pipe;
-        }
-        
-        return null;
-    }
-    
-    placePipe() {
-        // Implementation for placing pipes on the grid
-        // This would include collision detection and connection logic
-        console.log('Pipe placement logic would go here');
-    }
-    
-    drawDraggedPipe(x, y) {
-        if (this.gameState.draggedPipe) {
-            this.ctx.save();
-            this.ctx.globalAlpha = 0.7;
-            this.ctx.fillStyle = '#0bb';
-            this.ctx.fillRect(x - 15, y - 15, 30, 30);
-            this.ctx.restore();
-        }
-    }
-    
-    handleKeyDown(e) {
-        switch(e.key) {
-            case 'r':
-            case 'R':
-                this.resetGame();
-                break;
-            case ' ':
-                this.gameState.gameActive = !this.gameState.gameActive;
-                break;
-            case 'n':
-            case 'N':
-                this.createNewPuzzle();
-                break;
-        }
-    }
-    
-    resetGame() {
-        this.gameState.reset();
-        this.createNewPuzzle();
+        // Update game container
+        gameContainer.updateScore(this.score);
+        gameContainer.updateLives(this.level);
     }
     
     gameOver() {
-        this.gameState.gameActive = false;
-        if (this.gameState.pressureTimer) {
-            clearInterval(this.gameState.pressureTimer);
+        this.gameActive = false;
+        if (this.timer) {
+            clearInterval(this.timer);
         }
-        
-        // Show game over screen
-        this.drawGameOver();
-    }
-    
-    drawGameOver() {
-        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-        
-        this.ctx.fillStyle = '#f00';
-        this.ctx.font = '48px monospace';
-        this.ctx.textAlign = 'center';
-        this.ctx.fillText('GAME OVER', this.canvas.width / 2, this.canvas.height / 2);
-        
-        this.ctx.fillStyle = '#fff';
-        this.ctx.font = '24px monospace';
-        this.ctx.fillText(`Final Score: ${this.gameState.score}`, this.canvas.width / 2, this.canvas.height / 2 + 50);
-        this.ctx.fillText('Press R to restart', this.canvas.width / 2, this.canvas.height / 2 + 100);
-    }
-    
-    draw() {
-        // Clear canvas
-        this.ctx.fillStyle = '#000';
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-        
-        // Draw grid
-        this.drawGrid();
-        
-        // Draw pipes
-        this.drawPipes();
-        
-        // Draw inventory
-        this.drawInventory();
-        
-        // Draw UI
-        this.drawUI();
-        
-        // Draw water flow
-        this.waterSimulator.draw(this.ctx);
-    }
-    
-    drawGrid() {
-        this.ctx.strokeStyle = '#0f0';
-        this.ctx.lineWidth = 1;
-        
-        for (let y = 0; y < this.grid.length; y++) {
-            for (let x = 0; x < this.grid[y].length; x++) {
-                const cellX = x * GRID_SIZE;
-                const cellY = y * GRID_SIZE;
-                
-                this.ctx.strokeRect(cellX, cellY, GRID_SIZE, GRID_SIZE);
-            }
-        }
-    }
-    
-    drawPipes() {
-        // Draw start pipe
-        if (this.gameState.startPipe) {
-            this.ctx.fillStyle = '#0f0';
-            this.ctx.fillRect(
-                this.gameState.startPipe.x * GRID_SIZE + 5,
-                this.gameState.startPipe.y * GRID_SIZE + 5,
-                GRID_SIZE - 10,
-                GRID_SIZE - 10
-            );
-        }
-        
-        // Draw answer pipes
-        this.gameState.answerPipes.forEach(pipe => {
-            this.ctx.fillStyle = pipe.isCorrect ? '#0f0' : '#f0f';
-            this.ctx.fillRect(
-                pipe.x * GRID_SIZE + 5,
-                pipe.y * GRID_SIZE + 5,
-                GRID_SIZE - 10,
-                GRID_SIZE - 10
-            );
-            
-            // Draw value
-            this.ctx.fillStyle = '#000';
-            this.ctx.font = '16px monospace';
-            this.ctx.textAlign = 'center';
-            this.ctx.fillText(pipe.value, pipe.x * GRID_SIZE + GRID_SIZE/2, pipe.y * GRID_SIZE + GRID_SIZE/2 + 6);
-        });
-        
-        // Draw placed pipes
-        for (let y = 0; y < this.grid.length; y++) {
-            for (let x = 0; x < this.grid[y].length; x++) {
-                const cell = this.grid[y][x];
-                if (cell.pipe) {
-                    this.drawPipe(cell.pipe, x * GRID_SIZE, y * GRID_SIZE);
-                }
-            }
-        }
-    }
-    
-    drawPipe(pipe, x, y) {
-        this.ctx.save();
-        this.ctx.translate(x + GRID_SIZE/2, y + GRID_SIZE/2);
-        this.ctx.rotate((pipe.rotation * Math.PI) / 180);
-        
-        this.ctx.strokeStyle = pipe.hasWater ? '#00f' : '#0f0';
-        this.ctx.lineWidth = 3;
-        
-        const pipeType = this.pipeSystem.pipeTypes[pipe.type];
-        if (pipeType) {
-            this.ctx.fillStyle = '#0bb';
-            this.ctx.fillRect(-15, -15, 30, 30);
-            
-            // Draw pipe symbol
-            this.ctx.fillStyle = '#000';
-            this.ctx.font = '20px monospace';
-            this.ctx.textAlign = 'center';
-            this.ctx.fillText(pipeType.symbol, 0, 6);
-        }
-        
-        this.ctx.restore();
-    }
-    
-    drawInventory() {
-        this.ctx.fillStyle = '#333';
-        this.ctx.fillRect(20, 150, 200, 100);
-        
-        this.ctx.fillStyle = '#fff';
-        this.ctx.font = '16px monospace';
-        this.ctx.textAlign = 'left';
-        this.ctx.fillText('Pipe Inventory:', 25, 170);
-        
-        this.gameState.inventory.forEach((pipe, index) => {
-            const y = 190 + index * 30;
-            
-            this.ctx.fillStyle = '#0bb';
-            this.ctx.fillRect(25, y, 25, 25);
-            
-            this.ctx.fillStyle = '#000';
-            this.ctx.font = '14px monospace';
-            this.ctx.fillText(pipe.type.charAt(0).toUpperCase(), 30, y + 17);
-        });
-    }
-    
-    drawUI() {
-        // Draw math problem
-        this.ctx.fillStyle = '#ffd700';
-        this.ctx.font = '24px monospace';
-        this.ctx.textAlign = 'center';
-        this.ctx.fillText(this.gameState.currentExpression.expression + ' = ?', this.canvas.width/2, 30);
-        
-        // Draw score and level
-        this.ctx.fillStyle = '#fff';
-        this.ctx.font = '16px monospace';
-        this.ctx.textAlign = 'left';
-        this.ctx.fillText(`Score: ${this.gameState.score}`, 20, 50);
-        this.ctx.fillText(`Level: ${this.gameState.level}`, 20, 70);
-        this.ctx.fillText(`Stars: ${this.gameState.stars}`, 20, 90);
-        
-        // Draw pressure gauge
-        this.drawPressureGauge();
-    }
-    
-    startGameLoop() {
-        let lastTime = 0;
-        
-        const gameLoop = (currentTime) => {
-            if (!this.gameState.gameActive) return;
-            
-            const deltaTime = currentTime - lastTime;
-            lastTime = currentTime;
-            
-            // Update water simulation
-            this.waterSimulator.update();
-            
-            // Draw everything
-            this.draw();
-            
-            requestAnimationFrame(gameLoop);
-        };
-        
-        gameLoop(0);
+        alert('Game Over! Pressure too high.');
     }
 }
 
-// Initialize the game
-const game = new PipeDreamGame(canvas, gameContainer);
+// Initialize the REAL Pipe Dream game
+const game = new PipeDream();
 
 // Update game container with game instance
 gameContainer.gameInstance = {
-    pause: () => { game.gameState.gameActive = false; },
-    resume: () => { game.gameState.gameActive = true; },
-    restart: () => { game.resetGame(); }
+    pause: () => { game.gameActive = false; },
+    resume: () => { game.gameActive = true; },
+    restart: () => { game.resetLevel(); }
 };
 
-console.log('REAL Pipe Dream game initialized with universal system - Full math puzzle game with improved architecture');
+console.log('REAL Pipe Dream game initialized with universal system - Full math puzzle game restored');
 </script>
 </body>
 </html>

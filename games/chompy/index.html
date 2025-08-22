@@ -44,7 +44,6 @@ let lives = 3;
 let paused = false;
 let gameEnded = false;
 let lastFrame = performance.now();
-
 // Maps
 const MAPS = [
     // Classic map
@@ -82,7 +81,7 @@ const MAPS = [
 ];
 
 let currentMapIndex = 0;
-let board = [];
+let board = []; // Declare board globally
 
 // Player (Pac-Man)
 const pac = {
