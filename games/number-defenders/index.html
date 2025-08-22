@@ -157,6 +157,12 @@ async function initModularComponents() {
       () => { splashLevelOver(true); level++; }
     );
     
+    // Disable rocket's internal animation loop since we're handling drawing in main game loop
+    if (rocket._raf) {
+      cancelAnimationFrame(rocket._raf);
+      rocket._raf = null;
+    }
+    
     console.log('Modular components initialized successfully');
   } catch (error) {
     console.error('Failed to initialize modular components:', error);
@@ -328,7 +334,75 @@ function step(){
   }
 
   draw();
+  
+  // Draw rocket launch and fireworks on top of the game
+  if (rocket && (rocket.launched || rocket.inFireworks)) {
+    drawRocketEffects();
+  }
+  
   requestAnimationFrame(step);
+}
+
+// Draw rocket launch and fireworks effects on top of the game
+function drawRocketEffects() {
+  if (!rocket) return;
+  
+  if (rocket.launched && rocket._launchParams) {
+    // Draw launched rocket
+    const now = performance.now();
+    if (!rocket._lastT) rocket._lastT = now;
+    const dt = (now - rocket._lastT) / 1000;
+    rocket._lastT = now;
+    
+    // Update rocket position
+    rocket._tAccum += dt;
+    rocket._y -= rocket._launchParams.speed * dt;
+    const x = rocket._launchParams.baseX + Math.sin(rocket._tAccum * rocket._launchParams.wobble) * rocket._launchParams.amplitude * rocket._launchParams.dir;
+    const y = rocket._y;
+    
+    // Draw rocket flame
+    ctx.fillStyle = "orange";
+    ctx.beginPath();
+    ctx.ellipse(x, y + 24, 6 + Math.random() * 5, 12 + Math.random() * 8, 0, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Draw rocket body
+    ctx.fillStyle = "red";
+    ctx.fillRect(x - 6, y - 20, 12, 40);
+    
+    // Draw rocket nose cone
+    ctx.fillStyle = "yellow";
+    ctx.beginPath();
+    ctx.moveTo(x, y - 32);
+    ctx.lineTo(x - 10, y - 20);
+    ctx.lineTo(x + 10, y - 20);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Draw smoke puffs
+    ctx.fillStyle = "rgba(200,200,200,0.5)";
+    for (let i = 0; i < 3; i++) {
+      const sx = x + (Math.random() * 20 - 10);
+      const sy = y + 30 + i * 10;
+      ctx.beginPath();
+      ctx.arc(sx, sy, 6 + Math.random() * 6, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    
+    // Check if rocket is off the top -> trigger fireworks
+    if (y < -60) {
+      rocket.launched = false;
+      rocket._launchParams = null;
+      rocket.inFireworks = true;
+      // Trigger fireworks
+      if (rocket.fireworks) {
+        rocket.fireworks.show(x, rocket.groundY - rocket.currentHeight - 60, () => {
+          rocket.inFireworks = false;
+          if (rocket.onFireworksDone) rocket.onFireworksDone();
+        });
+      }
+    }
+  }
 }
 
 /* ===== keyboard input ===== */
