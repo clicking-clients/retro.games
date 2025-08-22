@@ -51,14 +51,16 @@ export class GameContainer {
     this.elements.container = document.createElement('div');
     this.elements.container.className = 'game-container';
     this.elements.container.dataset.game = this.id;
-    this.elements.container.style.maxWidth = `${this.maxWidth}px`;
+    
+    // Remove max-width constraint to allow full width expansion
+    // this.elements.container.style.maxWidth = `${this.maxWidth}px`;
     
     // Add to body if no parent specified
     if (!this.elements.container.parentElement) {
       document.body.appendChild(this.elements.container);
     }
     
-    console.log(`GameContainer created for ${this.title} with maxWidth: ${this.maxWidth}px`);
+    console.log(`GameContainer created for ${this.title} - max-width constraint removed for full expansion`);
   }
   
   /**

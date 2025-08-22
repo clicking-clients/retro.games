@@ -26,6 +26,39 @@ const gameContainer = new GameContainer(gameConfig);
 // Initialize the container
 gameContainer.init();
 
+// Add custom paddle speed controls to the sidebar
+const sidebar = gameContainer.elements.sidebar;
+if (sidebar) {
+    const speedControl = document.createElement('div');
+    speedControl.className = 'sidebar-section';
+    speedControl.innerHTML = `
+        <div class="section-title">PADDLE SPEED</div>
+        <div style="display: flex; align-items: center; gap: 10px; margin: 10px 0;">
+            <input type="range" id="paddleSpeedSlider" min="0.5" max="3.0" step="0.1" value="${paddleSpeed}" 
+                   style="flex: 1; accent-color: var(--retro-green);">
+            <span id="paddleSpeedValue" style="color: var(--retro-green); font-weight: bold;">${paddleSpeed}</span>
+        </div>
+        <div style="font-size: 12px; color: var(--retro-green); opacity: 0.8;">
+            Adjust paddle movement speed
+        </div>
+    `;
+    
+    // Insert after the first section (scoreboard)
+    const firstSection = sidebar.querySelector('.sidebar-section');
+    if (firstSection) {
+        sidebar.insertBefore(speedControl, firstSection.nextSibling);
+    }
+    
+    // Add event listener for speed control
+    const speedSlider = document.getElementById('paddleSpeedSlider');
+    const speedValue = document.getElementById('paddleSpeedValue');
+    
+    speedSlider.addEventListener('input', (e) => {
+        paddleSpeed = parseFloat(e.target.value);
+        speedValue.textContent = paddleSpeed.toFixed(1);
+    });
+}
+
 // Get the canvas from the container
 const canvas = gameContainer.getCanvas();
 const ctx = canvas.getContext('2d');
@@ -41,7 +74,7 @@ let lives = 3;
 let level = 1;
 let paused = false;
 let respawning = false;
-const paddleSpeed = 0.5;
+let paddleSpeed = 1.0; // Increased default speed and made adjustable
 
 // Game objects
 const paddle = { 

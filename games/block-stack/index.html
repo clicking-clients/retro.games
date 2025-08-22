@@ -145,6 +145,32 @@ function placePiece(piece) {
     }
 }
 
+// Drop piece to bottom instantly
+function dropPieceToBottom(piece) {
+    if (!piece) return;
+    
+    // Move piece down until it can't move anymore
+    while (canMove(piece, 0, 1)) {
+        piece.y++;
+        score += 2; // Bonus points for instant drop
+    }
+    
+    // Place the piece and continue
+    placePiece(piece);
+    clearLines();
+    checkGameOver();
+    
+    if (!gameOver) {
+        currentPiece = createPiece();
+        if (!canMove(currentPiece, 0, 0)) {
+            gameOver = true;
+        }
+    }
+    
+    // Update score display
+    gameContainer.updateScore(score);
+}
+
 // Clear completed lines
 function clearLines() {
     let linesToClear = 0;
@@ -327,8 +353,11 @@ gameContainer.on('keydown', (e) => {
             }
             break;
         case 'ArrowUp':
-        case ' ':
             rotatePiece(currentPiece);
+            break;
+        case ' ':
+            // Drop piece to bottom instantly
+            dropPieceToBottom(currentPiece);
             break;
         case 'p':
         case 'P':

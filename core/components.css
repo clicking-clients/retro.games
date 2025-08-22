@@ -178,6 +178,7 @@
   flex-direction: column !important;
   align-items: center !important;
   width: 100% !important;
+  max-width: 100% !important;
 }
 
 .game-container .game-content {
@@ -188,12 +189,14 @@
   align-items: flex-start !important;
   justify-content: center !important;
   gap: var(--space-xl) !important;
+  min-height: 400px !important;
 }
 
 .game-container .game-area-lhs {
   flex: 1 !important;
   max-width: 70% !important;
   order: 1 !important;
+  min-width: 0 !important;
 }
 
 .game-container .game-sidebar-rhs {
@@ -201,6 +204,18 @@
   max-width: 30% !important;
   order: 2 !important;
   flex-shrink: 0 !important;
+  min-width: 280px !important;
+}
+
+/* Override any conflicting styles */
+.game-container * {
+  box-sizing: border-box !important;
+}
+
+/* Ensure sidebar sections are properly sized */
+.game-container .sidebar-section {
+  width: 100% !important;
+  margin-bottom: var(--space-md) !important;
 }
 
 /* Ensure proper layout structure */
