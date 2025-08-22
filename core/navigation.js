@@ -266,7 +266,16 @@ export class EnhancedNavigation {
     Object.keys(GAME_CONFIGS).forEach(gameKey => {
       const game = GAME_CONFIGS[gameKey];
       const option = document.createElement('option');
-      option.value = `/games/${gameKey}/index.html`;
+      
+      // Use relative paths based on current location
+      if (window.location.pathname.includes('/games/')) {
+        // We're already in a game subdirectory, go up one level
+        option.value = `../${gameKey}/index.html`;
+      } else {
+        // We're in the root, go to games directory
+        option.value = `games/${gameKey}/index.html`;
+      }
+      
       option.textContent = game.title;
       
       // Mark current game as selected
@@ -474,7 +483,16 @@ export class EnhancedNavigation {
     gameMeta.appendChild(playTime);
     
     const playButton = document.createElement('a');
-    playButton.href = `/games/${game.id}/index.html`;
+    
+    // Use relative paths based on current location
+    if (window.location.pathname.includes('/games/')) {
+      // We're already in a game subdirectory, go up one level
+      playButton.href = `../${game.id}/index.html`;
+    } else {
+      // We're in the root, go to games directory
+      playButton.href = `games/${game.id}/index.html`;
+    }
+    
     playButton.className = 'game-item-play';
     playButton.textContent = 'Play Now';
     
@@ -574,7 +592,14 @@ export class EnhancedNavigation {
   goToRandomGame() {
     const games = GameConfigManager.getRandomGame();
     if (games) {
-      window.location.href = `/games/${games.id}/index.html`;
+      // Use relative paths based on current location
+      if (window.location.pathname.includes('/games/')) {
+        // We're already in a game subdirectory, go up one level
+        window.location.href = `../${games.id}/index.html`;
+      } else {
+        // We're in the root, go to games directory
+        window.location.href = `games/${games.id}/index.html`;
+      }
     }
   }
   

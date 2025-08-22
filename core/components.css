@@ -140,12 +140,15 @@
     align-items: flex-start !important;
     justify-content: center !important;
     gap: var(--space-xl) !important;
+    width: 100% !important;
+    max-width: 100% !important;
   }
   
   .game-area-lhs {
     flex: 1 !important;
     max-width: 70% !important;
     order: 1 !important;
+    min-width: 0 !important;
   }
   
   .game-sidebar-rhs {
@@ -153,7 +156,24 @@
     max-width: 30% !important;
     order: 2 !important;
     flex-shrink: 0 !important;
+    min-width: 280px !important;
   }
+}
+
+/* Debug: Add borders to see layout structure */
+.game-content {
+  border: 2px solid var(--retro-yellow);
+  min-height: 400px;
+}
+
+.game-area-lhs {
+  border: 2px solid var(--retro-green);
+  min-height: 300px;
+}
+
+.game-sidebar-rhs {
+  border: 2px solid var(--retro-cyan);
+  min-height: 300px;
 }
 
 /* Responsive adjustments */

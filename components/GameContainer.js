@@ -27,6 +27,8 @@ export class GameContainer {
   init() {
     if (this.isInitialized) return;
     
+    console.log(`Initializing GameContainer for ${this.title}...`);
+    
     this.createContainer();
     this.createGameContent();
     this.createSidebar();
@@ -39,6 +41,7 @@ export class GameContainer {
     
     console.log(`GameContainer initialized for ${this.title} with LHS/RHS layout`);
     console.log('Game area on left, controls/info on right');
+    console.log('Final DOM structure:', this.elements.container.innerHTML);
   }
   
   /**
@@ -54,6 +57,8 @@ export class GameContainer {
     if (!this.elements.container.parentElement) {
       document.body.appendChild(this.elements.container);
     }
+    
+    console.log(`GameContainer created for ${this.title} with maxWidth: ${this.maxWidth}px`);
   }
   
   /**
@@ -118,8 +123,8 @@ export class GameContainer {
     // Create instructions section
     this.createInstructionsSection();
     
-    // Add sidebar to main container
-    this.elements.container.appendChild(this.elements.sidebar);
+    // Add sidebar to game content for LHS/RHS layout
+    this.elements.gameContent.appendChild(this.elements.sidebar);
   }
   
   /**
