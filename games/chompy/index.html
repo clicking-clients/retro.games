@@ -12,7 +12,41 @@
   --title:#ffd700;
 }
 html,body{height:100%;margin:0;background:var(--bg);font-family:system-ui,monospace;color:var(--score);}
-.app{ height: 80%;display:flex;gap:20px;align-items:flex-start;justify-content:center;padding:18px;}
+.game-content {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 18px;
+  min-height: 80vh;
+}
+
+.game-area-lhs {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  max-width: 70%;
+}
+
+.game-sidebar-rhs {
+  width: 300px;
+  min-width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  color: var(--score);
+}
+
+.game-title {
+  text-transform: uppercase;
+  font-size: 2rem;
+  color: #ff0;
+  text-shadow: 0 0 8px #f00;
+  text-align: center;
+  margin: 0 0 20px 0;
+}
 #gameNav, 
 #gameNav a {
   display: block;
@@ -67,19 +101,44 @@ html,body{height:100%;margin:0;background:var(--bg);font-family:system-ui,monosp
 #share-message.visible{opacity:1;}
 #timer-controls{display:flex;gap:6px;align-items:center;margin-top:6px;}
 #cancel-timer{padding:4px 6px;border:1px solid var(--score);background:transparent;color:var(--score);cursor:pointer}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .game-sidebar-rhs {
+    width: 280px;
+    min-width: 250px;
+  }
+}
+
+@media (max-width: 768px) {
+  .game-content {
+    flex-direction: column;
+    padding: 10px;
+  }
+  
+  .game-area-lhs {
+    max-width: 100%;
+    order: 2;
+  }
+  
+  .game-sidebar-rhs {
+    width: 100%;
+    order: 3;
+  }
+}
 </style>
 </head>
 <body>
-<div class="app">
-  <nav id="gameNav" style="padding:10px; background:#111; color:#0f0; font-family:monospace;">
-    <strong>Games:</strong>
-  </nav>
-  <div class="game-wrap">
-    <canvas id="game" width="560" height="640" tabindex="0"></canvas>
-    <div id="share-message">Share Time!<br>Let your sibling have a turn!</div>
+<div class="game-content">
+  <div class="game-area-lhs">
+    <h1 class="game-title">Chompy (Dot Eater)</h1>
+    <div class="game-wrap">
+      <canvas id="game" width="560" height="640" tabindex="0"></canvas>
+      <div id="share-message">Share Time!<br>Let your sibling have a turn!</div>
+    </div>
   </div>
 
-  <div id="sidebar">
+  <div class="game-sidebar-rhs">
     <div id="title">Dot Eater</div>
 
     <div>

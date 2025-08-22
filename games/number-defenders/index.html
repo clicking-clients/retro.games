@@ -7,7 +7,31 @@
 <style>
 :root { --green:#0f0; --yellow:#ff0; --red:#f00; --bg:#000; }
 html, body { height:100%; margin:0; padding:0; background: var(--bg); font-family: monospace; color: var(--green); overflow:hidden; }
-#container { display:flex; justify-content:center; align-items:flex-start; gap:20px; padding:20px; position:relative; min-height:100vh; }
+.game-content {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 20px;
+  position: relative;
+  min-height: 100vh;
+}
+
+.game-area-lhs {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  max-width: 70%;
+}
+
+.game-sidebar-rhs {
+  width: 450px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
 #gameNav, 
 #gameNav a {
   display: block;
@@ -26,6 +50,15 @@ html, body { height:100%; margin:0; padding:0; background: var(--bg); font-famil
 #game-wrapper { position:relative; display:inline-block; }
 #sidebar { width:450px; display:flex; flex-direction:column; gap:10px; }
 #title { text-transform: uppercase; font-size: 2rem; color: #ff0; text-shadow: 0 0 8px #f00; text-align: center; }
+
+.game-title {
+  text-transform: uppercase;
+  font-size: 2rem;
+  color: #ff0;
+  text-shadow: 0 0 8px #f00;
+  text-align: center;
+  margin: 0 0 20px 0;
+}
 #scoreboard { border:2px solid var(--green); padding:8px; font-size:0.9rem; }
 .section-title { color: var(--yellow); font-weight:bold; margin-bottom:4px; }
 #controls { font-size:0.9rem; }
@@ -39,20 +72,48 @@ input[type=range] { width:100%; }
 #splashScreen button { margin-top:20px; padding:10px 20px; font-size:1rem; cursor:pointer; }
 .level-settings { margin-top:8px; font-size:0.9rem; }
 .mode-settings { margin-top:8px; font-size:0.9rem; }
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .game-sidebar-rhs {
+    width: 400px;
+    min-width: 350px;
+  }
+}
+
+@media (max-width: 768px) {
+  .game-content {
+    flex-direction: column;
+    padding: 10px;
+  }
+  
+  .game-area-lhs {
+    max-width: 100%;
+    order: 2;
+  }
+  
+  .game-sidebar-rhs {
+    width: 100%;
+    order: 3;
+  }
+}
 </style>
 </head>
 <body>
 
 <div id="splashScreen"><div id="splashText">Level Complete!</div><button id="splashBtn">Next Level</button></div>
-<div id="container">  
+<div class="game-content">  
    <nav id="gameNav" style="padding:10px; background:#111; color:#0f0; font-family:monospace;">
     <strong>Games:</strong>
   </nav>
   <script src="navigation.js"></script>
-  <div id="game-wrapper">
-    <canvas id="game" width="540" height="640"></canvas>
+  <div class="game-area-lhs">
+    <h1 class="game-title">NUMBER DEFENDERS</h1>
+    <div id="game-wrapper">
+      <canvas id="game" width="540" height="640"></canvas>
+    </div>
   </div>
-  <div id="sidebar">
+  <div class="game-sidebar-rhs">
     <div id="title">NUMBER DEFENDERS</div>
     <div id="scoreboard">
       <div class="section-title">SCORE</div>
