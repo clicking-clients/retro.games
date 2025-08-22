@@ -38,11 +38,12 @@ input[type=range] { width:100%; }
   position:absolute; 
   top:0; 
   left:0; 
-  width:100%; 
-  height:100%; 
+  width:540px; 
+  height:640px; 
   pointer-events:none; 
   z-index:999; 
   background: transparent;
+  border: 1px solid rgba(255,0,0,0.3); /* Debug border to see overlay */
 }
 #splashScreen { position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); color:#fff; font-size:2rem; display:none; justify-content:center; align-items:center; flex-direction:column; text-align:center; z-index:1000; }
 #splashScreen button { margin-top:20px; padding:10px 20px; font-size:1rem; cursor:pointer; }
@@ -99,7 +100,7 @@ input[type=range] { width:100%; }
 
     <div class="level-settings">
       <div class="section-title">LEVEL</div>
-      <label><input type="radio" name="level" value="beginner" checked> Beginner (1-10)</label><br>
+      <label><input type="radio" name="level" value="beginner" checked> Beginner (1+1 to 5+5, max 10)</label><br>
       <label><input type="radio" name="level" value="medium"> Medium (1-20)</label><br>
       <label><input type="radio" name="level" value="great"> Great (1-50)</label><br>
       <label><input type="radio" name="level" value="expert"> Expert (1-100)</label>
@@ -201,24 +202,53 @@ function randColor(){ const colors=["#0f0","#0ff","#ff0","#f0f","#f60","#0fa","#
 function generateMathProblem(){
   // Get selected level and determine max operand
   const levelSelection = document.querySelector('input[name="level"]:checked').value;
-  let maxOperand;
+  let maxOperand, maxAnswer;
+  
   switch(levelSelection) {
-    case 'beginner': maxOperand = 10; break;
-    case 'medium': maxOperand = 20; break;
-    case 'great': maxOperand = 50; break;
-    case 'expert': maxOperand = 100; break;
-    default: maxOperand = 20;
+    case 'beginner': 
+      maxOperand = 5;  // Numbers 1-5
+      maxAnswer = 10;  // Answer max 10
+      break;
+    case 'medium': 
+      maxOperand = 20; 
+      maxAnswer = 40;
+      break;
+    case 'great': 
+      maxOperand = 50; 
+      maxAnswer = 100;
+      break;
+    case 'expert': 
+      maxOperand = 100; 
+      maxAnswer = 200;
+      break;
+    default: 
+      maxOperand = 20; 
+      maxAnswer = 40;
   }
   
-  let a = Math.floor(Math.random()*maxOperand) + 1; // +1 to avoid 0
-  let b = Math.floor(Math.random()*maxOperand) + 1; // +1 to avoid 0
-  let op = document.querySelector('input[name="mode"]:checked').value;
-  if(op==='both'){ op = Math.random()<0.5 ? '+' : '-'; }
-  if(!document.getElementById('allowNeg').checked && op==='-' && b>a){
-    [a,b]=[b,a];
+  let a, b, op, answer;
+  
+  if(levelSelection === 'beginner') {
+    // Beginner: Only addition, ensure answer ≤ 10
+    op = '+';
+    do {
+      a = Math.floor(Math.random() * maxOperand) + 1; // 1-5
+      b = Math.floor(Math.random() * maxOperand) + 1; // 1-5
+      answer = a + b;
+    } while(answer > maxAnswer); // Ensure answer ≤ 10
+  } else {
+    // Other levels: Normal operation selection
+    a = Math.floor(Math.random() * maxOperand) + 1;
+    b = Math.floor(Math.random() * maxOperand) + 1;
+    op = document.querySelector('input[name="mode"]:checked').value;
+    if(op === 'both'){ op = Math.random() < 0.5 ? '+' : '-'; }
+    if(!document.getElementById('allowNeg').checked && op === '-' && b > a){
+      [a,b] = [b,a];
+    }
+    answer = op === '+' ? a + b : a - b;
   }
+  
   const text = `${a}${op}${b}`;
-  const answer = op==='+' ? a+b : a-b;
   return { text, answer };
 }
 

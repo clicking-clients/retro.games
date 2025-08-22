@@ -89,6 +89,57 @@ body {
   outline-offset: 2px;
 }
 
+/* ===== RETRO LOGO ===== */
+.retro-logo {
+  text-align: center;
+  margin-bottom: var(--space-lg);
+  font-family: 'Courier New', monospace;
+}
+
+.logo-text {
+  font-size: var(--font-size-4xl);
+  font-weight: bold;
+  color: var(--retro-green);
+  text-shadow: 0 0 10px var(--retro-green);
+  letter-spacing: 2px;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.logo-rocket {
+  display: inline-block;
+  margin-top: var(--space-md);
+  position: relative;
+}
+
+.rocket-body {
+  width: 20px;
+  height: 40px;
+  background: var(--retro-yellow);
+  margin: 0 auto;
+  border-radius: 2px;
+}
+
+.rocket-nose {
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 20px solid var(--retro-yellow);
+  margin: 0 auto;
+  margin-top: -2px;
+}
+
+.rocket-flame {
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 15px solid var(--retro-red);
+  margin: 0 auto;
+  margin-top: 2px;
+}
+
 /* ===== TYPOGRAPHY UTILITIES ===== */
 .text-xs { font-size: var(--font-size-xs); }
 .text-sm { font-size: var(--font-size-sm); }
