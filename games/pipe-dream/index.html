@@ -10,7 +10,6 @@
 <link rel="stylesheet" href="styles.css">
 <style>
 /* Pipe Dream specific styles */
-
 .game-title {
     text-transform: uppercase;
     font-size: 2rem;
@@ -20,14 +19,9 @@
     margin-bottom: 20px;
 }
 
-.game-canvas {
-    border: 4px solid #0f0;
-    background: #1a1a2e;
-    display: block;
-    margin: 0 auto;
-}
-
-.game-header {
+.game-description {
+    color: #0f0;
+    text-align: center;
     margin-bottom: 20px;
 }
 
@@ -38,6 +32,7 @@
     padding: 15px;
     background: rgba(0, 0, 0, 0.3);
     border-radius: 8px;
+    text-align: center;
 }
 
 .pipe-inventory {
@@ -45,6 +40,79 @@
     padding: 15px;
     background: rgba(0, 0, 0, 0.3);
     border-radius: 8px;
+    border: 2px solid #0f0;
+    min-height: 120px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+}
+
+.pipe-piece {
+    width: 60px;
+    height: 60px;
+    background: #1a1a2e;
+    border: 2px solid #0f0;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: grab;
+    user-select: none;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.pipe-piece:hover {
+    border-color: #ff0;
+    transform: scale(1.05);
+}
+
+.pipe-piece:active {
+    cursor: grabbing;
+}
+
+.pipe-piece svg {
+    width: 100%;
+    height: 100%;
+}
+
+.pipe-stroke {
+    stroke: #0f0;
+    stroke-width: 4;
+    fill: none;
+    stroke-linecap: round;
+}
+
+.pipe-stroke.glow {
+    stroke: #ff0;
+    filter: drop-shadow(0 0 5px #ff0);
+}
+
+.pipe-inner {
+    stroke: #00f;
+    stroke-width: 2;
+    fill: none;
+    stroke-linecap: round;
+}
+
+.pipe-endcap {
+    fill: #0f0;
+}
+
+.pipe-piece[data-type="number"] {
+    background: #0f0;
+    color: #000;
+    font-weight: bold;
+    font-size: 24px;
+}
+
+.pipe-piece[data-type="operator"] {
+    background: #ff8c00;
+    color: #000;
+    font-weight: bold;
+    font-size: 24px;
 }
 
 .play-area {
@@ -52,7 +120,52 @@
     min-height: 400px;
     background: rgba(0, 0, 0, 0.3);
     border-radius: 8px;
+    border: 2px solid #0f0;
     position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.game-grid {
+    display: grid;
+    gap: 2px;
+    background: #0f0;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+.grid-cell {
+    width: 40px;
+    height: 40px;
+    background: #1a1a2e;
+    border: 1px solid #0f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.grid-cell:hover {
+    background: #2a2a3e;
+}
+
+.grid-cell.start-pipe {
+    background: #0f0;
+    color: #000;
+    font-weight: bold;
+}
+
+.grid-cell.answer-pipe {
+    background: #00f;
+    color: #fff;
+    font-weight: bold;
+}
+
+.grid-cell.has-pipe {
+    background: #0bb;
+    border-color: #ff0;
 }
 
 .game-controls {
@@ -74,18 +187,18 @@
     border-radius: 6px;
     cursor: pointer;
     font-weight: bold;
+    transition: all 0.2s ease;
 }
 
 .control-btn:hover {
     background: #0a0;
+    transform: scale(1.05);
 }
 
 .water-btn {
     background: #00f;
     color: #fff;
 }
-
-
 
 .section-title {
     color: #ffd700;
@@ -177,6 +290,112 @@
     color: #0f0;
 }
 
+/* SVG Pipe Styles */
+.pipe-piece {
+    display: inline-block;
+    width: 60px;
+    height: 60px;
+    margin: 5px;
+    cursor: grab;
+    user-select: none;
+    position: relative;
+    border: 2px solid #0f0;
+    border-radius: 8px;
+    background: #1a1a2e;
+    transition: all 0.2s ease;
+}
+
+.pipe-piece:hover {
+    border-color: #ff0;
+    transform: scale(1.05);
+}
+
+.pipe-piece.dragging {
+    opacity: 0.7;
+    transform: scale(1.1);
+    cursor: grabbing;
+}
+
+.pipe-piece svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.pipe-stroke {
+    stroke: #0f0;
+    stroke-width: 4;
+    fill: none;
+    stroke-linecap: round;
+}
+
+.pipe-stroke.glow {
+    stroke: #ff0;
+    filter: drop-shadow(0 0 4px #ff0);
+}
+
+.pipe-inner {
+    stroke: #00f;
+    stroke-width: 2;
+    fill: none;
+    stroke-linecap: round;
+}
+
+.pipe-endcap {
+    fill: #0f0;
+}
+
+.pipe-endcap.glow {
+    fill: #ff0;
+    filter: drop-shadow(0 0 4px #ff0);
+}
+
+/* Grid Styles */
+.game-grid {
+    display: grid;
+    gap: 2px;
+    padding: 20px;
+    background: #1a1a2e;
+    border: 2px solid #0f0;
+    border-radius: 8px;
+    margin: 20px 0;
+}
+
+.grid-cell {
+    width: 40px;
+    height: 40px;
+    border: 1px solid #0f0;
+    background: #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.grid-cell.drag-over {
+    background: #ff0;
+    border-color: #ff0;
+    transform: scale(1.1);
+}
+
+.grid-cell.start-pipe {
+    background: #0f0;
+    color: #000;
+    font-weight: bold;
+}
+
+.grid-cell.answer-pipe {
+    background: #00f;
+    color: #fff;
+    font-weight: bold;
+}
+
+.grid-cell.placed-pipe {
+    background: #0bb;
+    border-color: #0bb;
+}
+
 /* Mobile responsive */
 @media (max-width: 768px) {
     .game-content {
@@ -184,8 +403,8 @@
         padding: 10px;
     }
     
-    .game-canvas {
-        max-width: 100vw;
+    .game-grid {
+        transform: scale(0.8);
     }
     
     .game-sidebar-rhs {
@@ -205,7 +424,7 @@
     <div class="game-area-lhs">
         <div class="game-header">
             <h1 class="game-title">🚰 Pipe Dream</h1>
-            <p>Connect pipes to solve math problems and watch the water flow!</p>
+            <p class="game-description">Connect pipes to solve math problems and watch the water flow!</p>
         </div>
         
         <div class="math-problem" id="mathProblem" role="heading" aria-level="2">
@@ -213,14 +432,12 @@
         </div>
         
         <div class="pipe-inventory" id="pipeInventory">
-            <!-- Pipe pieces will be generated here -->
+            <!-- SVG pipe pieces will be generated here -->
         </div>
         
         <div class="play-area" id="playArea">
-            <canvas id="gameCanvas" width="400" height="300" style="border: 2px solid #0f0; background: #1a1a2e;"></canvas>
-            <div class="play-instructions">
-                <p>Click pipe pieces from inventory above, then click on the grid to place them</p>
-                <p>Connect the start pipe (left) to the correct answer pipe (right)</p>
+            <div class="game-grid" id="gameGrid">
+                <!-- Grid cells will be generated here -->
             </div>
         </div>
         
@@ -337,7 +554,7 @@ const gameContainer = new GameContainer(gameConfig);
 // Initialize the container
 gameContainer.init();
 
-// REAL Pipe Dream Game Class
+// REAL Pipe Dream Game Class with SVG and Drag & Drop
 class PipeDream {
     constructor() {
         this.gameMode = 'practice';
@@ -376,6 +593,9 @@ class PipeDream {
         this.currentExpression = null;
         this.correctAnswer = null;
         this.decoyAnswers = [];
+        
+        this.grid = [];
+        this.gridElement = null;
         
         this.init();
     }
@@ -418,11 +638,40 @@ class PipeDream {
         return configs[this.difficulty] || configs.basic;
     }
     
+    getPipeTypes() {
+        return [
+            // Numbers
+            { type: 'number', value: 1, symbol: '1' },
+            { type: 'number', value: 2, symbol: '2' },
+            { type: 'number', value: 3, symbol: '3' },
+            { type: 'number', value: 4, symbol: '4' },
+            { type: 'number', value: 5, symbol: '5' },
+            { type: 'number', value: 6, symbol: '6' },
+            { type: 'number', value: 7, symbol: '7' },
+            { type: 'number', value: 8, symbol: '8' },
+            { type: 'number', value: 9, symbol: '9' },
+            { type: 'number', value: 10, symbol: '10' },
+            
+            // Operators
+            { type: 'operator', operation: '+', symbol: '+' },
+            { type: 'operator', operation: '-', symbol: '−' },
+            { type: 'operator', operation: '×', symbol: '×' },
+            { type: 'operator', operation: '÷', symbol: '÷' },
+            
+            // Connector pipes
+            { type: 'connector', pipeType: 'straight-h', symbol: '▶' },
+            { type: 'connector', pipeType: 'straight-v', symbol: '▼' },
+            { type: 'connector', pipeType: 'elbow', symbol: '┌' },
+            { type: 'connector', pipeType: 'tee', symbol: '├' },
+            { type: 'connector', pipeType: 'cross', symbol: '⊕' }
+        ];
+    }
+    
     init() {
         this.setupEventListeners();
+        this.createGrid();
         this.createNewPuzzle();
         this.startPressureTimer();
-        this.setupGridInteraction();
         this.updateDisplay();
     }
     
@@ -445,6 +694,74 @@ class PipeDream {
         document.getElementById('opSub').addEventListener('change', (e) => this.updateOperations());
         document.getElementById('opMul').addEventListener('change', (e) => this.updateOperations());
         document.getElementById('opDiv').addEventListener('change', (e) => this.updateOperations());
+        
+        // Setup drag and drop
+        this.setupDragAndDrop();
+    }
+    
+    setupDragAndDrop() {
+        const inventory = document.getElementById('pipeInventory');
+        const grid = document.getElementById('gameGrid');
+        
+        // Inventory drag events
+        inventory.addEventListener('dragstart', (e) => this.handleDragStart(e));
+        inventory.addEventListener('dragend', (e) => this.handleDragEnd(e));
+        
+        // Grid drop events
+        grid.addEventListener('dragover', (e) => this.handleDragOver(e));
+        grid.addEventListener('drop', (e) => this.handleDrop(e));
+        grid.addEventListener('dragleave', (e) => this.handleDragLeave(e));
+    }
+    
+    handleDragStart(e) {
+        const pipeElement = e.target.closest('.pipe-piece');
+        if (!pipeElement) return;
+        
+        const pipeData = JSON.parse(pipeElement.dataset.pipeType);
+        e.dataTransfer.setData('text/plain', JSON.stringify(pipeData));
+        e.dataTransfer.effectAllowed = 'copy';
+        
+        pipeElement.classList.add('dragging');
+        this.draggedPipe = pipeData;
+    }
+    
+    handleDragEnd(e) {
+        const pipeElement = e.target.closest('.pipe-piece');
+        if (pipeElement) {
+            pipeElement.classList.remove('dragging');
+        }
+        this.draggedPipe = null;
+    }
+    
+    handleDragOver(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
+        
+        const cell = e.target.closest('.grid-cell');
+        if (cell && !cell.classList.contains('start-pipe') && !cell.classList.contains('answer-pipe')) {
+            cell.classList.add('drag-over');
+        }
+    }
+    
+    handleDragLeave(e) {
+        const cell = e.target.closest('.grid-cell');
+        if (cell) {
+            cell.classList.remove('drag-over');
+        }
+    }
+    
+    handleDrop(e) {
+        e.preventDefault();
+        
+        const cell = e.target.closest('.grid-cell');
+        if (!cell || !this.draggedPipe) return;
+        
+        cell.classList.remove('drag-over');
+        
+        const x = parseInt(cell.dataset.x);
+        const y = parseInt(cell.dataset.y);
+        
+        this.placePipe(x, y, this.draggedPipe);
     }
     
     updateOperations() {
@@ -460,11 +777,40 @@ class PipeDream {
         }
     }
     
+    createGrid() {
+        const config = this.getGameConfig();
+        this.gridElement = document.getElementById('gameGrid');
+        this.gridElement.innerHTML = '';
+        
+        const [cols, rows] = this.gridSize.split('x').map(Number);
+        this.grid = [];
+        
+        this.gridElement.style.gridTemplateColumns = `repeat(${cols}, 40px)`;
+        this.gridElement.style.gridTemplateRows = `repeat(${rows}, 40px)`;
+        
+        for (let y = 0; y < rows; y++) {
+            this.grid[y] = [];
+            for (let x = 0; x < cols; x++) {
+                const cell = document.createElement('div');
+                cell.className = 'grid-cell';
+                cell.dataset.x = x;
+                cell.dataset.y = y;
+                
+                this.grid[y][x] = { 
+                    pipe: null, 
+                    hasWater: false, 
+                    connections: [] 
+                };
+                
+                this.gridElement.appendChild(cell);
+            }
+        }
+    }
+    
     createNewPuzzle() {
         this.currentExpression = this.generateExpression();
         this.correctAnswer = this.evaluateExpression(this.currentExpression);
         this.decoyAnswers = this.generateDecoyAnswers();
-        this.createGrid();
         this.placeStartAndAnswerPipes();
         this.generateInventory();
         this.updateDisplay();
@@ -528,222 +874,226 @@ class PipeDream {
         return decoys;
     }
     
-    createGrid() {
-        const config = this.getGameConfig();
-        this.grid = [];
-        
-        for (let y = 0; y < config.answerPipeCount; y++) {
-            this.grid[y] = [];
-            for (let x = 0; x < config.maxPathLength; x++) {
-                this.grid[y][x] = { 
-                    pipe: null, 
-                    hasWater: false, 
-                    connections: [] 
-                };
-            }
-        }
-    }
-    
     placeStartAndAnswerPipes() {
         const config = this.getGameConfig();
+        const [cols, rows] = this.gridSize.split('x').map(Number);
         
-        this.startPipe = { x: 0, y: Math.floor(config.answerPipeCount / 2) };
+        // Place start pipe on the left
+        const startY = Math.floor(rows / 2);
+        this.startPipe = { x: 0, y: startY };
         
+        const startCell = this.gridElement.children[startY * cols];
+        startCell.classList.add('start-pipe');
+        startCell.textContent = this.currentExpression.a;
+        
+        // Place answer pipes on the right
         this.answerPipes = [];
         const answers = [this.correctAnswer, ...this.decoyAnswers];
         
         for (let i = 0; i < config.answerPipeCount; i++) {
-            this.answerPipes.push({
-                x: config.maxPathLength - 1,
-                y: i,
-                value: answers[i],
-                isCorrect: answers[i] === this.correctAnswer
-            });
+            const y = Math.floor(rows / 2) - Math.floor(config.answerPipeCount / 2) + i;
+            if (y >= 0 && y < rows) {
+                this.answerPipes.push({
+                    x: cols - 1,
+                    y: y,
+                    value: answers[i],
+                    isCorrect: answers[i] === this.correctAnswer
+                });
+                
+                const answerCell = this.gridElement.children[y * cols + (cols - 1)];
+                answerCell.classList.add('answer-pipe');
+                answerCell.textContent = answers[i];
+            }
         }
     }
     
     generateInventory() {
-        const config = this.getGameConfig();
-        const pipeCount = Math.floor(config.maxPathLength * config.answerPipeCount * 0.3);
-        this.inventory = [];
+        const inventory = document.getElementById('pipeInventory');
+        inventory.innerHTML = '';
         
-        const pipeTypes = ['straight', 'corner', 't', 'cross'];
-        for (let i = 0; i < pipeCount; i++) {
-            const type = pipeTypes[Math.floor(Math.random() * pipeTypes.length)];
-            const rotation = Math.floor(Math.random() * 4) * 90;
-            this.inventory.push({ type, rotation, id: i });
+        const config = this.getGameConfig();
+        const pipeTypes = this.getPipeTypes();
+        const pipes = [];
+        
+        // Add numbers from the expression
+        if (this.currentExpression.type === 'simple') {
+            pipes.push(pipeTypes.find(p => p.value === this.currentExpression.b));
         }
         
-        this.updateInventoryDisplay();
-    }
-    
-    updateInventoryDisplay() {
-        const inventoryEl = document.getElementById('pipeInventory');
-        inventoryEl.innerHTML = '';
+        // Ensure the answer is available
+        if (!pipes.some(p => p.value === this.correctAnswer)) {
+            pipes.push(pipeTypes.find(p => p.value === this.correctAnswer));
+        }
         
-        this.inventory.forEach((pipe, index) => {
-            const pipeEl = document.createElement('div');
-            pipeEl.className = 'inventory-pipe';
-            pipeEl.textContent = pipe.type.charAt(0).toUpperCase();
-            pipeEl.style.cssText = `
-                display: inline-block;
-                width: 40px;
-                height: 40px;
-                background: #0bb;
-                color: #000;
-                text-align: center;
-                line-height: 40px;
-                margin: 5px;
-                border-radius: 5px;
-                cursor: pointer;
-                user-select: none;
-            `;
-            
-            pipeEl.addEventListener('click', () => this.selectPipe(index));
-            inventoryEl.appendChild(pipeEl);
-        });
-    }
-    
-    selectPipe(index) {
-        this.draggedPipe = this.inventory[index];
-        console.log('Selected pipe:', this.draggedPipe);
+        // Add some extra numbers
+        const extraNumbers = [2, 3, 4, 6, 7, 8, 9].filter(num => 
+            num !== this.currentExpression.a && num !== this.currentExpression.b
+        );
         
-        // Highlight selected pipe
-        document.querySelectorAll('.inventory-pipe').forEach((el, i) => {
-            el.style.border = i === index ? '3px solid #ff0' : '2px solid #fff';
-        });
-    }
-    
-    setupGridInteraction() {
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
+        // Add 2-3 random extra numbers
+        const extraCount = Math.min(3, extraNumbers.length);
+        for (let i = 0; i < extraCount; i++) {
+            const randomIndex = Math.floor(Math.random() * extraNumbers.length);
+            const extraNum = extraNumbers.splice(randomIndex, 1)[0];
+            pipes.push(pipeTypes.find(p => p.value === extraNum));
+        }
         
-        canvas.addEventListener('click', (e) => {
-            if (!this.draggedPipe) return;
+        // Add operators
+        pipes.push(pipeTypes.find(p => p.operation === this.currentExpression.op));
+        
+        // Add connector pipes
+        const connectors = pipeTypes.filter(p => p.type === 'connector');
+        const connectorCount = Math.min(8, connectors.length);
+        for (let i = 0; i < connectorCount; i++) {
+            pipes.push(connectors[i]);
+        }
+        
+        // Filter out undefined pipes and shuffle
+        const validPipes = pipes.filter(pipe => pipe !== undefined);
+        const shuffledPipes = validPipes.sort(() => Math.random() - 0.5);
+        
+        shuffledPipes.forEach(pipe => {
+            const pipeElement = document.createElement('div');
+            pipeElement.className = 'pipe-piece';
+            pipeElement.draggable = true;
+            pipeElement.dataset.pipeType = JSON.stringify(pipe);
             
-            const rect = canvas.getBoundingClientRect();
-            const x = Math.floor((e.clientX - rect.left) / 40);
-            const y = Math.floor((e.clientY - rect.top) / 40);
-            
-            if (x >= 0 && x < 10 && y >= 0 && y < 5) {
-                this.placePipe(x, y);
+            if (pipe.type === 'number') {
+                pipeElement.textContent = pipe.symbol;
+                pipeElement.dataset.type = 'number';
+            } else if (pipe.type === 'operator') {
+                pipeElement.textContent = pipe.symbol;
+                pipeElement.dataset.type = 'operator';
+            } else if (pipe.type === 'connector') {
+                pipeElement.innerHTML = this.svgForPipe(pipe.pipeType, 0, false);
             }
+            
+            inventory.appendChild(pipeElement);
         });
-        
-        // Draw initial grid
-        this.drawGrid();
     }
     
-    placePipe(x, y) {
-        if (!this.draggedPipe) return;
+    getPipeTypes() {
+        return [
+            // Numbers
+            { type: 'number', value: 1, symbol: '1', id: 'num1' },
+            { type: 'number', value: 2, symbol: '2', id: 'num2' },
+            { type: 'number', value: 3, symbol: '3', id: 'num3' },
+            { type: 'number', value: 4, symbol: '4', id: 'num4' },
+            { type: 'number', value: 5, symbol: '5', id: 'num5' },
+            { type: 'number', value: 6, symbol: '6', id: 'num6' },
+            { type: 'number', value: 7, symbol: '7', id: 'num7' },
+            { type: 'number', value: 8, symbol: '8', id: 'num8' },
+            { type: 'number', value: 9, symbol: '9', id: 'num9' },
+            
+            // Operators
+            { type: 'operator', operation: '+', symbol: '+', id: 'opAdd' },
+            { type: 'operator', operation: '-', symbol: '−', id: 'opSub' },
+            { type: 'operator', operation: '×', symbol: '×', id: 'opMul' },
+            { type: 'operator', operation: '÷', symbol: '÷', id: 'opDiv' },
+            
+            // Connector pipes
+            { type: 'connector', pipeType: 'straight-h', rotation: 0, id: 'pipe1' },
+            { type: 'connector', pipeType: 'straight-v', rotation: 0, id: 'pipe2' },
+            { type: 'connector', pipeType: 'elbow', rotation: 0, id: 'pipe3' },
+            { type: 'connector', pipeType: 'tee', rotation: 0, id: 'pipe4' },
+            { type: 'connector', pipeType: 'cross', rotation: 0, id: 'pipe5' }
+        ];
+    }
+    
+    svgForPipe(type = 'straight-h', rot = 0, active = false) {
+        const strokeClass = 'pipe-stroke' + (active ? ' glow' : '');
+        const paths = {
+            'straight-h': `<path class="${strokeClass}" d="M12 50 H88"/>`,
+            'straight-v': `<path class="${strokeClass}" d="M50 12 V88"/>`,
+            'elbow': `<path class="${strokeClass}" d="M12 50 H50 V12"/>`,
+            'tee': `
+                <path class="${strokeClass}" d="M12 50 H88"/>
+                <path class="${strokeClass}" d="M50 50 V12"/>`,
+            'cross': `
+                <path class="${strokeClass}" d="M12 50 H88"/>
+                <path class="${strokeClass}" d="M50 12 V88"/>`
+        };
+        const inner = {
+            'straight-h': `<path class="pipe-inner" d="M12 50 H88"/>`,
+            'straight-v': `<path class="pipe-inner" d="M50 12 V88"/>`,
+            'elbow': `<path class="pipe-inner" d="M12 50 H50 V12"/>`,
+            'tee': `
+                <path class="pipe-inner" d="M12 50 H88"/>
+                <path class="pipe-inner" d="M50 50 V12"/>`,
+            'cross': `
+                <path class="pipe-inner" d="M12 50 H88"/>
+                <path class="pipe-inner" d="M50 12 V88"/>`
+        };
+        const endcaps = {
+            'straight-h': `<circle class="pipe-endcap" cx="12" cy="50" r="3"/><circle class="pipe-endcap" cx="88" cy="50" r="3"/>`,
+            'straight-v': `<circle class="pipe-endcap" cx="50" cy="12" r="3"/><circle class="pipe-endcap" cx="50" cy="88" r="3"/>`,
+            'elbow': `<circle class="pipe-endcap" cx="12" cy="50" r="3"/><circle class="pipe-endcap" cx="50" cy="12" r="3"/>`,
+            'tee': `<circle class="pipe-endcap" cx="12" cy="50" r="3"/><circle class="pipe-endcap" cx="88" cy="50" r="3"/><circle class="pipe-endcap" cx="50" cy="12" r="3"/>`,
+            'cross': `<circle class="pipe-endcap" cx="12" cy="50" r="3"/><circle class="pipe-endcap" cx="88" cy="50" r="3"/><circle class="pipe-endcap" cx="50" cy="12" r="3"/><circle class="pipe-endcap" cx="50" cy="88" r="3"/>`
+        };
+        return `
+        <svg viewBox="0 0 100 100">
+            <g transform="rotate(${rot} 50 50)">
+                ${paths[type] || paths['straight-h']}
+                ${inner[type] || ''}
+                ${endcaps[type] || ''}
+            </g>
+        </svg>`;
+    }
+    
+    placePipe(x, y, pipeData) {
+        if (!pipeData) return;
         
         // Check if position is valid (not start/answer pipes)
-        if ((x === 0 && y === 2) || (x === 9 && (y === 0 || y === 1 || y === 2))) {
-            console.log('Cannot place pipe on start/answer positions');
+        const cell = this.grid[y][x];
+        if (cell.pipe) {
+            console.log('Position already occupied');
             return;
         }
         
         // Place pipe
-        this.grid[y][x].pipe = { ...this.draggedPipe };
-        this.pipeHistory.push({ x, y, pipe: { ...this.draggedPipe } });
+        cell.pipe = { ...pipeData };
+        this.pipeHistory.push({ x, y, pipe: { ...pipeData } });
+        
+        // Update visual
+        const cellElement = this.gridElement.children[y * this.gridElement.style.gridTemplateColumns.split(' ').length + x];
+        cellElement.classList.add('has-pipe');
+        
+        if (pipeData.type === 'number') {
+            cellElement.textContent = pipeData.symbol;
+        } else if (pipeData.type === 'operator') {
+            cellElement.textContent = pipeData.symbol;
+        } else if (pipeData.type === 'connector') {
+            cellElement.innerHTML = this.svgForPipe(pipeData.pipeType, 0, false);
+        }
+        
+        console.log(`Pipe placed at (${x}, ${y}):`, pipeData);
         
         // Remove from inventory
-        this.inventory.splice(this.draggedPipe.id, 1);
-        this.updateInventoryDisplay();
-        
-        // Clear selection
-        this.draggedPipe = null;
-        
-        // Redraw
-        this.drawGrid();
-        this.drawPipes();
-        
-        console.log(`Pipe placed at (${x}, ${y})`);
+        this.removeFromInventory(pipeData);
     }
     
-    drawGrid() {
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
+    removeFromInventory(pipeData) {
+        const inventory = document.getElementById('pipeInventory');
+        const pipeElements = inventory.querySelectorAll('.pipe-piece');
         
-        // Clear canvas
-        ctx.fillStyle = '#1a1a2e';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        // Draw grid lines
-        ctx.strokeStyle = '#0f0';
-        ctx.lineWidth = 1;
-        
-        for (let x = 0; x <= 10; x++) {
-            ctx.beginPath();
-            ctx.moveTo(x * 40, 0);
-            ctx.lineTo(x * 40, 200);
-            ctx.stroke();
-        }
-        
-        for (let y = 0; y <= 5; y++) {
-            ctx.beginPath();
-            ctx.moveTo(0, y * 40);
-            ctx.lineTo(400, y * 40);
-            ctx.stroke();
-        }
-        
-        // Draw start pipe (left)
-        ctx.fillStyle = '#0f0';
-        ctx.fillRect(10, 70, 20, 20);
-        ctx.fillStyle = '#000';
-        ctx.font = '12px monospace';
-        ctx.textAlign = 'center';
-        ctx.fillText('S', 20, 85);
-        
-        // Draw answer pipes (right)
-        const answers = [this.correctAnswer, ...this.decoyAnswers];
-        for (let i = 0; i < answers.length; i++) {
-            const y = i * 40 + 10;
-            ctx.fillStyle = answers[i] === this.correctAnswer ? '#0f0' : '#f0f';
-            ctx.fillRect(370, y, 20, 20);
-            ctx.fillStyle = '#000';
-            ctx.fillText(answers[i], 380, y + 15);
-        }
-    }
-    
-    drawPipes() {
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        
-        // Draw placed pipes
-        for (let y = 0; y < this.grid.length; y++) {
-            for (let x = 0; x < this.grid[y].length; x++) {
-                const cell = this.grid[y][x];
-                if (cell.pipe) {
-                    this.drawPipe(cell.pipe, x, y);
-                }
+        for (const element of pipeElements) {
+            const elementData = JSON.parse(element.dataset.pipeType);
+            if (this.pipesEqual(elementData, pipeData)) {
+                element.remove();
+                break;
             }
         }
     }
     
-    drawPipe(pipe, x, y) {
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
+    pipesEqual(pipe1, pipe2) {
+        if (pipe1.type !== pipe2.type) return false;
         
-        ctx.save();
-        ctx.translate(x * 40 + 20, y * 40 + 20);
-        ctx.rotate((pipe.rotation * Math.PI) / 180);
+        if (pipe1.type === 'number') return pipe1.value === pipe2.value;
+        if (pipe1.type === 'operator') return pipe1.operation === pipe2.operation;
+        if (pipe1.type === 'connector') return pipe1.pipeType === pipe2.pipeType;
         
-        ctx.fillStyle = '#0bb';
-        ctx.fillRect(-15, -15, 30, 30);
-        
-        // Draw pipe symbol based on type
-        ctx.fillStyle = '#000';
-        ctx.font = '16px monospace';
-        ctx.textAlign = 'center';
-        
-        let symbol = '│';
-        if (pipe.type === 'corner') symbol = '┌';
-        else if (pipe.type === 't') symbol = '├';
-        else if (pipe.type === 'cross') symbol = '┼';
-        
-        ctx.fillText(symbol, 0, 5);
-        ctx.restore();
+        return false;
     }
     
     testWaterFlow() {
@@ -756,13 +1106,20 @@ class PipeDream {
         this.connectedPipes = [];
         this.pipeHistory = [];
         this.pressure = 12;
+        this.createGrid();
         this.createNewPuzzle();
     }
     
     undoLastMove() {
         if (this.pipeHistory.length > 0) {
             const lastMove = this.pipeHistory.pop();
-            // Undo logic would go here
+            const cell = this.grid[lastMove.y][lastMove.x];
+            cell.pipe = null;
+            
+            const cellElement = this.gridElement.children[lastMove.y * this.gridElement.style.gridTemplateColumns.split(' ').length + lastMove.x];
+            cellElement.classList.remove('has-pipe');
+            cellElement.innerHTML = '';
+            
             console.log('Undoing last move:', lastMove);
         }
     }
@@ -822,6 +1179,69 @@ class PipeDream {
         }
         alert('Game Over! Pressure too high.');
     }
+    
+    placePipe(x, y, pipeData) {
+        if (!pipeData) return;
+        
+        // Check if position is valid (not start/answer pipes)
+        if ((x === 0 && y === 0) || (x === 9 && (y === 0 || y === 1 || y === 2))) {
+            console.log('Cannot place pipe on start/answer positions');
+            return;
+        }
+        
+        // Place pipe
+        this.grid[y][x].pipe = { ...pipeData };
+        this.pipeHistory.push({ x, y, pipe: { ...pipeData } });
+        
+        // Remove from inventory
+        const inventoryIndex = this.inventory.findIndex(p => p.id === pipeData.id);
+        if (inventoryIndex !== -1) {
+            this.inventory.splice(inventoryIndex, 1);
+            this.updateInventoryDisplay();
+        }
+        
+        // Update grid display
+        this.updateGridDisplay();
+        
+        console.log(`Pipe placed at (${x}, ${y})`);
+    }
+    
+    updateGridDisplay() {
+        const grid = document.getElementById('gameGrid');
+        if (!grid) return;
+        
+        // Clear existing grid
+        grid.innerHTML = '';
+        
+        // Create grid cells
+        for (let y = 0; y < this.grid.length; y++) {
+            for (let x = 0; x < this.grid[y].length; x++) {
+                const cell = document.createElement('div');
+                cell.className = 'grid-cell';
+                cell.dataset.x = x;
+                cell.dataset.y = y;
+                
+                // Check if this is a special cell
+                if (x === 0 && y === 2) {
+                    cell.classList.add('start-pipe');
+                    cell.textContent = 'S';
+                } else if (x === 9 && (y === 0 || y === 1 || y === 2)) {
+                    cell.classList.add('answer-pipe');
+                    const answers = [this.correctAnswer, ...this.decoyAnswers];
+                    cell.textContent = answers[y] || '?';
+                } else if (this.grid[y][x].pipe) {
+                    cell.classList.add('placed-pipe');
+                    if (this.grid[y][x].pipe.type === 'connector') {
+                        cell.innerHTML = this.svgForPipe(this.grid[y][x].pipe.pipeType, this.grid[y][x].pipe.rotation, true);
+                    } else {
+                        cell.textContent = this.grid[y][x].pipe.type === 'number' ? this.grid[y][x].pipe.value : this.grid[y][x].pipe.operation;
+                    }
+                }
+                
+                grid.appendChild(cell);
+            }
+        }
+    }
 }
 
 // Initialize the REAL Pipe Dream game
@@ -834,7 +1254,7 @@ gameContainer.gameInstance = {
     restart: () => { game.resetLevel(); }
 };
 
-console.log('REAL Pipe Dream game initialized with universal system - Full math puzzle game restored');
+console.log('REAL Pipe Dream game initialized with universal system - Full SVG inventory and drag & drop restored');
 </script>
 </body>
 </html>
