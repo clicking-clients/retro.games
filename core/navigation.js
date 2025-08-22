@@ -70,6 +70,9 @@ export class EnhancedNavigation {
     if (this.currentGameId) {
       this.makeNavigationCompact();
     }
+    
+    // Initialize collapsed state by default
+    this.initCollapsedState();
   }
   
   /**
@@ -159,6 +162,42 @@ export class EnhancedNavigation {
       if (gamesList) gamesList.style.display = 'none';
       if (footer) footer.style.display = 'none';
       if (collapseBtn) collapseBtn.innerHTML = '<span class="collapse-icon">▶</span>';
+    }
+  }
+  
+  /**
+   * Initialize navigation as collapsed by default
+   */
+  initCollapsedState() {
+    const navElement = this.navElement;
+    const filters = navElement.querySelector('.nav-filters');
+    const gamesList = navElement.querySelector('.games-list');
+    const footer = navElement.querySelector('.nav-footer');
+    const collapseBtn = navElement.querySelector('.nav-collapse-btn');
+    
+    // Start collapsed
+    navElement.classList.add('collapsed');
+    if (filters) filters.style.display = 'none';
+    if (gamesList) gamesList.style.display = 'none';
+    if (footer) footer.style.display = 'none';
+    if (collapseBtn) collapseBtn.innerHTML = '<span class="collapse-icon">▶</span>';
+    
+    // Add clear instruction text
+    const instruction = document.createElement('div');
+    instruction.className = 'nav-instruction';
+    instruction.innerHTML = '<span class="instruction-text">Click ▶ to expand games menu</span>';
+    instruction.style.cssText = `
+      color: var(--retro-green);
+      font-size: var(--font-size-sm);
+      text-align: center;
+      padding: 10px;
+      border-top: 1px solid var(--retro-green);
+      margin-top: 10px;
+    `;
+    
+    const header = navElement.querySelector('.nav-header');
+    if (header) {
+      header.appendChild(instruction);
     }
   }
   

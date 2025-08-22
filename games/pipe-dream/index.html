@@ -220,7 +220,11 @@
         </div>
         
         <div class="play-area" id="playArea">
-            <!-- Placed pipes will appear here -->
+            <canvas id="gameCanvas" width="400" height="300" style="border: 2px solid #0f0; background: #1a1a2e;"></canvas>
+            <div class="play-instructions">
+                <p>Click pipe pieces from inventory above, then click on the grid to place them</p>
+                <p>Connect the start pipe (left) to the correct answer pipe (right)</p>
+            </div>
         </div>
         
         <div class="game-controls">
@@ -409,6 +413,7 @@ class PipeDream {
         this.setupEventListeners();
         this.createNewPuzzle();
         this.startPressureTimer();
+        this.setupGridInteraction();
         this.updateDisplay();
     }
     
@@ -593,6 +598,143 @@ class PipeDream {
     selectPipe(index) {
         this.draggedPipe = this.inventory[index];
         console.log('Selected pipe:', this.draggedPipe);
+        
+        // Highlight selected pipe
+        document.querySelectorAll('.inventory-pipe').forEach((el, i) => {
+            el.style.border = i === index ? '3px solid #ff0' : '2px solid #fff';
+        });
+    }
+    
+    setupGridInteraction() {
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.addEventListener('click', (e) => {
+            if (!this.draggedPipe) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const x = Math.floor((e.clientX - rect.left) / 40);
+            const y = Math.floor((e.clientY - rect.top) / 40);
+            
+            if (x >= 0 && x < 10 && y >= 0 && y < 5) {
+                this.placePipe(x, y);
+            }
+        });
+        
+        // Draw initial grid
+        this.drawGrid();
+    }
+    
+    placePipe(x, y) {
+        if (!this.draggedPipe) return;
+        
+        // Check if position is valid (not start/answer pipes)
+        if ((x === 0 && y === 2) || (x === 9 && (y === 0 || y === 1 || y === 2))) {
+            console.log('Cannot place pipe on start/answer positions');
+            return;
+        }
+        
+        // Place pipe
+        this.grid[y][x].pipe = { ...this.draggedPipe };
+        this.pipeHistory.push({ x, y, pipe: { ...this.draggedPipe } });
+        
+        // Remove from inventory
+        this.inventory.splice(this.draggedPipe.id, 1);
+        this.updateInventoryDisplay();
+        
+        // Clear selection
+        this.draggedPipe = null;
+        
+        // Redraw
+        this.drawGrid();
+        this.drawPipes();
+        
+        console.log(`Pipe placed at (${x}, ${y})`);
+    }
+    
+    drawGrid() {
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Clear canvas
+        ctx.fillStyle = '#1a1a2e';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Draw grid lines
+        ctx.strokeStyle = '#0f0';
+        ctx.lineWidth = 1;
+        
+        for (let x = 0; x <= 10; x++) {
+            ctx.beginPath();
+            ctx.moveTo(x * 40, 0);
+            ctx.lineTo(x * 40, 200);
+            ctx.stroke();
+        }
+        
+        for (let y = 0; y <= 5; y++) {
+            ctx.beginPath();
+            ctx.moveTo(0, y * 40);
+            ctx.lineTo(400, y * 40);
+            ctx.stroke();
+        }
+        
+        // Draw start pipe (left)
+        ctx.fillStyle = '#0f0';
+        ctx.fillRect(10, 70, 20, 20);
+        ctx.fillStyle = '#000';
+        ctx.font = '12px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('S', 20, 85);
+        
+        // Draw answer pipes (right)
+        const answers = [this.correctAnswer, ...this.decoyAnswers];
+        for (let i = 0; i < answers.length; i++) {
+            const y = i * 40 + 10;
+            ctx.fillStyle = answers[i] === this.correctAnswer ? '#0f0' : '#f0f';
+            ctx.fillRect(370, y, 20, 20);
+            ctx.fillStyle = '#000';
+            ctx.fillText(answers[i], 380, y + 15);
+        }
+    }
+    
+    drawPipes() {
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Draw placed pipes
+        for (let y = 0; y < this.grid.length; y++) {
+            for (let x = 0; x < this.grid[y].length; x++) {
+                const cell = this.grid[y][x];
+                if (cell.pipe) {
+                    this.drawPipe(cell.pipe, x, y);
+                }
+            }
+        }
+    }
+    
+    drawPipe(pipe, x, y) {
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        ctx.save();
+        ctx.translate(x * 40 + 20, y * 40 + 20);
+        ctx.rotate((pipe.rotation * Math.PI) / 180);
+        
+        ctx.fillStyle = '#0bb';
+        ctx.fillRect(-15, -15, 30, 30);
+        
+        // Draw pipe symbol based on type
+        ctx.fillStyle = '#000';
+        ctx.font = '16px monospace';
+        ctx.textAlign = 'center';
+        
+        let symbol = '│';
+        if (pipe.type === 'corner') symbol = '┌';
+        else if (pipe.type === 't') symbol = '├';
+        else if (pipe.type === 'cross') symbol = '┼';
+        
+        ctx.fillText(symbol, 0, 5);
+        ctx.restore();
     }
     
     testWaterFlow() {

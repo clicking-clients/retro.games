@@ -425,43 +425,25 @@ canvas.addEventListener('touchend', (e) => {
 
 // Initialize game
 loadBoard();
-// Ensure board is initialized before starting game loop
+
+// Ensure board is properly loaded before starting game loop
 if (!board || board.length === 0) {
-    console.warn('Board not loaded, creating default board');
-    board = [
-        "############################",
-        "#............##............#",
-        "#.####.#####.##.#####.####.#",
-        "#o####.#####.##.#####.####o#",
-        "#.####.#####.##.#####.####.#",
-        "#..........................#",
-        "#.####.##.########.##.####.#",
-        "#.####.##.########.##.####.#",
-        "#......##....##....##......#",
-        "######.##### ## #####.######",
-        "     #.##### ## #####.#     ",
-        "     #.##          ##.#     ",
-        "######.## ###HH### ##.######",
-        "      .   #HHHHHH#   .      ",
-        "######.## ######## ##.######",
-        "     #.##          ##.#     ",
-        "     #.## ######## ##.#     ",
-        "######.## ######## ##.######",
-        "#............##............#",
-        "#.####.#####.##.#####.####.#",
-        "#o..##.....o..##..o.....##o#",
-        "###.##.##.########.##.##.###",
-        "#......##....##....##......#",
-        "#.##########.##.##########.#",
-        "#..........................#",
-        "#.####.#####.##.#####.####.#",
-        "#o####.#####.##.#####.####o#",
-        "#.####.#####.##.#####.####.#",
-        "#..........................#",
-        "#............##............#",
-        "############################"
-    ].map(row => row.split(''));
+    console.error('Board failed to load, attempting recovery...');
+    loadBoard(); // Try again
+    
+    if (!board || board.length === 0) {
+        console.error('Board still not loaded, creating emergency board');
+        board = MAPS[0].map(row => row.split(''));
+    }
 }
+
+// Verify board dimensions
+if (board && board.length > 0) {
+    console.log(`Board loaded: ${board.length} rows x ${board[0].length} columns`);
+} else {
+    console.error('CRITICAL: Board still not loaded!');
+}
+
 gameLoop();
 
 // Update game container with game instance

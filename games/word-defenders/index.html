@@ -244,7 +244,7 @@
 <div class="word-defenders-container">
     <div class="game-area">
         <h1 class="game-title">Word Defenders</h1>
-        <canvas id="gameCanvas" class="game-canvas" width="540" height="640" role="img" aria-label="Word Defenders game area" tabindex="0"></canvas>
+
         
         <!-- Directional Controls (Mobile) -->
         <div class="directional-controls">
@@ -360,8 +360,8 @@ const gameContainer = new GameContainer(gameConfig);
 // Initialize the container
 gameContainer.init();
 
-// Use the existing canvas instead of creating a new one
-const canvas = document.getElementById('gameCanvas');
+// Use the GameContainer's canvas system properly
+const canvas = gameContainer.getCanvas();
 const ctx = canvas.getContext('2d');
 
 // Game constants
