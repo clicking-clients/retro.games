@@ -36,6 +36,9 @@ export class GameContainer {
     
     this.isInitialized = true;
     this.emit('initialized', this);
+    
+    console.log(`GameContainer initialized for ${this.title} with LHS/RHS layout`);
+    console.log('Game area on left, controls/info on right');
   }
   
   /**

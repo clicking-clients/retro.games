@@ -52,19 +52,14 @@ export class EnhancedNavigation {
    * Create the main navigation
    */
   createNavigation() {
-    // Find existing navigation or create new one
-    this.navElement = document.getElementById('gameNav') || this.createNavElement();
+    // Always create new navigation element
+    this.navElement = this.createNavElement();
     
     // Create navigation content
     this.createNavigationContent();
     
-    // Insert into page if not already present
-    if (!this.navElement.parentElement) {
-      const firstElement = document.body.firstElementChild;
-      if (firstElement) {
-        document.body.insertBefore(this.navElement, firstElement);
-      }
-    }
+    // Always insert at the top of the body
+    document.body.insertBefore(this.navElement, document.body.firstChild);
     
     // If we're on a game page, make navigation more compact
     if (this.currentGameId) {
@@ -246,7 +241,7 @@ export class EnhancedNavigation {
     Object.keys(GAME_CONFIGS).forEach(gameKey => {
       const game = GAME_CONFIGS[gameKey];
       const option = document.createElement('option');
-      option.value = `/games/${gameKey}/`;
+      option.value = `/games/${gameKey}/index.html`;
       option.textContent = game.title;
       
       // Mark current game as selected
