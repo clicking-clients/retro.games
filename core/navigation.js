@@ -7,6 +7,12 @@ import { GAME_CONFIGS, GameConfigManager, GAME_CATEGORIES, DIFFICULTY_LEVELS } f
 
 export class EnhancedNavigation {
   constructor() {
+    // Check if navigation already exists globally
+    if (window.enhancedNavigation && window.enhancedNavigation.isInitialized) {
+      console.log('Navigation already exists, returning existing instance');
+      return window.enhancedNavigation;
+    }
+    
     this.currentGameId = null;
     this.navElement = null;
     this.isInitialized = false;
@@ -18,6 +24,9 @@ export class EnhancedNavigation {
     this.searchQuery = '';
     
     this.init();
+    
+    // Store global reference
+    window.enhancedNavigation = this;
   }
   
   /**
@@ -26,6 +35,13 @@ export class EnhancedNavigation {
   init() {
     if (this.isInitialized) return;
     
+    // Check if navigation already exists and remove it
+    const existingNav = document.getElementById('gameNav');
+    if (existingNav) {
+      existingNav.remove();
+      console.log('Removed existing navigation to prevent duplicates');
+    }
+    
     this.detectCurrentGame();
     this.createNavigation();
     this.setupEventListeners();
@@ -33,7 +49,7 @@ export class EnhancedNavigation {
     this.setupSearchAndFilters();
     
     this.isInitialized = true;
-    console.log('Enhanced Navigation initialized');
+    console.log('Enhanced Navigation initialized for:', this.currentGameId || 'main page');
   }
   
   /**
@@ -41,10 +57,16 @@ export class EnhancedNavigation {
    */
   detectCurrentGame() {
     const path = window.location.pathname;
-    const gameId = path.split('/').pop().replace('.html', '');
+    // Extract game ID from path like /games/game-name/index.html
+    const pathParts = path.split('/');
+    const gameIndex = pathParts.indexOf('games');
     
-    if (gameId && gameId !== 'index' && GAME_CONFIGS[gameId]) {
-      this.currentGameId = gameId;
+    if (gameIndex !== -1 && pathParts[gameIndex + 1]) {
+      const gameId = pathParts[gameIndex + 1];
+      if (GAME_CONFIGS[gameId]) {
+        this.currentGameId = gameId;
+        console.log(`Detected current game: ${gameId}`);
+      }
     }
   }
   
@@ -64,10 +86,13 @@ export class EnhancedNavigation {
     // If we're on a game page, make navigation more compact
     if (this.currentGameId) {
       this.makeNavigationCompact();
+      console.log(`Navigation made compact for game: ${this.currentGameId}`);
     }
     
     // Initialize collapsed state by default
     this.initCollapsedState();
+    
+    console.log('Navigation created and inserted at top of body');
   }
   
   /**
@@ -449,7 +474,7 @@ export class EnhancedNavigation {
     gameMeta.appendChild(playTime);
     
     const playButton = document.createElement('a');
-    playButton.href = `../${game.id}/index.html`;
+    playButton.href = `/games/${game.id}/index.html`;
     playButton.className = 'game-item-play';
     playButton.textContent = 'Play Now';
     
@@ -549,7 +574,7 @@ export class EnhancedNavigation {
   goToRandomGame() {
     const games = GameConfigManager.getRandomGame();
     if (games) {
-      window.location.href = `../${games.id}/index.html`;
+      window.location.href = `/games/${games.id}/index.html`;
     }
   }
   
@@ -901,9 +926,7 @@ export class EnhancedNavigation {
   }
 }
 
-// Auto-initialize when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-  window.enhancedNavigation = new EnhancedNavigation();
-});
+// Auto-initialization removed to prevent duplicate navigation
+// Navigation is now manually initialized in each game file
 
 export default EnhancedNavigation;

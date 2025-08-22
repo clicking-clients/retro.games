@@ -79,18 +79,18 @@
 
 .game-content {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-lg);
+  flex-direction: row;
+  gap: var(--space-xl);
   width: 100%;
-  align-items: center;
+  align-items: flex-start;
+  justify-content: center;
 }
 
-@media (min-width: 768px) {
+@media (max-width: 767px) {
   .game-content {
-    flex-direction: row;
-    align-items: flex-start;
-    justify-content: center;
-    gap: var(--space-xl);
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-lg);
   }
 }
 
@@ -102,15 +102,18 @@
   align-items: center;
   gap: var(--space-md);
   max-width: 70%;
+  min-width: 0; /* Allow flex shrinking */
 }
 
 .game-sidebar-rhs {
   width: 300px;
   min-width: 280px;
+  max-width: 30%;
   display: flex;
   flex-direction: column;
   gap: var(--space-lg);
   color: var(--retro-green);
+  flex-shrink: 0; /* Prevent sidebar from shrinking */
 }
 
 .game-canvas-area {
@@ -118,6 +121,39 @@
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+/* Ensure proper LHS/RHS layout */
+.game-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Force LHS/RHS layout on larger screens */
+@media (min-width: 768px) {
+  .game-content {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: flex-start !important;
+    justify-content: center !important;
+    gap: var(--space-xl) !important;
+  }
+  
+  .game-area-lhs {
+    flex: 1 !important;
+    max-width: 70% !important;
+    order: 1 !important;
+  }
+  
+  .game-sidebar-rhs {
+    width: 300px !important;
+    max-width: 30% !important;
+    order: 2 !important;
+    flex-shrink: 0 !important;
+  }
 }
 
 /* Responsive adjustments */
@@ -128,19 +164,21 @@
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .game-content {
     flex-direction: column;
   }
   
   .game-area-lhs {
     max-width: 100%;
-    order: 2;
+    order: 1;
+    width: 100%;
   }
   
   .game-sidebar-rhs {
     width: 100%;
-    order: 3;
+    max-width: 100%;
+    order: 2;
   }
 }
 
