@@ -3,141 +3,363 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Paddle Ball</title>
-<style>
-  body { background: black; color: #0f0; font-family: monospace; display: flex; justify-content: center; align-items: flex-start; height: 100%; margin: 0; padding: 20px; }
-  #container { display: flex; gap: 20px; align-items: flex-start; }
-  #gameNav, 
-#gameNav a {
-  display: block;
-  margin-top: 5px;
-  text-transform: uppercase;
-  color: #0f0;
-  text-decoration: none;
-}
-
-#gameNav a.active {
-  color: #ff0;       /* highlight color */
-  font-weight: bold;  /* optional emphasis */
-  text-decoration: underline;
-}
-  #pongGame { border: 4px solid #0f0; height: 80vh; width: 100vw; max-width: 960px; image-rendering: pixelated; background: black; display: block; }
-  #sidebar { display: flex; flex-direction: column; gap: 20px; }
-  #title { text-transform: uppercase; font-size: 2rem; color: #ff0; text-shadow: 0 0 8px #f00; text-align: center; }
-  #scoreboard { border: 2px solid #0f0; padding: 10px; }
-  .section-title { color: #ff0; margin-bottom: 5px; font-weight: bold; }
-</style>
+<title>Paddle Ball - Retro Games Collection</title>
+<link rel="stylesheet" href="../../core/base.css">
+<link rel="stylesheet" href="../../core/components.css">
+<link rel="stylesheet" href="../../core/responsive.css">
 </head>
 <body>
-<div id="container">
-    <nav id="gameNav" style="padding:10px; background:#111; color:#0f0; font-family:monospace;">
-    <strong>Games:</strong>
-  </nav>
-    <script src="navigation.js"></script>
-  <canvas id="pongGame" width="960" height="480"></canvas>
-  <div id="sidebar">
-    <div id="title">Paddle Ball</div>
-    <div id="scoreboard">
-      <div class="section-title">SCORE</div>
-      <div id="score">0 - 0</div>
-    </div>
-    <div id="instructions">
-      <div class="section-title">CONTROLS</div>
-      W / S: Move Left Paddle Up/Down<br>
-      ↑ / ↓: Move Right Paddle Up/Down<br>
-      P: Pause<br>
-      R: Reset<br>
-      <label for="speedInput">Initial Speed (ms per frame):</label>
-      <input type="number" id="speedInput" value="70" min="5" max="100" />
-    </div>
-  </div>
-</div>
-<script>
-const canvas = document.getElementById('pongGame');
-const context = canvas.getContext('2d');
-const scale = 20;
-const rows = canvas.height / scale;
-const cols = canvas.width / scale;
-let paused = false;
-let speed = parseInt(document.getElementById('speedInput').value);
-let paddleSpeed = 3; // Increased paddle movement per key press
+<!-- Enhanced Navigation will be automatically inserted here -->
+<script type="module">
+import { EnhancedNavigation } from '../../core/navigation.js';
+import { GameContainer } from '../../components/GameContainer.js';
+import { GAME_CONFIGS } from '../../config/games.js';
 
-let paddleHeight = 4;
-let leftPaddle = {y: rows/2 - paddleHeight/2};
-let rightPaddle = {y: rows/2 - paddleHeight/2};
-let ball = {x: cols/2, y: rows/2, dx: 1, dy: 1};
-let score = [0,0];
-let lastTime = 0;
+// Initialize enhanced navigation
+const navigation = new EnhancedNavigation();
 
-function draw() {
-    context.fillStyle = '#000';
-    context.fillRect(0,0,canvas.width,canvas.height);
-    context.save();
-    context.scale(scale, scale);
+// Initialize game container with paddle-ball config
+const gameConfig = GAME_CONFIGS['paddle-ball'];
+const gameContainer = new GameContainer(gameConfig);
 
-    // paddles
-    context.fillStyle = '#0f0';
-    for(let i=0;i<paddleHeight;i++){
-        context.fillRect(0, leftPaddle.y + i, 1, 1);
-        context.fillRect(cols-1, rightPaddle.y + i, 1, 1);
-    }
+// Initialize the container
+gameContainer.init();
 
-    // ball
-    context.fillRect(ball.x, ball.y, 1, 1);
+// Get the canvas from the container
+const canvas = gameContainer.getCanvas();
+const ctx = canvas.getContext('2d');
 
-    context.restore();
-    document.getElementById('score').textContent = score[0] + ' - ' + score[1];
+// Game variables
+let gameRunning = true;
+let score1 = 0;
+let score2 = 0;
+let gameOver = false;
+let winner = '';
+
+// Paddle properties
+const paddleHeight = 80;
+const paddleWidth = 10;
+const paddleSpeed = 8;
+
+let paddle1 = {
+    x: 20,
+    y: canvas.height / 2 - paddleHeight / 2,
+    score: 0,
+    up: false,
+    down: false
+};
+
+let paddle2 = {
+    x: canvas.width - 30,
+    y: canvas.height / 2 - paddleHeight / 2,
+    score: 0,
+    up: false,
+    down: false
+};
+
+// Ball properties
+let ball = {
+    x: canvas.width / 2,
+    y: canvas.height / 2,
+    radius: 8,
+    dx: 4,
+    dy: 2,
+    speed: 4
+};
+
+// Game settings
+const winningScore = 11;
+
+// Initialize game
+function initGame() {
+    // Reset scores
+    score1 = 0;
+    score2 = 0;
+    paddle1.score = 0;
+    paddle2.score = 0;
+    
+    // Reset ball
+    resetBall();
+    
+    // Reset paddles
+    paddle1.y = canvas.height / 2 - paddleHeight / 2;
+    paddle2.y = canvas.height / 2 - paddleHeight / 2;
+    
+    gameOver = false;
+    winner = '';
+    
+    // Update UI
+    gameContainer.updateScore(score1);
+    gameContainer.updateLives(score2);
 }
 
-function update(time = 0) {
-    if(paused) {
-        requestAnimationFrame(update);
-        return;
-    }
-    if(time - lastTime < speed) {
-        requestAnimationFrame(update);
-        return;
-    }
-    lastTime = time;
+// Reset ball to center
+function resetBall() {
+    ball.x = canvas.width / 2;
+    ball.y = canvas.height / 2;
+    ball.dx = (Math.random() > 0.5 ? 1 : -1) * ball.speed;
+    ball.dy = (Math.random() - 0.5) * 2;
+}
 
+// Update game state
+function update() {
+    if (!gameRunning || gameOver) return;
+    
+    // Move paddles
+    if (paddle1.up && paddle1.y > 0) {
+        paddle1.y -= paddleSpeed;
+    }
+    if (paddle1.down && paddle1.y < canvas.height - paddleHeight) {
+        paddle1.y += paddleSpeed;
+    }
+    
+    if (paddle2.up && paddle2.y > 0) {
+        paddle2.y -= paddleSpeed;
+    }
+    if (paddle2.down && paddle2.y < canvas.height - paddleHeight) {
+        paddle2.y += paddleSpeed;
+    }
+    
+    // Move ball
     ball.x += ball.dx;
     ball.y += ball.dy;
+    
+    // Ball collision with top and bottom
+    if (ball.y <= ball.radius || ball.y >= canvas.height - ball.radius) {
+        ball.dy = -ball.dy;
+    }
+    
+    // Ball collision with paddles
+    if (ball.x <= paddle1.x + paddleWidth && 
+        ball.y >= paddle1.y && 
+        ball.y <= paddle1.y + paddleHeight &&
+        ball.dx < 0) {
+        ball.dx = -ball.dx;
+        // Add some randomness to the bounce
+        ball.dy += (Math.random() - 0.5) * 2;
+    }
+    
+    if (ball.x >= paddle2.x - ball.radius && 
+        ball.y >= paddle2.y && 
+        ball.y <= paddle2.y + paddleHeight &&
+        ball.dx > 0) {
+        ball.dx = -ball.dx;
+        // Add some randomness to the bounce
+        ball.dy += (Math.random() - 0.5) * 2;
+    }
+    
+    // Ball out of bounds
+    if (ball.x <= 0) {
+        score2++;
+        paddle2.score = score2;
+        gameContainer.updateLives(score2);
+        if (score2 >= winningScore) {
+            gameOver = true;
+            winner = 'Player 2';
+        } else {
+            resetBall();
+        }
+    }
+    
+    if (ball.x >= canvas.width) {
+        score1++;
+        paddle1.score = score1;
+        gameContainer.updateScore(score1);
+        if (score1 >= winningScore) {
+            gameOver = true;
+            winner = 'Player 1';
+        } else {
+            resetBall();
+        }
+    }
+}
 
-    if(ball.y < 0 || ball.y >= rows) ball.dy *= -1;
-    if(ball.x === 1 && ball.y >= leftPaddle.y && ball.y < leftPaddle.y + paddleHeight) ball.dx *= -1;
-    if(ball.x === cols-2 && ball.y >= rightPaddle.y && ball.y < rightPaddle.y + paddleHeight) ball.dx *= -1;
+// Draw functions
+function drawPaddles() {
+    // Player 1 paddle (left)
+    ctx.fillStyle = '#0f0';
+    ctx.fillRect(paddle1.x, paddle1.y, paddleWidth, paddleHeight);
+    
+    // Player 2 paddle (right)
+    ctx.fillStyle = '#00f';
+    ctx.fillRect(paddle2.x, paddle2.y, paddleWidth, paddleHeight);
+}
 
-    if(ball.x < 0){ score[1]++; resetBall(); }
-    if(ball.x >= cols){ score[0]++; resetBall(); }
+function drawBall() {
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+    ctx.fill();
+}
 
+function drawCenterLine() {
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([10, 10]);
+    ctx.beginPath();
+    ctx.moveTo(canvas.width / 2, 0);
+    ctx.lineTo(canvas.width / 2, canvas.height);
+    ctx.stroke();
+    ctx.setLineDash([]);
+}
+
+function drawScores() {
+    ctx.fillStyle = '#fff';
+    ctx.font = '32px monospace';
+    ctx.textAlign = 'center';
+    
+    // Player 1 score (left side)
+    ctx.fillText(score1.toString(), canvas.width / 4, 50);
+    
+    // Player 2 score (right side)
+    ctx.fillText(score2.toString(), (canvas.width / 4) * 3, 50);
+}
+
+function drawGameOver() {
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.fillStyle = '#fff';
+    ctx.font = '48px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(`${winner} Wins!`, canvas.width / 2, canvas.height / 2 - 50);
+    
+    ctx.font = '24px monospace';
+    ctx.fillText(`Final Score: ${score1} - ${score2}`, canvas.width / 2, canvas.height / 2);
+    ctx.fillText('Press R to restart', canvas.width / 2, canvas.height / 2 + 50);
+}
+
+function draw() {
+    // Clear canvas
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw game elements
+    drawCenterLine();
+    drawPaddles();
+    drawBall();
+    drawScores();
+    
+    if (gameOver) {
+        drawGameOver();
+    }
+}
+
+// Game loop
+function gameLoop() {
+    update();
     draw();
-    requestAnimationFrame(update);
+    requestAnimationFrame(gameLoop);
 }
 
-function resetBall() {
-    ball.x = cols/2;
-    ball.y = rows/2;
-    ball.dx = Math.random() > 0.5 ? 1 : -1;
-    ball.dy = Math.random() > 0.5 ? 1 : -1;
-}
-
-document.getElementById('speedInput').addEventListener('change', e => {
-    speed = parseInt(e.target.value);
-});
-
-document.addEventListener('keydown', e => {
-    switch(e.code){
-        case 'KeyW': if(leftPaddle.y>0) leftPaddle.y = Math.max(0, leftPaddle.y - paddleSpeed); break;
-        case 'KeyS': if(leftPaddle.y+paddleHeight<rows) leftPaddle.y = Math.min(rows - paddleHeight, leftPaddle.y + paddleSpeed); break;
-        case 'ArrowUp': if(rightPaddle.y>0) rightPaddle.y = Math.max(0, rightPaddle.y - paddleSpeed); break;
-        case 'ArrowDown': if(rightPaddle.y+paddleHeight<rows) rightPaddle.y = Math.min(rows - paddleHeight, rightPaddle.y + paddleSpeed); break;
-        case 'KeyP': paused = !paused; break;
-        case 'KeyR': score=[0,0]; resetBall(); break;
+// Event listeners
+gameContainer.on('keydown', (e) => {
+    if (gameOver) {
+        if (e.key === 'r' || e.key === 'R') {
+            restartGame();
+        }
+        return;
+    }
+    
+    switch(e.key) {
+        case 'w':
+        case 'W':
+            paddle1.up = true;
+            break;
+        case 's':
+        case 'S':
+            paddle1.down = true;
+            break;
+        case 'ArrowUp':
+            paddle2.up = true;
+            break;
+        case 'ArrowDown':
+            paddle2.down = true;
+            break;
+        case ' ':
+            gameRunning = !gameRunning;
+            if (gameRunning) gameLoop();
+            break;
     }
 });
 
-resetBall();
-update();
+gameContainer.on('keyup', (e) => {
+    switch(e.key) {
+        case 'w':
+        case 'W':
+            paddle1.up = false;
+            break;
+        case 's':
+        case 'S':
+            paddle1.down = false;
+            break;
+        case 'ArrowUp':
+            paddle2.up = false;
+            break;
+        case 'ArrowDown':
+            paddle2.down = false;
+            break;
+    }
+});
+
+// Touch controls for mobile
+let touchStartY = 0;
+
+canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    touchStartY = touch.clientY - rect.top;
+    
+    // Determine which side was touched
+    const touchX = touch.clientX - rect.left;
+    if (touchX < canvas.width / 2) {
+        // Left side - Player 1
+        paddle1.up = false;
+        paddle1.down = false;
+        if (touchStartY < canvas.height / 2) {
+            paddle1.up = true;
+        } else {
+            paddle1.down = true;
+        }
+    } else {
+        // Right side - Player 2
+        paddle2.up = false;
+        paddle2.down = false;
+        if (touchStartY < canvas.height / 2) {
+            paddle2.up = true;
+        } else {
+            paddle2.down = true;
+        }
+    }
+});
+
+canvas.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    // Stop all paddle movement
+    paddle1.up = false;
+    paddle1.down = false;
+    paddle2.up = false;
+    paddle2.down = false;
+});
+
+function restartGame() {
+    initGame();
+    gameRunning = true;
+}
+
+// Initialize game
+initGame();
+gameLoop();
+
+// Update game container with game instance
+gameContainer.gameInstance = {
+    pause: () => { gameRunning = false; },
+    resume: () => { gameRunning = true; gameLoop(); },
+    restart: restartGame
+};
+
+console.log('Paddle Ball game initialized with universal system');
 </script>
 </body>
 </html>

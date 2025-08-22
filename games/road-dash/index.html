@@ -3,314 +3,373 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Road Crosser</title>
-<style>
-.explosion {
-  position: absolute;
-  background: radial-gradient(circle, yellow 0%, orange 60%, red 100%);
-  border-radius: 50%;
-  pointer-events: none;
-  animation: explode 0.5s ease-out forwards;
-}
-@keyframes explode {
-  0% { transform: scale(0.5); opacity: 1; }
-  100% { transform: scale(2); opacity: 0; }
-}
-
-  body { background: black; color: #0f0; font-family: monospace; display: flex; justify-content: center; align-items: flex-start; height: 100%; margin: 0; padding: 20px; }
-  #container { display: flex; gap: 20px; align-items: flex-start; }
-  #gameNav, 
-#gameNav a {
-  display: block;
-  margin-top: 5px;
-  text-transform: uppercase;
-  color: #0f0;
-  text-decoration: none;
-}
-
-#gameNav a.active {
-  color: #ff0;       /* highlight color */
-  font-weight: bold;  /* optional emphasis */
-  text-decoration: underline;
-}
-  #froggerGame { border: 4px solid #0f0; height: 80vh; width: 100vw; max-width: 960px; image-rendering: pixelated; background: black; display: block; }
-  #sidebar { display: flex; flex-direction: column; gap: 20px; }
-  #title { text-transform: uppercase; font-size: 2rem; color: #ff0; text-shadow: 0 0 8px #f00; text-align: center; }
-  #scoreboard { border: 2px solid #0f0; padding: 10px; }
-  .section-title { color: #ff0; margin-bottom: 5px; font-weight: bold; }
-</style>
+<title>Road Dash - Retro Games Collection</title>
+<link rel="stylesheet" href="../../core/base.css">
+<link rel="stylesheet" href="../../core/components.css">
+<link rel="stylesheet" href="../../core/responsive.css">
 </head>
 <body>
-<div id="container">
-  <nav id="gameNav" style="padding:10px; background:#111; color:#0f0; font-family:monospace;">
-    <strong>Games:</strong>
-  </nav>
-    <script src="navigation.js"></script>
-  <canvas id="froggerGame" width="960" height="480"></canvas>
-  <div id="sidebar">
-    <div id="title">Road Crosser</div>
-    <div id="scoreboard">
-      <div class="section-title">SCORE</div>
-      <div id="score">0</div>
-    </div>
-    <div id="instructions">
-      <div class="section-title">CONTROLS</div>
-      Arrow Keys: Move Frog<br>
-      P: Pause<br>
-      R: Reset<br>
-      Space: Respawn after hit<br>
-      <div class="section-title">RULES</div>
-      Reach the top without hitting the obstacles to score points.<br>
-      <div class="section-title">START LEVEL</div>
-      <input type="number" id="startLevel" value="1" min="1" max="5" />
-    </div>
-  </div>
-</div>
-<script>
-const canvas = document.getElementById('froggerGame');
+<!-- Enhanced Navigation will be automatically inserted here -->
+<script type="module">
+import { EnhancedNavigation } from '../../core/navigation.js';
+import { GameContainer } from '../../components/GameContainer.js';
+import { GAME_CONFIGS } from '../../config/games.js';
+
+// Initialize enhanced navigation
+const navigation = new EnhancedNavigation();
+
+// Initialize game container with road-dash config
+const gameConfig = GAME_CONFIGS['road-dash'];
+const gameContainer = new GameContainer(gameConfig);
+
+// Initialize the container
+gameContainer.init();
+
+// Get the canvas from the container
+const canvas = gameContainer.getCanvas();
 const ctx = canvas.getContext('2d');
-const scale = 20;
-const rows = canvas.height / scale; // 24
-const cols = canvas.width / scale;  // 48
-let paused = false;
+
+// Game variables
+let frog = { x: canvas.width / 2, y: canvas.height - 50, size: 20 };
+let cars = [];
+let logs = [];
 let score = 0;
-let level = parseInt(document.getElementById('startLevel').value);
+let lives = 3;
+let gameRunning = true;
+let gameOver = false;
+let level = 1;
 
-const frog = {x: Math.floor(cols/2), y: rows-1, alpha: 1};
-const cars = [];
-const carRows = [3,5,7,9]; // lanes
-const CARS_PER_LANE = 3;
-let baseCarSpeed = 0.12; // tiles per frame at level 1 (smaller = slower)
-let respawning = false;
-let respawnTimerId = null;
-let spaceListener = null;
-let fadeIntervalId = null;
+// Game settings
+const carSpeed = 2;
+const logSpeed = 1.5;
+const frogSpeed = 30;
 
-function randInt(min, max){ return Math.floor(Math.random() * (max - min + 1)) + min; }
-function randFloat(min, max){ return Math.random() * (max - min) + min; }
-
-function spawnCar(laneIndex){
-  const y = carRows[laneIndex];
-  const dir = (laneIndex % 2 === 0) ? 1 : -1; // alternate directions per lane
-  const len = randInt(2,5); // 2..5 tiles
-  const speedMag = baseCarSpeed * level * randFloat(0.8, 1.4);
-  const speed = dir * speedMag;
-  const startOffset = randInt(0, cols); // random off-screen distance
-  let x;
-  if(dir > 0){
-    x = -startOffset - len; // start left off-screen
-  } else {
-    x = cols + startOffset; // start right off-screen
-  }
-  return { x, y, len, speed, dir };
-}
-
-function respawnCar(car){
-  const gap = randInt(2, 15);   // varied off-screen gap
-  car.len = randInt(2,5);       // new random length
-  const speedMag = baseCarSpeed * level * randFloat(0.8, 1.4); // new random speed
-  car.speed = car.dir * speedMag;
-  if(car.dir > 0){
-    car.x = -car.len - gap;
-  } else {
-    car.x = cols + gap;
-  }
-}
-
-function initCars(){
-  cars.length = 0;
-  for(let i=0;i<carRows.length;i++){
-    for(let k=0;k<CARS_PER_LANE;k++){
-      const car = spawnCar(i);
-      // Stagger cars within lane for spacing
-      const spacing = Math.floor(cols / CARS_PER_LANE) + randInt(2,8);
-      if(car.dir > 0){
-        car.x -= k * spacing;
-      } else {
-        car.x += k * spacing;
-      }
-      cars.push(car);
+// Initialize game objects
+function initGame() {
+    // Create cars
+    cars = [];
+    for (let i = 0; i < 5; i++) {
+        cars.push({
+            x: Math.random() * canvas.width,
+            y: 100 + i * 80,
+            width: 40,
+            height: 20,
+            speed: carSpeed + Math.random() * 2,
+            direction: Math.random() < 0.5 ? 1 : -1
+        });
     }
-  }
-}
 
-function draw(){
-  ctx.fillStyle = '#000';
-  ctx.fillRect(0,0,canvas.width,canvas.height);
-  ctx.save();
-  ctx.scale(scale, scale);
-
-  // frog with alpha for fade-in
-  ctx.globalAlpha = frog.alpha;
-  ctx.fillStyle = '#0f0';
-  ctx.fillRect(frog.x, frog.y, 1, 1);
-  ctx.globalAlpha = 1;
-
-  // draw cars (snap to integer tile for crisp pixels)
-  ctx.fillStyle = '#f00';
-  cars.forEach(car => {
-    const baseX = Math.floor(car.x);
-    for(let i=0;i<car.len;i++){
-      ctx.fillRect(baseX + i, car.y, 1, 1);
+    // Create logs
+    logs = [];
+    for (let i = 0; i < 3; i++) {
+        logs.push({
+            x: Math.random() * canvas.width,
+            y: 200 + i * 80,
+            width: 60,
+            height: 30,
+            speed: logSpeed + Math.random() * 1,
+            direction: Math.random() < 0.5 ? 1 : -1
+        });
     }
-  });
-
-  ctx.restore();
-  document.getElementById('score').textContent = score;
 }
 
-function update(){
-  if(paused){ requestAnimationFrame(update); return; }
+// Draw functions
+function drawFrog() {
+    ctx.fillStyle = '#0f0';
+    ctx.fillRect(frog.x - frog.size/2, frog.y - frog.size/2, frog.size, frog.size);
+    
+    // Eyes
+    ctx.fillStyle = '#000';
+    ctx.fillRect(frog.x - 8, frog.y - 8, 4, 4);
+    ctx.fillRect(frog.x + 4, frog.y - 8, 4, 4);
+}
 
-  if(!respawning){
-    // move cars & handle respawn
+function drawCars() {
     cars.forEach(car => {
-      car.x += car.speed;
-      if(car.dir > 0 && car.x - car.len > cols){
-        respawnCar(car);
-      } else if(car.dir < 0 && car.x + car.len < 0){
-        respawnCar(car);
-      }
+        ctx.fillStyle = '#f00';
+        ctx.fillRect(car.x, car.y, car.width, car.height);
+        
+        // Car details
+        ctx.fillStyle = '#800';
+        ctx.fillRect(car.x + 5, car.y + 5, car.width - 10, car.height - 10);
     });
-
-    // collision check (tile-accurate)
-    for(const car of cars){
-      const carStart = Math.floor(car.x);
-      const carEnd = carStart + car.len; // exclusive
-      if(frog.y === car.y && frog.x >= carStart && frog.x < carEnd){
-        dramaticHit();
-        break;
-      }
-    }
-
-    // goal reached
-    if(frog.y === 0){
-      score++;
-      frog.y = rows - 1;
-      frog.x = Math.floor(cols/2);
-    }
-  }
-
-  draw();
-  requestAnimationFrame(update);
 }
 
-function dramaticHit(){
-  respawning = true;
-  // flashing screen
-  let flashes = 0;
-  const flashInterval = setInterval(() => {
-    ctx.fillStyle = (flashes % 2 === 0) ? '#f00' : '#000';
-    ctx.fillRect(0,0,canvas.width,canvas.height);
-    flashes++;
-    if(flashes > 5){
-      clearInterval(flashInterval);
-      startRespawnCountdown();
+function drawLogs() {
+    logs.forEach(log => {
+        ctx.fillStyle = '#8B4513';
+        ctx.fillRect(log.x, log.y, log.width, log.height);
+        
+        // Log texture
+        ctx.fillStyle = '#654321';
+        ctx.fillRect(log.x + 5, log.y + 5, log.width - 10, log.height - 10);
+    });
+}
+
+function drawRoad() {
+    // Road background
+    ctx.fillStyle = '#333';
+    ctx.fillRect(0, 50, canvas.width, 200);
+    
+    // Lane dividers
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    for (let i = 0; i < 4; i++) {
+        const y = 100 + i * 50;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
     }
-  }, 100);
 }
 
-function startRespawnCountdown(){
-  // guard so we don't attach multiple listeners/timers
-  if(respawnTimerId || spaceListener) return;
-
-  // one-time space listener
-  spaceListener = (e) => {
-    if(e.code === 'Space'){
-      doFadeIn();
+function drawRiver() {
+    // River background
+    ctx.fillStyle = '#0066cc';
+    ctx.fillRect(0, 250, canvas.width, 150);
+    
+    // River texture
+    ctx.strokeStyle = '#004499';
+    ctx.lineWidth = 1;
+    for (let i = 0; i < 10; i++) {
+        const y = 260 + i * 15;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
     }
-  };
-  document.addEventListener('keydown', spaceListener);
-
-  // auto after 2 seconds
-  respawnTimerId = setTimeout(() => {
-    doFadeIn();
-  }, 2000);
 }
 
-function doFadeIn(){
-  // ensure single execution
-  if(respawnTimerId){ clearTimeout(respawnTimerId); respawnTimerId = null; }
-  if(spaceListener){ document.removeEventListener('keydown', spaceListener); spaceListener = null; }
-  fadeInFrog();
+function drawSafeZone() {
+    ctx.fillStyle = '#0a5';
+    ctx.fillRect(0, 400, canvas.width, 50);
 }
 
-function fadeInFrog(){
-  // reset frog & cars, then fade alpha from 0 -> 1
-  frog.x = Math.floor(cols/2);
-  frog.y = rows-1;
-  frog.alpha = 0;
-  score = 0;
-  level = parseInt(document.getElementById('startLevel').value);
-  initCars();
+function drawUI() {
+    ctx.fillStyle = '#fff';
+    ctx.font = '20px monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText(`Score: ${score}`, 20, 30);
+    ctx.fillText(`Lives: ${lives}`, 20, 55);
+    ctx.fillText(`Level: ${level}`, 20, 80);
+}
 
-  if(fadeIntervalId){ clearInterval(fadeIntervalId); }
-  fadeIntervalId = setInterval(() => {
-    frog.alpha += 0.05;
-    if(frog.alpha >= 1){
-      frog.alpha = 1;
-      clearInterval(fadeIntervalId);
-      fadeIntervalId = null;
-      respawning = false;
+function drawGameOver() {
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.fillStyle = '#f00';
+    ctx.font = '48px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2);
+    
+    ctx.fillStyle = '#fff';
+    ctx.font = '24px monospace';
+    ctx.fillText(`Final Score: ${score}`, canvas.width / 2, canvas.height / 2 + 50);
+    ctx.fillText('Press R to restart', canvas.width / 2, canvas.height / 2 + 100);
+}
+
+// Update functions
+function updateCars() {
+    cars.forEach(car => {
+        car.x += car.speed * car.direction;
+        
+        // Wrap around screen
+        if (car.x > canvas.width + car.width) {
+            car.x = -car.width;
+        } else if (car.x < -car.width) {
+            car.x = canvas.width + car.width;
+        }
+    });
+}
+
+function updateLogs() {
+    logs.forEach(log => {
+        log.x += log.speed * log.direction;
+        
+        // Wrap around screen
+        if (log.x > canvas.width + log.width) {
+            log.x = -log.width;
+        } else if (log.x < -log.width) {
+            log.x = canvas.width + log.width;
+        }
+    });
+}
+
+function checkCollisions() {
+    // Check car collisions
+    cars.forEach(car => {
+        if (frog.x + frog.size/2 > car.x && 
+            frog.x - frog.size/2 < car.x + car.width &&
+            frog.y + frog.size/2 > car.y && 
+            frog.y - frog.size/2 < car.y + car.height) {
+            lives--;
+            gameContainer.updateLives(lives);
+            resetFrog();
+            
+            if (lives <= 0) {
+                gameOver = true;
+                gameRunning = false;
+            }
+        }
+    });
+    
+    // Check log collisions (for safe crossing)
+    let onLog = false;
+    logs.forEach(log => {
+        if (frog.x + frog.size/2 > log.x && 
+            frog.x - frog.size/2 < log.x + log.width &&
+            frog.y + frog.size/2 > log.y && 
+            frog.y - frog.size/2 < log.y + log.height) {
+            onLog = true;
+            // Move frog with log
+            frog.x += log.speed * log.direction;
+        }
+    });
+    
+    // If frog is in river but not on log, lose life
+    if (frog.y > 250 && frog.y < 400 && !onLog) {
+        lives--;
+        gameContainer.updateLives(lives);
+        resetFrog();
+        
+        if (lives <= 0) {
+            gameOver = true;
+            gameRunning = false;
+        }
     }
-  }, 30);
 }
 
-function dramaticHit(){
-  respawning = true;
+function resetFrog() {
+    frog.x = canvas.width / 2;
+    frog.y = canvas.height - 50;
+}
 
-  // Explosion at frog position
-  const explosion = document.createElement('div');
-  explosion.className = 'explosion';
-  const pixelSize = canvas.width / cols; // matches your tile size
-  explosion.style.width = pixelSize + 'px';
-  explosion.style.height = pixelSize + 'px';
-  explosion.style.left = (frog.x * pixelSize + canvas.getBoundingClientRect().left) + 'px';
-  explosion.style.top = (frog.y * pixelSize + canvas.getBoundingClientRect().top) + 'px';
-  document.body.appendChild(explosion);
-  setTimeout(() => explosion.remove(), 500);
-
-  // flashing screen
-  let flashes = 0;
-  const flashInterval = setInterval(() => {
-    ctx.fillStyle = (flashes % 2 === 0) ? '#f00' : '#000';
-    ctx.fillRect(0,0,canvas.width,canvas.height);
-    flashes++;
-    if(flashes > 5){
-      clearInterval(flashInterval);
-      startRespawnCountdown();
+function checkWin() {
+    if (frog.y <= 50) {
+        score += 100;
+        level++;
+        gameContainer.updateScore(score);
+        resetFrog();
+        
+        // Increase difficulty
+        cars.forEach(car => car.speed += 0.5);
+        logs.forEach(log => log.speed += 0.3);
     }
-  }, 100);
 }
 
+// Main game loop
+function gameLoop() {
+    if (!gameRunning) return;
+    
+    // Clear canvas
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw game elements
+    drawRoad();
+    drawRiver();
+    drawSafeZone();
+    drawCars();
+    drawLogs();
+    drawFrog();
+    drawUI();
+    
+    // Update game objects
+    updateCars();
+    updateLogs();
+    
+    // Check collisions and win condition
+    checkCollisions();
+    checkWin();
+    
+    // Keep frog on screen
+    frog.x = Math.max(frog.size/2, Math.min(canvas.width - frog.size/2, frog.x));
+    frog.y = Math.max(frog.size/2, Math.min(canvas.height - frog.size/2, frog.y));
+    
+    requestAnimationFrame(gameLoop);
+}
 
-
-document.getElementById('startLevel').addEventListener('change', e => {
-  level = parseInt(e.target.value);
-  initCars();
+// Event listeners
+gameContainer.on('keydown', (e) => {
+    if (gameOver) {
+        if (e.key === 'r' || e.key === 'R') {
+            restartGame();
+        }
+        return;
+    }
+    
+    switch(e.key) {
+        case 'ArrowLeft':
+            frog.x -= frogSpeed;
+            break;
+        case 'ArrowRight':
+            frog.x += frogSpeed;
+            break;
+        case 'ArrowUp':
+            frog.y -= frogSpeed;
+            break;
+        case 'ArrowDown':
+            frog.y += frogSpeed;
+            break;
+        case ' ':
+            gameRunning = !gameRunning;
+            if (gameRunning) gameLoop();
+            break;
+    }
 });
 
-document.addEventListener('keydown', e => {
-  if(respawning) return; // movement disabled while waiting to respawn
-  if(e.code==='ArrowLeft' && frog.x>0) frog.x--;
-  if(e.code==='ArrowRight' && frog.x<cols-1) frog.x++;
-  if(e.code==='ArrowUp' && frog.y>0) frog.y--;
-  if(e.code==='ArrowDown' && frog.y<rows-1) frog.y++;
-  if(e.code==='KeyP') paused=!paused;
-  if(e.code==='KeyR') { respawning=false; resetGame(); }
+// Touch controls for mobile
+let touchStartX = 0;
+let touchStartY = 0;
+
+canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    touchStartX = touch.clientX;
+    touchStartY = touch.clientY;
 });
 
-function resetGame(){
-  frog.x = Math.floor(cols/2);
-  frog.y = rows-1;
-  frog.alpha = 1;
-  score = 0;
-  level = parseInt(document.getElementById('startLevel').value);
-  initCars();
+canvas.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    const touch = e.changedTouches[0];
+    const deltaX = touch.clientX - touchStartX;
+    const deltaY = touch.clientY - touchStartY;
+    
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        if (deltaX > 20) frog.x += frogSpeed;
+        else if (deltaX < -20) frog.x -= frogSpeed;
+    } else {
+        if (deltaY > 20) frog.y += frogSpeed;
+        else if (deltaY < -20) frog.y -= frogSpeed;
+    }
+});
+
+function restartGame() {
+    score = 0;
+    lives = 3;
+    level = 1;
+    gameOver = false;
+    gameRunning = true;
+    gameContainer.updateScore(score);
+    gameContainer.updateLives(lives);
+    resetFrog();
+    initGame();
+    gameLoop();
 }
 
-initCars();
-update();
+// Initialize game
+initGame();
+gameLoop();
+
+// Update game container with game instance
+gameContainer.gameInstance = {
+    pause: () => { gameRunning = false; },
+    resume: () => { gameRunning = true; gameLoop(); },
+    restart: restartGame
+};
+
+console.log('Road Dash game initialized with universal system');
 </script>
 </body>
 </html>

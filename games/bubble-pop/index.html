@@ -3,265 +3,269 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Wall Breaker</title>
-<style>
-body { background: black; color: #0f0; font-family: monospace; display: flex; justify-content: center; align-items: flex-start; height: 100%; margin: 0; padding: 20px; }
-#container { display: flex; gap: 20px; align-items: flex-start; }
-#gameNav, 
-#gameNav a {
-  display: block;
-  margin-top: 5px;
-  text-transform: uppercase;
-  color: #0f0;
-  text-decoration: none;
-}
-
-#gameNav a.active {
-  color: #ff0;       /* highlight color */
-  font-weight: bold;  /* optional emphasis */
-  text-decoration: underline;
-}
-#breakoutGame { border: 4px solid #0f0; height: 80vh; width: 100vw; max-width: 960px; image-rendering: pixelated; background: black; display: block; }
-#sidebar { display: flex; flex-direction: column; gap: 20px; }
-#title { text-transform: uppercase; font-size: 2rem; color: #ff0; text-shadow: 0 0 8px #f00; text-align: center; }
-#scoreboard { border: 2px solid #0f0; padding: 10px; }
-.section-title { color: #ff0; margin-bottom: 5px; font-weight: bold; }
-.explosion {
-  position: absolute;
-  background: radial-gradient(circle, yellow 0%, orange 60%, red 100%);
-  border-radius: 50%;
-  pointer-events: none;
-  animation: explode 0.5s ease-out forwards;
-}
-@keyframes explode {
-  0% { transform: scale(0.5); opacity: 1; }
-  100% { transform: scale(2); opacity: 0; }
-}
-</style>
+<title>Bubble Pop - Retro Games Collection</title>
+<link rel="stylesheet" href="../../core/base.css">
+<link rel="stylesheet" href="../../core/components.css">
+<link rel="stylesheet" href="../../core/responsive.css">
 </head>
 <body>
-<div id="container">
-  <nav id="gameNav" style="padding:10px; background:#111; color:#0f0; font-family:monospace;">
-    <strong>Games:</strong>
-  </nav>
-  <canvas id="breakoutGame" width="960" height="480"></canvas>
-  <div id="sidebar">
-    <div id="title">Wall Breaker</div>
-    <div id="scoreboard">
-      <div class="section-title">SCORE</div>
-      <div id="score">0</div>
-      <div class="section-title">LIVES</div>
-      <div id="lives">3</div>
-      <div class="section-title">LEVEL</div>
-      <div id="level">1</div>
-    </div>
-    <div id="instructions">
-      <div class="section-title">CONTROLS</div>
-      Left/Right Arrows or Mouse: Move Paddle<br>
-      P: Pause<br>
-      R: Reset<br>
-    </div>
-  </div>
-</div>
-<script src="navigation.js"></script>
-<script>
-const canvas = document.getElementById('breakoutGame');
+<!-- Enhanced Navigation will be automatically inserted here -->
+<script type="module">
+import { EnhancedNavigation } from '../../core/navigation.js';
+import { GameContainer } from '../../components/GameContainer.js';
+import { GAME_CONFIGS } from '../../config/games.js';
+
+// Initialize enhanced navigation
+const navigation = new EnhancedNavigation();
+
+// Initialize game container with bubble-pop config
+const gameConfig = GAME_CONFIGS['bubble-pop'];
+const gameContainer = new GameContainer(gameConfig);
+
+// Initialize the container
+gameContainer.init();
+
+// Get the canvas from the container
+const canvas = gameContainer.getCanvas();
 const ctx = canvas.getContext('2d');
-const scale = 20;
-const rows = canvas.height / scale;
-const cols = canvas.width / scale;
 
+// Game variables
+let bubbles = [];
 let score = 0;
-let lives = 3;
-let level = 1;
-let paused = false;
-let respawning = false;
-const paddleSpeed = 0.5; // faster speed
+let gameRunning = true;
+let mouseX = 0;
+let mouseY = 0;
 
-const paddle = { width: 6, height: 1, x: Math.floor(cols/2 - 3), y: rows - 2 };
-const ball = { x: cols/2, y: rows-3, dx: 0.15, dy: -0.15, size: 1 };
-
-const brickRows = 6;
-const brickCols = 10;
-const bricks = [];
-const brickColors = ['#ff0000', '#ff8000', '#ffff00', '#00ff00', '#00ffff', '#ff00ff'];
-
-function initBricks() {
-  bricks.length = 0;
-  for (let r = 0; r < brickRows; r++) {
-    for (let c = 0; c < brickCols; c++) {
-      bricks.push({ 
-        x: 2 + c * 4, 
-        y: 2 + r * 2, 
-        w: 3, 
-        h: 1, 
-        alive: true, 
-        color: brickColors[r % brickColors.length] 
-      });
+// Bubble class
+class Bubble {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.radius = Math.random() * 30 + 20;
+        this.color = `hsl(${Math.random() * 360}, 70%, 60%)`;
+        this.velocity = {
+            x: (Math.random() - 0.5) * 2,
+            y: (Math.random() - 0.5) * 2
+        };
+        this.gravity = 0.1;
+        this.bounce = 0.8;
+        this.popped = false;
     }
-  }
-}
 
-function draw() {
-  ctx.fillStyle = '#000';
-  ctx.fillRect(0,0,canvas.width,canvas.height);
-  ctx.save();
-  ctx.scale(scale, scale);
+    update() {
+        if (this.popped) return;
 
-  // Paddle
-  ctx.fillStyle = '#0f0';
-  ctx.fillRect(paddle.x, paddle.y, paddle.width, paddle.height);
+        // Apply gravity
+        this.velocity.y += this.gravity;
 
-  // Ball
-  ctx.fillStyle = '#ff0';
-  ctx.fillRect(ball.x, ball.y, ball.size, ball.size);
+        // Update position
+        this.x += this.velocity.x;
+        this.y += this.velocity.y;
 
-  // Bricks
-  bricks.forEach(b => {
-    if (b.alive) {
-      ctx.fillStyle = b.color;
-      ctx.fillRect(b.x, b.y, b.w, b.h);
+        // Bounce off walls
+        if (this.x - this.radius <= 0 || this.x + this.radius >= canvas.width) {
+            this.velocity.x *= -this.bounce;
+            this.x = Math.max(this.radius, Math.min(canvas.width - this.radius, this.x));
+        }
+
+        if (this.y + this.radius >= canvas.height) {
+            this.velocity.y *= -this.bounce;
+            this.y = canvas.height - this.radius;
+        }
+
+        // Bounce off ceiling
+        if (this.y - this.radius <= 0) {
+            this.velocity.y *= -this.bounce;
+            this.y = this.radius;
+        }
+
+        // Add some air resistance
+        this.velocity.x *= 0.99;
+        this.velocity.y *= 0.99;
     }
-  });
 
-  ctx.restore();
-  document.getElementById('score').textContent = score;
-  document.getElementById('lives').textContent = lives;
-  document.getElementById('level').textContent = level;
-}
+    draw() {
+        if (this.popped) return;
 
-function update() {
-  if (paused || respawning) { requestAnimationFrame(update); return; }
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+        ctx.lineWidth = 2;
+        ctx.stroke();
 
- updatePaddle(); // <-- smooth paddle movement
-
-  // Move ball
-  ball.x += ball.dx;
-  ball.y += ball.dy;
-
-  // Wall collisions
-  if (ball.x < 0 || ball.x + ball.size > cols) ball.dx *= -1;
-  if (ball.y < 0) ball.dy *= -1;
-
-  // Paddle collision
-  if (ball.y + ball.size >= paddle.y && ball.x + ball.size >= paddle.x && ball.x <= paddle.x + paddle.width) {
-    ball.dy *= -1;
-    let hitPos = (ball.x - paddle.x) / paddle.width - 0.5;
-    ball.dx = hitPos * 0.4;
-  }
-
-  // Brick collisions
-  bricks.forEach(b => {
-    if (b.alive &&
-        ball.x < b.x + b.w &&
-        ball.x + ball.size > b.x &&
-        ball.y < b.y + b.h &&
-        ball.y + ball.size > b.y) {
-      b.alive = false;
-      ball.dy *= -1;
-      score += 10;
+        // Add highlight
+        ctx.beginPath();
+        ctx.arc(this.x - this.radius * 0.3, this.y - this.radius * 0.3, this.radius * 0.2, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.fill();
     }
-  });
 
-  // Check level complete
-  if (bricks.every(b => !b.alive)) {
-    level++;
-    ball.dx *= 1.15;
-    ball.dy *= 1.15;
-    initBricks();
-    resetBall();
-  }
+    isClicked(x, y) {
+        const distance = Math.sqrt((x - this.x) ** 2 + (y - this.y) ** 2);
+        return distance <= this.radius;
+    }
 
-  // Missed ball
-  if (ball.y > rows) {
-    loseLife();
-  }
-
-  draw();
-  requestAnimationFrame(update);
+    pop() {
+        this.popped = true;
+        score += Math.floor(this.radius);
+        gameContainer.updateScore(score);
+        
+        // Create pop effect
+        createPopEffect(this.x, this.y, this.color);
+    }
 }
 
-function loseLife() {
-  lives--;
-  if (lives <= 0) {
-    resetGame();
-    return;
-  }
-  respawning = true;
-  createExplosion(ball.x, ball.y);
-  setTimeout(() => {
-    resetBall();
-    respawning = false;
-  }, 1000);
+// Pop effect
+function createPopEffect(x, y, color) {
+    const particles = [];
+    const particleCount = 8;
+    
+    for (let i = 0; i < particleCount; i++) {
+        const angle = (i / particleCount) * Math.PI * 2;
+        const speed = Math.random() * 3 + 2;
+        
+        particles.push({
+            x: x,
+            y: y,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            life: 1,
+            color: color
+        });
+    }
+
+    // Animate particles
+    function animateParticles() {
+        particles.forEach((particle, index) => {
+            particle.x += particle.vx;
+            particle.y += particle.vy;
+            particle.life -= 0.02;
+            particle.vy += 0.1; // gravity
+
+            if (particle.life <= 0) {
+                particles.splice(index, 1);
+            }
+        });
+
+        // Draw particles
+        particles.forEach(particle => {
+            ctx.save();
+            ctx.globalAlpha = particle.life;
+            ctx.fillStyle = particle.color;
+            ctx.beginPath();
+            ctx.arc(particle.x, particle.y, 3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        });
+
+        if (particles.length > 0) {
+            requestAnimationFrame(animateParticles);
+        }
+    }
+
+    animateParticles();
 }
 
-function resetBall() {
-  ball.x = cols/2; 
-  ball.y = rows-3;
-  ball.dy = -Math.abs(ball.dy);
+// Create initial bubbles
+function createBubbles() {
+    for (let i = 0; i < 15; i++) {
+        bubbles.push(new Bubble(
+            Math.random() * canvas.width,
+            Math.random() * canvas.height
+        ));
+    }
 }
 
-// Paddle control
-let paddleVel = 0;
+// Game loop
+function gameLoop() {
+    if (!gameRunning) return;
 
-// Keyboard input
-const keys = { left: false, right: false };
-document.addEventListener('keydown', e => {
-  if (e.code === 'ArrowLeft') keys.left = true;
-  if (e.code === 'ArrowRight') keys.right = true;
-  if (e.code === 'KeyP') paused = !paused;
-  if (e.code === 'KeyR') resetGame();
+    // Clear canvas
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Update and draw bubbles
+    bubbles.forEach(bubble => {
+        bubble.update();
+        bubble.draw();
+    });
+
+    // Remove popped bubbles
+    bubbles = bubbles.filter(bubble => !bubble.popped);
+
+    // Add new bubbles if needed
+    if (bubbles.length < 10) {
+        bubbles.push(new Bubble(
+            Math.random() * canvas.width,
+            Math.random() * canvas.height
+        ));
+    }
+
+    // Draw score
+    ctx.fillStyle = '#fff';
+    ctx.font = '24px monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText(`Score: ${score}`, 20, 40);
+
+    requestAnimationFrame(gameLoop);
+}
+
+// Event listeners
+canvas.addEventListener('mousemove', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    mouseX = e.clientX - rect.left;
+    mouseY = e.clientY - rect.top;
 });
-document.addEventListener('keyup', e => {
-  if (e.code === 'ArrowLeft') keys.left = false;
-  if (e.code === 'ArrowRight') keys.right = false;
+
+canvas.addEventListener('click', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const clickY = e.clientY - rect.top;
+
+    // Check if any bubble was clicked
+    bubbles.forEach(bubble => {
+        if (bubble.isClicked(clickX, clickY)) {
+            bubble.pop();
+        }
+    });
 });
 
-// Mouse control
-canvas.addEventListener('mousemove', e => {
-  const rect = canvas.getBoundingClientRect();
-  const mouseX = (e.clientX - rect.left) / scale;
-  paddle.x = Math.min(Math.max(mouseX - paddle.width/2, 0), cols - paddle.width);
+// Touch support
+canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    const touch = e.touches[0];
+    const touchX = touch.clientX - rect.left;
+    const touchY = touch.clientY - rect.top;
+
+    bubbles.forEach(bubble => {
+        if (bubble.isClicked(touchX, touchY)) {
+            bubble.pop();
+        }
+    });
 });
 
-function updatePaddle() {
-  // Smooth keyboard movement
-  if (keys.left) paddleVel = -paddleSpeed;
-  else if (keys.right) paddleVel = paddleSpeed;
-  else paddleVel = 0;
+// Initialize game
+createBubbles();
+gameLoop();
 
-  paddle.x += paddleVel;
+// Update game container with game instance
+gameContainer.gameInstance = {
+    pause: () => { gameRunning = false; },
+    resume: () => { gameRunning = true; gameLoop(); },
+    restart: () => {
+        score = 0;
+        gameContainer.updateScore(score);
+        bubbles = [];
+        createBubbles();
+        gameRunning = true;
+        gameLoop();
+    }
+};
 
-  // Boundaries
-  if (paddle.x < 0) paddle.x = 0;
-  if (paddle.x + paddle.width > cols) paddle.x = cols - paddle.width;
-}
-
-function createExplosion(x, y) {
-  const pixelSize = canvas.width / cols;
-  const explosion = document.createElement('div');
-  explosion.className = 'explosion';
-  explosion.style.width = pixelSize + 'px';
-  explosion.style.height = pixelSize + 'px';
-  explosion.style.left = (x * pixelSize + canvas.getBoundingClientRect().left) + 'px';
-  explosion.style.top = (y * pixelSize + canvas.getBoundingClientRect().top) + 'px';
-  document.body.appendChild(explosion);
-  setTimeout(() => explosion.remove(), 500);
-}
-
-function resetGame() {
-  score = 0;
-  lives = 3;
-  level = 1;
-  ball.dx = 0.15; ball.dy = -0.15;
-  paddle.x = Math.floor(cols/2 - 3);
-  initBricks();
-  resetBall();
-}
-
-initBricks();
-draw();
-update();
+console.log('Bubble Pop game initialized with universal system');
 </script>
 </body>
 </html>

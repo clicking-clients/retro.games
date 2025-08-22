@@ -3,473 +3,406 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Pipe Dream</title>
-<style>
-body { background: black; color: #0f0; font-family: monospace; display: flex; justify-content: center; align-items: flex-start; height: 100%; margin: 0; padding: 20px; }
-#container { display: flex; gap: 20px; align-items: flex-start; }
-#gameNav, 
-#gameNav a {
-  display: block;
-  margin-top: 5px;
-  text-transform: uppercase;
-  color: #0f0;
-  text-decoration: none;
-}
-
-#gameNav a.active {
-  color: #ff0;       /* highlight color */
-  font-weight: bold;  /* optional emphasis */
-  text-decoration: underline;
-}
-#pipeGame { border: 4px solid #0f0; height: 80vh; width: 100vw; max-width: 800px; image-rendering: pixelated; background: black; display: block; }
-#sidebar { display: flex; flex-direction: column; gap: 20px; }
-#title { text-transform: uppercase; font-size: 2rem; color: #ff0; text-shadow: 0 0 8px #f00; text-align: center; }
-#scoreboard { border: 2px solid #0f0; padding: 10px; }
-.section-title { color: #ff0; margin-bottom: 5px; font-weight: bold; }
-.pipe { cursor: pointer; }
-.pipe:hover { opacity: 0.8; }
-.selected { border: 2px solid #ff0; }
-.flow-active { background: rgba(0, 255, 255, 0.3); }
-</style>
+<title>Pipe Dream - Retro Games Collection</title>
+<link rel="stylesheet" href="../../core/base.css">
+<link rel="stylesheet" href="../../core/components.css">
+<link rel="stylesheet" href="../../core/responsive.css">
 </head>
 <body>
-<div id="container">
-  <nav id="gameNav" style="padding:10px; background:#111; color:#0f0; font-family:monospace;">
-    <strong>Games:</strong>
-  </nav>
-  <canvas id="pipeGame" width="800" height="600"></canvas>
-  <div id="sidebar">
-    <div id="title">Pipe Dream</div>
-    <div id="scoreboard">
-      <div class="section-title">SCORE</div>
-      <div id="score">0</div>
-      <div class="section-title">LEVEL</div>
-      <div id="level">1</div>
-      <div class="section-title">TIME</div>
-      <div id="time">60</div>
-    </div>
-    <div id="instructions">
-      <div class="section-title">CONTROLS</div>
-      Click: Select pipe<br>
-      Right-click: Rotate pipe<br>
-      Space: Start flow<br>
-      R: Reset level<br>
-      <div class="section-title">OBJECTIVE</div>
-      Connect pipes to create a path from start to end before time runs out!
-    </div>
-  </div>
-</div>
-<script src="navigation.js"></script>
+<!-- Enhanced Navigation will be automatically inserted here -->
 <script type="module">
-import { Rocket } from '../../rocket.js';
-import { Fireworks } from '../../fireworks.js';
-import { GameAudio } from '../../audio.js';
+import { EnhancedNavigation } from '../../core/navigation.js';
+import { GameContainer } from '../../components/GameContainer.js';
+import { GAME_CONFIGS } from '../../config/games.js';
 
-const canvas = document.getElementById('pipeGame');
+// Initialize enhanced navigation
+const navigation = new EnhancedNavigation();
+
+// Initialize game container with pipe-dream config
+const gameConfig = GAME_CONFIGS['pipe-dream'];
+const gameContainer = new GameContainer(gameConfig);
+
+// Initialize the container
+gameContainer.init();
+
+// Get the canvas from the container
+const canvas = gameContainer.getCanvas();
 const ctx = canvas.getContext('2d');
-const scale = 40;
-const rows = canvas.height / scale;
-const cols = canvas.width / scale;
 
+// Game constants
+const GRID_SIZE = 40;
+const GRID_WIDTH = 20;
+const GRID_HEIGHT = 15;
+
+// Game variables
 let score = 0;
 let level = 1;
-let timeLeft = 60;
-let gameRunning = false;
-let selectedPipe = null;
-let flowActive = false;
-let flowPath = [];
+let gameRunning = true;
 let gameOver = false;
+let grid = [];
+let waterFlow = [];
+let selectedPipe = null;
+let waterTimer = 0;
+let waterInterval = 2000; // 2 seconds between water drops
 
-// Initialize modular components
-let audio, fireworks, rocket;
-
-// Pipe types and their connections
-const pipeTypes = {
-  'straight': { connections: ['left', 'right'], color: '#666' },
-  'corner': { connections: ['left', 'down'], color: '#666' },
-  't-junction': { connections: ['left', 'right', 'down'], color: '#666' },
-  'cross': { connections: ['left', 'right', 'up', 'down'], color: '#666' },
-  'start': { connections: ['right'], color: '#0f0' },
-  'end': { connections: ['left'], color: '#f00' }
+// Pipe types
+const PIPE_TYPES = {
+    straight: { connections: ['top', 'bottom'], rotation: 0 },
+    corner: { connections: ['top', 'right'], rotation: 0 },
+    t: { connections: ['top', 'right', 'bottom'], rotation: 0 },
+    cross: { connections: ['top', 'right', 'bottom', 'left'], rotation: 0 }
 };
 
-// Game board
-let board = [];
-let startPos = { x: 0, y: Math.floor(rows / 2) };
-let endPos = { x: cols - 1, y: Math.floor(rows / 2) };
-
-async function initGame() {
-  try {
-    // Initialize modular components
-    audio = new GameAudio();
-    fireworks = new Fireworks(canvas, audio);
-    
-    // Create overlay canvas for rocket
-    const overlayCanvas = document.createElement('canvas');
-    overlayCanvas.width = canvas.width;
-    overlayCanvas.height = canvas.height;
-    overlayCanvas.style.position = 'absolute';
-    overlayCanvas.style.top = canvas.offsetTop + 'px';
-    overlayCanvas.style.left = canvas.offsetLeft + 'px';
-    overlayCanvas.style.pointerEvents = 'none';
-    document.body.appendChild(overlayCanvas);
-    
-    rocket = new Rocket(overlayCanvas, audio, fireworks, () => {
-      console.log('Rocket sequence complete!');
-    });
-    
-    initBoard();
-    startGame();
-  } catch (error) {
-    console.error('Failed to initialize game components:', error);
-  }
-}
-
-function initBoard() {
-  board = [];
-  
-  // Initialize empty board
-  for (let y = 0; y < rows; y++) {
-    board[y] = [];
-    for (let x = 0; x < cols; x++) {
-      board[y][x] = null;
-    }
-  }
-  
-  // Place start and end
-  board[startPos.y][startPos.x] = { type: 'start', rotation: 0, connections: ['right'] };
-  board[endPos.y][endPos.x] = { type: 'end', rotation: 0, connections: ['left'] };
-  
-  // Place random pipes
-  for (let y = 0; y < rows; y++) {
-    for (let x = 0; x < cols; x++) {
-      if (board[y][x] === null && Math.random() < 0.3) {
-        const types = ['straight', 'corner', 't-junction'];
-        const type = types[Math.floor(Math.random() * types.length)];
-        board[y][x] = { 
-          type: type, 
-          rotation: Math.floor(Math.random() * 4) * 90,
-          connections: getRotatedConnections(type, Math.floor(Math.random() * 4) * 90)
-        };
-      }
-    }
-  }
-}
-
-function getRotatedConnections(type, rotation) {
-  const baseConnections = pipeTypes[type].connections;
-  const rotated = [];
-  
-  baseConnections.forEach(conn => {
-    switch (conn) {
-      case 'left': rotated.push(rotation === 0 ? 'left' : rotation === 90 ? 'up' : rotation === 180 ? 'right' : 'down'); break;
-      case 'right': rotated.push(rotation === 0 ? 'right' : rotation === 90 ? 'down' : rotation === 180 ? 'left' : 'up'); break;
-      case 'up': rotated.push(rotation === 0 ? 'up' : rotation === 90 ? 'right' : rotation === 180 ? 'down' : 'left'); break;
-      case 'down': rotated.push(rotation === 0 ? 'down' : rotation === 90 ? 'left' : rotation === 180 ? 'up' : 'right'); break;
-    }
-  });
-  
-  return rotated;
-}
-
-function draw() {
-  ctx.fillStyle = '#000';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  
-  // Draw grid
-  ctx.strokeStyle = '#333';
-  ctx.lineWidth = 1;
-  for (let x = 0; x <= cols; x++) {
-    ctx.beginPath();
-    ctx.moveTo(x * scale, 0);
-    ctx.lineTo(x * scale, canvas.height);
-    ctx.stroke();
-  }
-  for (let y = 0; y <= rows; y++) {
-    ctx.beginPath();
-    ctx.moveTo(0, y * scale);
-    ctx.lineTo(canvas.width, y * scale);
-    ctx.stroke();
-  }
-  
-  // Draw pipes
-  for (let y = 0; y < rows; y++) {
-    for (let x = 0; x < cols; x++) {
-      const pipe = board[y][x];
-      if (pipe) {
-        drawPipe(x, y, pipe);
-      }
-    }
-  }
-  
-  // Draw flow path
-  if (flowActive) {
-    drawFlowPath();
-  }
-  
-  // Draw selected pipe highlight
-  if (selectedPipe) {
-    ctx.strokeStyle = '#ff0';
-    ctx.lineWidth = 3;
-    ctx.strokeRect(selectedPipe.x * scale, selectedPipe.y * scale, scale, scale);
-  }
-  
-  // Update UI
-  document.getElementById('score').textContent = score;
-  document.getElementById('level').textContent = level;
-  document.getElementById('time').textContent = timeLeft;
-  
-  // Update modular components
-  if (fireworks) fireworks.update();
-  if (fireworks) fireworks.render();
-}
-
-function drawPipe(x, y, pipe) {
-  const centerX = x * scale + scale / 2;
-  const centerY = y * scale + scale / 2;
-  const radius = scale / 3;
-  
-  // Pipe base
-  ctx.fillStyle = pipeTypes[pipe.type].color;
-  ctx.fillRect(x * scale + 2, y * scale + 2, scale - 4, scale - 4);
-  
-  // Pipe connections
-  ctx.strokeStyle = '#000';
-  ctx.lineWidth = 3;
-  
-  pipe.connections.forEach(conn => {
-    let startX, startY, endX, endY;
-    
-    switch (conn) {
-      case 'left':
-        startX = x * scale + 2;
-        startY = centerY;
-        endX = centerX - radius;
-        endY = centerY;
-        break;
-      case 'right':
-        startX = centerX + radius;
-        startY = centerY;
-        endX = (x + 1) * scale - 2;
-        endY = centerY;
-        break;
-      case 'up':
-        startX = centerX;
-        startY = y * scale + 2;
-        endX = centerX;
-        endY = centerY - radius;
-        break;
-      case 'down':
-        startX = centerX;
-        startY = centerY + radius;
-        endX = centerX;
-        endY = (y + 1) * scale - 2;
-        break;
-    }
-    
-    if (startX && startY && endX && endY) {
-      ctx.beginPath();
-      ctx.moveTo(startX, startY);
-      ctx.lineTo(endX, endY);
-      ctx.stroke();
-    }
-  });
-}
-
-function drawFlowPath() {
-  ctx.strokeStyle = '#00f';
-  ctx.lineWidth = 4;
-  ctx.beginPath();
-  
-  flowPath.forEach((pos, index) => {
-    if (index === 0) {
-      ctx.moveTo(pos.x * scale + scale / 2, pos.y * scale + scale / 2);
-    } else {
-      ctx.lineTo(pos.x * scale + scale / 2, pos.y * scale + scale / 2);
-    }
-  });
-  
-  ctx.stroke();
-}
-
-function handleClick(e) {
-  if (gameOver) return;
-  
-  const rect = canvas.getBoundingClientRect();
-  const x = Math.floor((e.clientX - rect.left) / scale);
-  const y = Math.floor((e.clientY - rect.top) / scale);
-  
-  if (x >= 0 && x < cols && y >= 0 && y < rows) {
-    if (e.button === 0) { // Left click - select
-      selectedPipe = { x, y };
-    } else if (e.button === 2) { // Right click - rotate
-      rotatePipe(x, y);
-    }
-  }
-}
-
-function rotatePipe(x, y) {
-  const pipe = board[y][x];
-  if (pipe && pipe.type !== 'start' && pipe.type !== 'end') {
-    pipe.rotation = (pipe.rotation + 90) % 360;
-    pipe.connections = getRotatedConnections(pipe.type, pipe.rotation);
-    
-    // Play rotation sound
-    if (audio) audio.beep(600, 0.1, 'square', 0.03);
-  }
-}
-
-function startFlow() {
-  if (flowActive || gameOver) return;
-  
-  flowActive = true;
-  flowPath = [startPos];
-  
-  // Play flow start sound
-  if (audio) audio.beep(400, 0.15, 'triangle', 0.04);
-  
-  // Simple pathfinding - just follow connections
-  let current = { ...startPos };
-  let visited = new Set();
-  
-  while (current.x !== endPos.x || current.y !== endPos.y) {
-    visited.add(`${current.x},${current.y}`);
-    
-    const pipe = board[current.y][current.x];
-    if (!pipe) break;
-    
-    let next = null;
-    for (let conn of pipe.connections) {
-      let nx = current.x, ny = current.y;
-      
-      switch (conn) {
-        case 'left': nx--; break;
-        case 'right': nx++; break;
-        case 'up': ny--; break;
-        case 'down': ny++; break;
-      }
-      
-      if (nx >= 0 && nx < cols && ny >= 0 && ny < rows && !visited.has(`${nx},${ny}`)) {
-        const nextPipe = board[ny][nx];
-        if (nextPipe && hasMatchingConnection(nextPipe, getOppositeConnection(conn))) {
-          next = { x: nx, y: ny };
-          break;
+// Initialize grid
+function initGrid() {
+    grid = [];
+    for (let y = 0; y < GRID_HEIGHT; y++) {
+        grid[y] = [];
+        for (let x = 0; x < GRID_WIDTH; x++) {
+            grid[y][x] = { type: null, rotation: 0, hasWater: false };
         }
-      }
     }
     
-    if (next) {
-      flowPath.push(next);
-      current = next;
-    } else {
-      break;
+    // Add some random pipes
+    for (let i = 0; i < 20; i++) {
+        const x = Math.floor(Math.random() * GRID_WIDTH);
+        const y = Math.floor(Math.random() * GRID_HEIGHT);
+        const pipeTypes = Object.keys(PIPE_TYPES);
+        const randomType = pipeTypes[Math.floor(Math.random() * pipeTypes.length)];
+        
+        grid[y][x] = {
+            type: randomType,
+            rotation: Math.floor(Math.random() * 4) * 90,
+            hasWater: false
+        };
     }
-  }
-  
-  // Check if path reached end
-  if (current.x === endPos.x && current.y === endPos.y) {
-    levelComplete();
-  } else {
-    // Path failed - show failure
-    setTimeout(() => {
-      flowActive = false;
-      flowPath = [];
-    }, 2000);
-  }
 }
 
-function hasMatchingConnection(pipe, connection) {
-  return pipe.connections.includes(connection);
+// Initialize water flow
+function initWaterFlow() {
+    waterFlow = [];
+    // Start water from top of the grid
+    for (let x = 0; x < GRID_WIDTH; x++) {
+        if (grid[0][x].type) {
+            waterFlow.push({ x, y: 0, direction: 'down' });
+        }
+    }
 }
 
-function getOppositeConnection(conn) {
-  switch (conn) {
-    case 'left': return 'right';
-    case 'right': return 'left';
-    case 'up': return 'down';
-    case 'down': return 'up';
-  }
+// Update water flow
+function updateWaterFlow(deltaTime) {
+    waterTimer += deltaTime;
+    
+    if (waterTimer > waterInterval) {
+        waterTimer = 0;
+        
+        // Move existing water
+        for (let i = waterFlow.length - 1; i >= 0; i--) {
+            const water = waterFlow[i];
+            const cell = grid[water.y][water.x];
+            
+            if (cell.type) {
+                // Find next direction based on pipe type and rotation
+                const nextDirection = getNextDirection(cell.type, cell.rotation, water.direction);
+                
+                if (nextDirection) {
+                    const nextX = water.x + (nextDirection === 'left' ? -1 : nextDirection === 'right' ? 1 : 0);
+                    const nextY = water.y + (nextDirection === 'up' ? -1 : nextDirection === 'down' ? 1 : 0);
+                    
+                    if (nextX >= 0 && nextX < GRID_WIDTH && nextY >= 0 && nextY < GRID_HEIGHT) {
+                        water.x = nextX;
+                        water.y = nextY;
+                        water.direction = nextDirection;
+                        
+                        // Mark cell as having water
+                        grid[water.y][water.x].hasWater = true;
+                        
+                        // Check if water reached the bottom
+                        if (water.y === GRID_HEIGHT - 1) {
+                            score += 10;
+                            gameContainer.updateScore(score);
+                            waterFlow.splice(i, 1);
+                        }
+                    } else {
+                        // Water hit boundary
+                        waterFlow.splice(i, 1);
+                    }
+                } else {
+                    // No valid direction - remove water
+                    waterFlow.splice(i, 1);
+                }
+            } else {
+                // No pipe - remove water
+                waterFlow.splice(i, 1);
+            }
+        }
+        
+        // Add new water drops
+        if (waterFlow.length < 5) {
+            const startX = Math.floor(Math.random() * GRID_WIDTH);
+            if (grid[0][startX].type) {
+                waterFlow.push({ x: startX, y: 0, direction: 'down' });
+            }
+        }
+    }
 }
 
-function levelComplete() {
-  score += 100 * level;
-  level++;
-  timeLeft = Math.max(30, 60 - (level - 1) * 5);
-  
-  // Play success sound
-  if (audio) audio.beep(800, 0.2, 'sine', 0.05);
-  
-  // Show fireworks
-  if (fireworks) {
-    fireworks.show(canvas.width / 2, canvas.height / 2, () => {
-      console.log('Fireworks complete!');
+// Get next direction for water flow
+function getNextDirection(pipeType, rotation, currentDirection) {
+    const pipe = PIPE_TYPES[pipeType];
+    const connections = rotateConnections(pipe.connections, rotation);
+    
+    // Find opposite of current direction
+    const opposites = {
+        'up': 'down',
+        'down': 'up',
+        'left': 'right',
+        'right': 'left'
+    };
+    
+    const opposite = opposites[currentDirection];
+    
+    // Find valid connections (not the opposite of current direction)
+    const validConnections = connections.filter(conn => conn !== opposite);
+    
+    if (validConnections.length > 0) {
+        return validConnections[0];
+    }
+    
+    return null;
+}
+
+// Rotate connections based on pipe rotation
+function rotateConnections(connections, rotation) {
+    const rotated = [...connections];
+    const steps = rotation / 90;
+    
+    for (let i = 0; i < steps; i++) {
+        rotated.forEach((conn, index) => {
+            switch (conn) {
+                case 'top': rotated[index] = 'right'; break;
+                case 'right': rotated[index] = 'bottom'; break;
+                case 'bottom': rotated[index] = 'left'; break;
+                case 'left': rotated[index] = 'top'; break;
+            }
+        });
+    }
+    
+    return rotated;
+}
+
+// Draw functions
+function drawGrid() {
+    for (let y = 0; y < GRID_HEIGHT; y++) {
+        for (let x = 0; x < GRID_WIDTH; x++) {
+            const cell = grid[y][x];
+            const pixelX = x * GRID_SIZE;
+            const pixelY = y * GRID_SIZE;
+            
+            // Draw cell background
+            if (cell.hasWater) {
+                ctx.fillStyle = 'rgba(0, 100, 255, 0.3)';
+            } else {
+                ctx.fillStyle = '#333';
+            }
+            ctx.fillRect(pixelX, pixelY, GRID_SIZE, GRID_SIZE);
+            
+            // Draw pipe if exists
+            if (cell.type) {
+                drawPipe(cell.type, cell.rotation, pixelX, pixelY);
+            }
+            
+            // Draw grid lines
+            ctx.strokeStyle = '#666';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(pixelX, pixelY, GRID_SIZE, GRID_SIZE);
+        }
+    }
+}
+
+function drawPipe(type, rotation, x, y) {
+    ctx.save();
+    ctx.translate(x + GRID_SIZE / 2, y + GRID_SIZE / 2);
+    ctx.rotate((rotation * Math.PI) / 180);
+    
+    ctx.fillStyle = '#888';
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    
+    switch (type) {
+        case 'straight':
+            ctx.fillRect(-GRID_SIZE / 4, -GRID_SIZE / 2, GRID_SIZE / 2, GRID_SIZE);
+            break;
+        case 'corner':
+            ctx.fillRect(-GRID_SIZE / 2, -GRID_SIZE / 2, GRID_SIZE / 2, GRID_SIZE / 2);
+            ctx.fillRect(-GRID_SIZE / 2, 0, GRID_SIZE / 2, GRID_SIZE / 2);
+            break;
+        case 't':
+            ctx.fillRect(-GRID_SIZE / 2, -GRID_SIZE / 2, GRID_SIZE, GRID_SIZE / 2);
+            ctx.fillRect(-GRID_SIZE / 4, 0, GRID_SIZE / 2, GRID_SIZE / 2);
+            break;
+        case 'cross':
+            ctx.fillRect(-GRID_SIZE / 2, -GRID_SIZE / 4, GRID_SIZE, GRID_SIZE / 2);
+            ctx.fillRect(-GRID_SIZE / 4, -GRID_SIZE / 2, GRID_SIZE / 2, GRID_SIZE);
+            break;
+    }
+    
+    ctx.restore();
+}
+
+function drawWaterFlow() {
+    ctx.fillStyle = '#0066ff';
+    waterFlow.forEach(water => {
+        const pixelX = water.x * GRID_SIZE + GRID_SIZE / 2;
+        const pixelY = water.y * GRID_SIZE + GRID_SIZE / 2;
+        
+        ctx.beginPath();
+        ctx.arc(pixelX, pixelY, 8, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Draw water trail
+        ctx.strokeStyle = '#0066ff';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(pixelX, pixelY);
+        
+        const trailLength = 20;
+        const trailX = pixelX + (water.direction === 'left' ? -trailLength : water.direction === 'right' ? trailLength : 0);
+        const trailY = pixelY + (water.direction === 'up' ? -trailLength : water.direction === 'down' ? trailLength : 0);
+        
+        ctx.lineTo(trailX, trailY);
+        ctx.stroke();
     });
-  }
-  
-  // Launch rocket
-  if (rocket) {
-    rocket.grow();
-    rocket.launch();
-  }
-  
-  // Show success message
-  setTimeout(() => {
-    alert(`Level ${level - 1} Complete! Score: ${score}`);
+}
+
+function drawUI() {
+    ctx.fillStyle = '#fff';
+    ctx.font = '20px monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText(`Score: ${score}`, 10, 30);
+    ctx.fillText(`Level: ${level}`, 10, 60);
+    ctx.fillText(`Water Drops: ${waterFlow.length}`, 10, 90);
+}
+
+function drawGameOver() {
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // Reset level
-    initBoard();
-    flowActive = false;
-    flowPath = [];
-    selectedPipe = null;
-  }, 1000);
+    ctx.fillStyle = '#f00';
+    ctx.font = '48px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2 - 50);
+    
+    ctx.fillStyle = '#fff';
+    ctx.font = '24px monospace';
+    ctx.fillText(`Final Score: ${score}`, canvas.width / 2, canvas.height / 2);
+    ctx.fillText('Press R to restart', canvas.width / 2, canvas.height / 2 + 50);
 }
 
-function resetLevel() {
-  initBoard();
-  flowActive = false;
-  flowPath = [];
-  selectedPipe = null;
-}
-
-function update() {
-  if (gameRunning && !gameOver) {
-    timeLeft--;
-    if (timeLeft <= 0) {
-      gameOver = true;
-      if (audio) audio.beep(200, 0.5, 'sawtooth', 0.08);
-      return;
+// Game loop
+let lastTime = 0;
+function gameLoop(currentTime) {
+    const deltaTime = currentTime - lastTime;
+    lastTime = currentTime;
+    
+    // Clear canvas
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Update game state
+    updateWaterFlow(deltaTime);
+    
+    // Draw game elements
+    drawGrid();
+    drawWaterFlow();
+    drawUI();
+    
+    if (gameOver) {
+        drawGameOver();
+        return;
     }
-  }
-  
-  draw();
-  requestAnimationFrame(update);
-}
-
-function startGame() {
-  gameRunning = true;
-  update();
+    
+    requestAnimationFrame(gameLoop);
 }
 
 // Event listeners
-canvas.addEventListener('mousedown', handleClick);
-canvas.addEventListener('contextmenu', (e) => e.preventDefault());
-
-document.addEventListener('keydown', (e) => {
-  if (gameOver) return;
-  
-  switch (e.key) {
-    case ' ':
-      if (gameRunning) startFlow();
-      break;
-    case 'r':
-    case 'R':
-      resetLevel();
-      break;
-  }
+gameContainer.on('keydown', (e) => {
+    if (gameOver) {
+        if (e.key === 'r' || e.key === 'R') {
+            restartGame();
+        }
+        return;
+    }
+    
+    switch(e.key) {
+        case ' ':
+            gameRunning = !gameRunning;
+            if (gameRunning) gameLoop();
+            break;
+    }
 });
 
+// Mouse/touch controls
+canvas.addEventListener('click', (e) => {
+    if (gameOver) return;
+    
+    const rect = canvas.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const clickY = e.clientY - rect.top;
+    
+    const gridX = Math.floor(clickX / GRID_SIZE);
+    const gridY = Math.floor(clickY / GRID_SIZE);
+    
+    if (gridX >= 0 && gridX < GRID_WIDTH && gridY >= 0 && gridY < GRID_HEIGHT) {
+        // Rotate pipe if it exists
+        if (grid[gridY][gridX].type) {
+            grid[gridY][gridX].rotation = (grid[gridY][gridX].rotation + 90) % 360;
+        }
+    }
+});
+
+// Touch controls for mobile
+canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    const touchX = touch.clientX - rect.left;
+    const touchY = touch.clientY - rect.top;
+    
+    const gridX = Math.floor(touchX / GRID_SIZE);
+    const gridY = Math.floor(touchY / GRID_SIZE);
+    
+    if (gridX >= 0 && gridX < GRID_WIDTH && gridY >= 0 && gridY < GRID_HEIGHT) {
+        if (grid[gridY][gridX].type) {
+            grid[gridY][gridX].rotation = (grid[gridY][gridX].rotation + 90) % 360;
+        }
+    }
+});
+
+function restartGame() {
+    score = 0;
+    level = 1;
+    gameOver = false;
+    gameRunning = true;
+    gameContainer.updateScore(score);
+    initGrid();
+    initWaterFlow();
+    gameLoop();
+}
+
 // Initialize game
-initGame();
+initGrid();
+initWaterFlow();
+gameLoop();
+
+// Update game container with game instance
+gameContainer.gameInstance = {
+    pause: () => { gameRunning = false; },
+    resume: () => { gameRunning = true; gameLoop(); },
+    restart: restartGame
+};
+
+console.log('Pipe Dream game initialized with universal system');
 </script>
 </body>
 </html>
