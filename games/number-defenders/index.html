@@ -36,6 +36,7 @@ input[type=range] { width:100%; }
 #rocketOverlay { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:999; }
 #splashScreen { position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); color:#fff; font-size:2rem; display:none; justify-content:center; align-items:center; flex-direction:column; text-align:center; z-index:1000; }
 #splashScreen button { margin-top:20px; padding:10px 20px; font-size:1rem; cursor:pointer; }
+.level-settings { margin-top:8px; font-size:0.9rem; }
 .mode-settings { margin-top:8px; font-size:0.9rem; }
 </style>
 </head>
@@ -81,6 +82,14 @@ input[type=range] { width:100%; }
         <div id="timerVal">3</div>
         <label><input type="checkbox" id="timerToggle"> Enable Timer</label>
       </div>
+    </div>
+
+    <div class="level-settings">
+      <div class="section-title">LEVEL</div>
+      <label><input type="radio" name="level" value="beginner" checked> Beginner (1-10)</label><br>
+      <label><input type="radio" name="level" value="medium"> Medium (1-20)</label><br>
+      <label><input type="radio" name="level" value="great"> Great (1-50)</label><br>
+      <label><input type="radio" name="level" value="expert"> Expert (1-100)</label>
     </div>
 
     <div class="mode-settings">
@@ -132,6 +141,8 @@ const rocketOverlay=document.getElementById('rocketOverlay');
 const rocketCtx=rocketOverlay.getContext('2d');
 
 // Initialize modular components
+let audio, fireworks, rocket;
+
 async function initModularComponents() {
   try {
     audio = new GameAudio();
@@ -179,8 +190,19 @@ function randColor(){ const colors=["#0f0","#0ff","#ff0","#f0f","#f60","#0fa","#
 
 /* ===== Math problem generator ===== */
 function generateMathProblem(){
-  let a = Math.floor(Math.random()*maxOperand);
-  let b = Math.floor(Math.random()*maxOperand);
+  // Get selected level and determine max operand
+  const levelSelection = document.querySelector('input[name="level"]:checked').value;
+  let maxOperand;
+  switch(levelSelection) {
+    case 'beginner': maxOperand = 10; break;
+    case 'medium': maxOperand = 20; break;
+    case 'great': maxOperand = 50; break;
+    case 'expert': maxOperand = 100; break;
+    default: maxOperand = 20;
+  }
+  
+  let a = Math.floor(Math.random()*maxOperand) + 1; // +1 to avoid 0
+  let b = Math.floor(Math.random()*maxOperand) + 1; // +1 to avoid 0
   let op = document.querySelector('input[name="mode"]:checked').value;
   if(op==='both'){ op = Math.random()<0.5 ? '+' : '-'; }
   if(!document.getElementById('allowNeg').checked && op==='-' && b>a){
@@ -285,19 +307,29 @@ document.addEventListener('keydown',(e)=>{
 
   const target = words.find(w=>!w.done && w.lane===playerLane);
   if(!target) return;
+  
+  // Handle digit input
   if(/[0-9\-]/.test(e.key)){
     if(e.key==='-' && target.input.includes('-')) return;
     target.input = (target.input||'') + e.key;
+    
+    // Check if the input is complete and correct
+    const inputNum = parseInt(target.input);
+    if(inputNum === target.answer){
+      // Correct answer!
+      target.fly=true; target.done=true; wordsLeft = Math.max(0, wordsLeft-1); updateScore();
+      score+=1; 
+      if(rocket) rocket.grow();
+      if(wordsLeft===0 && !gameOver){ rocketLaunched=true; if(rocket) rocket.launch(); }
+    } else if(!target.answer.toString().startsWith(target.input)){
+      // Wrong digit - play error sound and clear input
+      beep(180, 0.15, 'sawtooth', 0.05); // Error sound
+      target.input='';
+    }
   }
-
-  if(parseInt(target.input) === target.answer){
-    target.fly=true; target.done=true; wordsLeft = Math.max(0, wordsLeft-1); updateScore();
-    score+=1; rocket && rocket.grow();
-    if(wordsLeft===0 && !gameOver){ rocketLaunched=true; rocket && rocket.launch(); }
-  } else if(!target.answer.toString().startsWith(target.input)){ beep(180,0.03); target.input=''; }
 });
 
-/* ===== sliders ===== */
+/* ===== sliders and level selection ===== */
 speedSlider.addEventListener('input',()=>{ speedValue=parseFloat(speedSlider.value)/4; speedVal.textContent=speedSlider.value; });
 laneSlider.addEventListener('input',()=>{ 
   lanes=parseInt(laneSlider.value); 
@@ -306,6 +338,22 @@ laneSlider.addEventListener('input',()=>{
   // Ensure player lane is within new lane count
   playerLane = Math.min(playerLane, lanes-1);
   draw(); // Redraw to show updated lane indicator
+});
+
+// Level selection event listeners
+document.querySelectorAll('input[name="level"]').forEach(radio => {
+  radio.addEventListener('change', () => {
+    // Regenerate all current problems with new difficulty
+    words.forEach(word => {
+      if (!word.done && !word.fly) {
+        const newProblem = generateMathProblem();
+        word.text = newProblem.text;
+        word.answer = newProblem.answer;
+        word.input = '';
+      }
+    });
+    draw(); // Redraw to show updated problems
+  });
 });
 
 /* ===== splash ===== */
