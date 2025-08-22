@@ -59,8 +59,8 @@
     
     <!-- Main Container -->
     <div class="container">
-        <!-- Header -->
-        <header>
+        <!-- Retro Neon Header -->
+        <header class="retro-header">
             <div class="retro-logo">
                 <div class="logo-text">RETRO</div>
                 <div class="logo-text">GAMES</div>
@@ -70,122 +70,190 @@
                     <div class="rocket-flame"></div>
                 </div>
             </div>
-            <h1 class="main-title">🎮 Retro Games Collection</h1>
-            <p class="subtitle">Classic arcade games from the golden age of gaming</p>
-            <p class="subtitle-secondary">Modern responsive design • Touch controls • Mobile optimized</p>
         </header>
+        
+        <!-- Game Category Filters -->
+        <nav class="game-filters">
+            <button class="filter-btn arcade active" data-category="all">
+                <span class="filter-icon">🎮</span>
+                <span class="filter-text">ALL GAMES</span>
+            </button>
+            <button class="filter-btn arcade" data-category="arcade">
+                <span class="filter-icon">👻</span>
+                <span class="filter-text">ARCADE</span>
+            </button>
+            <button class="filter-btn puzzle" data-category="puzzle">
+                <span class="filter-icon">🧩</span>
+                <span class="filter-text">PUZZLE</span>
+            </button>
+            <button class="filter-btn math" data-category="math">
+                <span class="filter-icon">🔢</span>
+                <span class="filter-text">MATH</span>
+            </button>
+            <button class="filter-btn word" data-category="word">
+                <span class="filter-icon">📚</span>
+                <span class="filter-text">WORD</span>
+            </button>
+        </nav>
         
         <!-- Main Content -->
         <main class="games-grid" id="mainContent">
-            <div class="game-card" data-game="chompy">
-                <h3>Chompy</h3>
-                <p>Navigate through mazes, eat dots, and avoid ghosts in this classic arcade game.</p>
-                <div class="game-meta">
-                    <span class="game-category">🎮 Arcade</span>
-                    <span class="game-difficulty">⭐ Medium</span>
-                    <span class="game-time">⏱️ 10-20 minutes</span>
+            <div class="game-card" data-game="chompy" data-category="arcade">
+                <div class="game-icon">👻</div>
+                <h3 class="game-title">CHOMPY</h3>
+                <div class="game-details">
+                    <div class="detail-item">
+                        <span class="detail-icon">🎮</span>
+                        <span class="detail-text">ARCADE</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-icon">⭐</span>
+                        <span class="detail-text">MEDIUM</span>
+                    </div>
                 </div>
-                <a href="games/chompy/index.html" class="play-button">Play Now</a>
+                <a href="games/chompy/index.html" class="play-button">PLAY NOW</a>
             </div>
             
-            <div class="game-card" data-game="block-stack">
-                <h3>Block Stack</h3>
-                <p>Stack falling blocks to create complete lines in this addictive puzzle game.</p>
-                <div class="game-meta">
-                    <span class="game-category">🧩 Puzzle</span>
-                    <span class="game-difficulty">⭐ Medium</span>
-                    <span class="game-time">⏱️ 5-15 minutes</span>
+            <div class="game-card" data-game="block-stack" data-category="puzzle">
+                <div class="game-icon">🧩</div>
+                <h3 class="game-title">BLOCK STACK</h3>
+                <div class="game-details">
+                    <div class="detail-item">
+                        <span class="detail-icon">🧩</span>
+                        <span class="detail-text">PUZZLE</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-icon">⭐</span>
+                        <span class="detail-text">MEDIUM</span>
+                    </div>
                 </div>
-                <a href="games/block-stack/index.html" class="play-button">Play Now</a>
+                <a href="games/block-stack/index.html" class="play-button">PLAY NOW</a>
             </div>
             
-            <div class="game-card" data-game="wormy">
-                <h3>Wormy</h3>
-                <p>Control a growing worm, eat food, and avoid hitting walls or yourself.</p>
-                <div class="game-meta">
-                    <span class="game-category">🎮 Arcade</span>
-                    <span class="game-difficulty">⭐ Easy</span>
-                    <span class="game-time">⏱️ 2-8 minutes</span>
+            <div class="game-card" data-game="wormy" data-category="arcade">
+                <div class="game-icon">🐍</div>
+                <h3 class="game-title">WORMY</h3>
+                <div class="game-details">
+                    <div class="detail-item">
+                        <span class="detail-icon">🎮</span>
+                        <span class="detail-text">ARCADE</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-icon">⭐</span>
+                        <span class="detail-text">EASY</span>
+                    </div>
                 </div>
-                <a href="games/wormy/index.html" class="play-button">Play Now</a>
+                <a href="games/wormy/index.html" class="play-button">PLAY NOW</a>
             </div>
             
-            <div class="game-card" data-game="bubble-pop">
-                <h3>Bubble Pop</h3>
-                <p>Pop colorful bubbles with realistic physics and satisfying sound effects!</p>
-                <div class="game-meta">
-                    <span class="game-category">🎈 Puzzle</span>
-                    <span class="game-difficulty">⭐ Easy</span>
-                    <span class="game-time">⏱️ 5-15 minutes</span>
+            <div class="game-card" data-game="bubble-pop" data-category="puzzle">
+                <div class="game-icon">🫧</div>
+                <h3 class="game-title">BUBBLE POP</h3>
+                <div class="game-details">
+                    <div class="detail-item">
+                        <span class="detail-icon">🧩</span>
+                        <span class="detail-text">PUZZLE</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-icon">⭐</span>
+                        <span class="detail-text">EASY</span>
+                    </div>
                 </div>
-                <a href="games/bubble-pop/index.html" class="play-button">Play Now</a>
+                <a href="games/bubble-pop/index.html" class="play-button">PLAY NOW</a>
             </div>
             
-            <div class="game-card" data-game="road-dash">
-                <h3>Road Dash</h3>
-                <p>Help the frog cross the road and river safely.</p>
-                <div class="game-meta">
-                    <span class="game-category">🏎️ Racing</span>
-                    <span class="game-difficulty">⭐ Easy</span>
-                    <span class="game-time">⏱️ 5-10 minutes</span>
+            <div class="game-card" data-game="road-dash" data-category="arcade">
+                <div class="game-icon">🐸</div>
+                <h3 class="game-title">ROAD DASH</h3>
+                <div class="game-details">
+                    <div class="detail-item">
+                        <span class="detail-icon">🏃</span>
+                        <span class="detail-text">RACING</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-icon">⭐</span>
+                        <span class="detail-text">EASY</span>
+                    </div>
                 </div>
-                <a href="games/road-dash/index.html" class="play-button">Play Now</a>
+                <a href="games/road-dash/index.html" class="play-button">PLAY NOW</a>
             </div>
             
-            <div class="game-card" data-game="paddle-ball">
-                <h3>Paddle Ball</h3>
-                <p>The classic two-player table tennis simulation game.</p>
-                <div class="game-meta">
-                    <span class="game-category">🏓 Arcade</span>
-                    <span class="game-difficulty">⭐ Easy</span>
-                    <span class="game-time">⏱️ 3-8 minutes</span>
+            <div class="game-card" data-game="paddle-ball" data-category="arcade">
+                <div class="game-icon">🏓</div>
+                <h3 class="game-title">PADDLE BALL</h3>
+                <div class="game-details">
+                    <div class="detail-item">
+                        <span class="detail-icon">🎮</span>
+                        <span class="detail-text">ARCADE</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-icon">⭐</span>
+                        <span class="detail-text">EASY</span>
+                    </div>
                 </div>
-                <a href="games/paddle-ball/index.html" class="play-button">Play Now</a>
+                <a href="games/paddle-ball/index.html" class="play-button">PLAY NOW</a>
             </div>
             
-            <div class="game-card" data-game="number-defenders">
-                <h3>Number Defenders</h3>
-                <p>Solve math problems while defending against invading aliens.</p>
-                <div class="game-meta">
-                    <span class="game-category">🔢 Math</span>
-                    <span class="game-difficulty">⭐ Medium</span>
-                    <span class="game-time">⏱️ 8-15 minutes</span>
+            <div class="game-card" data-game="number-defenders" data-category="math">
+                <div class="game-icon">🔢</div>
+                <h3 class="game-title">NUMBER DEFENDERS</h3>
+                <div class="game-details">
+                    <div class="detail-item">
+                        <span class="detail-icon">🔢</span>
+                        <span class="detail-text">MATH</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-icon">⭐</span>
+                        <span class="detail-text">MEDIUM</span>
+                    </div>
                 </div>
-                <a href="games/number-defenders/index.html" class="play-button">Play Now</a>
+                <a href="games/number-defenders/index.html" class="play-button">PLAY NOW</a>
             </div>
             
-            <div class="game-card" data-game="word-defenders">
-                <h3>Word Defenders</h3>
-                <p>Improve your spelling while defending against word-based invaders.</p>
-                <div class="game-meta">
-                    <span class="game-category">📚 Word</span>
-                    <span class="game-difficulty">⭐ Medium</span>
-                    <span class="game-time">⏱️ 10-20 minutes</span>
+            <div class="game-card" data-game="word-defenders" data-category="word">
+                <div class="game-icon">📚</div>
+                <h3 class="game-title">WORD DEFENDERS</h3>
+                <div class="game-details">
+                    <div class="detail-item">
+                        <span class="detail-icon">📚</span>
+                        <span class="detail-text">WORD</span>
+                        </span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-icon">⭐</span>
+                        <span class="detail-text">MEDIUM</span>
+                    </div>
                 </div>
-                <a href="games/word-defenders/index.html" class="play-button">Play Now</a>
+                <a href="games/word-defenders/index.html" class="play-button">PLAY NOW</a>
             </div>
             
-            <div class="game-card" data-game="pipe-dream">
-                <h3>Pipe Dream</h3>
-                <p>Connect pipes to solve math problems and watch the water flow in this puzzle game!</p>
-                <div class="game-meta">
-                    <span class="game-category">🧩 Puzzle</span>
-                    <span class="game-difficulty">⭐ Hard</span>
-                    <span class="game-time">⏱️ 15-30 minutes</span>
+            <div class="game-card" data-game="pipe-dream" data-category="puzzle">
+                <div class="game-icon">🔌</div>
+                <h3 class="game-title">PIPE DREAM</h3>
+                <div class="game-details">
+                    <div class="detail-item">
+                        <span class="detail-icon">🧩</span>
+                        <span class="detail-text">PUZZLE</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-icon">⭐</span>
+                        <span class="detail-text">HARD</span>
+                    </div>
                 </div>
-                <a href="games/pipe-dream/index.html" class="play-button">Play Now</a>
+                <a href="games/pipe-dream/index.html" class="play-button">PLAY NOW</a>
             </div>
         </main>
         
-        <!-- Footer -->
-        <footer>
-            <p>&copy; 2025 Retro Games Collection. All games are playable in your browser!</p>
-            <p class="footer-features">
-                <span>📱 Mobile Optimized</span> • 
-                <span>🎮 Touch Controls</span> • 
-                <span>⚡ Fast Loading</span> • 
-                <span>🌐 Offline Support</span>
-            </p>
+        <!-- Retro Arcade Footer -->
+        <footer class="retro-footer">
+            <div class="insert-coin">INSERT COIN TO PLAY</div>
+            <div class="footer-links">
+                <a href="#" class="footer-link">ABOUT</a>
+                <span class="separator">|</span>
+                <a href="#" class="footer-link">CONTACT</a>
+                <span class="separator">|</span>
+                <a href="#" class="footer-link">TERMS</a>
+            </div>
         </footer>
     </div>
     
@@ -204,8 +272,45 @@
         }
     </script>
     
-    <!-- Analytics (if needed) -->
+    <!-- Retro Arcade JavaScript -->
     <script>
+        // Game category filtering
+        document.addEventListener('DOMContentLoaded', function() {
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            const gameCards = document.querySelectorAll('.game-card');
+            
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const category = this.getAttribute('data-category');
+                    
+                    // Update active button
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Filter games
+                    gameCards.forEach(card => {
+                        if (category === 'all' || card.getAttribute('data-category') === category) {
+                            card.style.display = 'block';
+                            card.classList.add('fade-in');
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+                });
+            });
+            
+            // Add hover effects to game cards
+            gameCards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.classList.add('hover');
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.classList.remove('hover');
+                });
+            });
+        });
+        
         // Collection analytics tracking
         window.collectionAnalytics = {
             collectionId: 'retro-games-collection',
