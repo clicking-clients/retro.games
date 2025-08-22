@@ -7,7 +7,7 @@
 <style>
 :root { --green:#0f0; --yellow:#ff0; --red:#f00; --bg:#000; }
 html, body { height:100%; margin:0; padding:0; background: var(--bg); font-family: monospace; color: var(--green); overflow:hidden; }
-#container { display:flex; justify-content:center; align-items:flex-start; gap:20px; padding:20px; position:relative; }
+#container { display:flex; justify-content:center; align-items:flex-start; gap:20px; padding:20px; position:relative; min-height:100vh; }
 #gameNav, 
 #gameNav a {
   display: block;
@@ -23,6 +23,7 @@ html, body { height:100%; margin:0; padding:0; background: var(--bg); font-famil
   text-decoration: underline;
 }
 #game { border:4px solid var(--green); width:540px; height:640px; background: var(--bg); image-rendering: pixelated; display:block; position:relative; z-index:1; }
+#game-wrapper { position:relative; display:inline-block; }
 #sidebar { width:450px; display:flex; flex-direction:column; gap:10px; }
 #title { text-transform: uppercase; font-size: 2rem; color: #ff0; text-shadow: 0 0 8px #f00; text-align: center; }
 #scoreboard { border:2px solid var(--green); padding:8px; font-size:0.9rem; }
@@ -33,7 +34,16 @@ html, body { height:100%; margin:0; padding:0; background: var(--bg); font-famil
 #wordList { width:100%; height:80px; background:#001100; color: var(--green); border:1px solid var(--green); padding:6px; font-family:monospace; }
 input[type=range] { width:100%; }
 #quotes { margin-top:8px; font-size:0.9rem; height:24px; text-align:center; }
-#rocketOverlay { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:999; }
+#rocketOverlay { 
+  position:absolute; 
+  top:0; 
+  left:0; 
+  width:100%; 
+  height:100%; 
+  pointer-events:none; 
+  z-index:999; 
+  background: transparent;
+}
 #splashScreen { position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); color:#fff; font-size:2rem; display:none; justify-content:center; align-items:center; flex-direction:column; text-align:center; z-index:1000; }
 #splashScreen button { margin-top:20px; padding:10px 20px; font-size:1rem; cursor:pointer; }
 .level-settings { margin-top:8px; font-size:0.9rem; }
@@ -48,7 +58,10 @@ input[type=range] { width:100%; }
     <strong>Games:</strong>
   </nav>
   <script src="navigation.js"></script>
-  <canvas id="game" width="540" height="640"></canvas>
+  <div id="game-wrapper">
+    <canvas id="game" width="540" height="640"></canvas>
+    <canvas id="rocketOverlay" width="540" height="640"></canvas>
+  </div>
   <div id="sidebar">
     <div id="title">NUMBER DEFENDERS</div>
     <div id="scoreboard">
@@ -102,7 +115,6 @@ input[type=range] { width:100%; }
 
     <div id="quotes"></div>
   </div>
-  <canvas id="rocketOverlay" width="1200" height="720"></canvas>
 </div>
 <script type="module">
 import { Rocket } from '../../rocket.js';
