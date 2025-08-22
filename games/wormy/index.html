@@ -151,7 +151,7 @@ function update() {
         setTimeout(update, 150);
     } else {
         let flash = true;
-        const flashInterval = setInterval(() => {
+        window.flashInterval = setInterval(() => {
             draw();
             context.save();
             context.scale(scale, scale);
@@ -176,7 +176,19 @@ document.addEventListener('keydown', event => {
         case 'ArrowUp': snake.setDirection(0,-1); break;
         case 'ArrowDown': snake.setDirection(0,1); break;
         case 'KeyP': paused = !paused; if(!paused) update(); break;
-        case 'KeyR': score = 0; snake = new Snake(); spawnFruit(); gameOver = false; paused = false; update(); break;
+        case 'KeyR': 
+            score = 0; 
+            snake = new Snake(); 
+            spawnFruit(); 
+            gameOver = false; 
+            paused = false; 
+            // Clear any existing flashing intervals
+            if (window.flashInterval) {
+                clearInterval(window.flashInterval);
+                window.flashInterval = null;
+            }
+            update(); 
+            break;
     }
 });
 

@@ -299,7 +299,7 @@
                 });
             });
             
-            // Add hover effects to game cards
+            // Add hover effects and click functionality to game cards
             gameCards.forEach(card => {
                 card.addEventListener('mouseenter', function() {
                     this.classList.add('hover');
@@ -308,6 +308,23 @@
                 card.addEventListener('mouseleave', function() {
                     this.classList.remove('hover');
                 });
+                
+                // Make entire card clickable
+                card.addEventListener('click', function(e) {
+                    // Don't trigger if clicking on the PLAY NOW button (it has its own link)
+                    if (e.target.classList.contains('play-button')) {
+                        return;
+                    }
+                    
+                    // Get the game URL from the PLAY NOW button
+                    const playButton = this.querySelector('.play-button');
+                    if (playButton && playButton.href) {
+                        window.location.href = playButton.href;
+                    }
+                });
+                
+                // Add cursor pointer to indicate clickable
+                card.style.cursor = 'pointer';
             });
         });
         

@@ -294,10 +294,9 @@ function drawWord(w){
   ctx.fillText(displayText,x,y);
 }
 function draw(){
-  // Only clear the canvas if fireworks/rocket are not active
-  if (!rocket || (!rocket.launched && !rocket.inFireworks)) {
-    ctx.fillStyle="#000"; ctx.fillRect(0,0,W,H);
-  }
+  // Always clear the canvas for clean drawing
+  ctx.fillStyle="#000"; 
+  ctx.fillRect(0,0,W,H);
   
   ctx.strokeStyle="#0f0"; ctx.lineWidth=1;
   for(let l=1;l<lanes;l++){ ctx.beginPath(); ctx.moveTo(l*laneW+0.5,0); ctx.lineTo(l*laneW+0.5,H); ctx.stroke(); }
@@ -306,6 +305,11 @@ function draw(){
   ctx.fillStyle="#0f0"; ctx.font='16px monospace'; ctx.textAlign='left'; ctx.fillText(`LIVES: ${lives}`,8,16);
   ctx.textAlign='center'; ctx.fillStyle='#ff0'; ctx.fillRect(laneX(playerLane)-15,floorY-12,30,12);
   ctx.fillStyle='#0f0'; ctx.textAlign='right'; ctx.fillText(running?'RUN':'PAUSE',W-8,16);
+  
+  // Draw the rocket during gameplay (when not launched)
+  if (rocket && !rocket.launched && !rocket.inFireworks) {
+    rocket._drawGrounded();
+  }
 }
 
 /* ===== game step ===== */
