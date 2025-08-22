@@ -87,10 +87,22 @@
 }
 
 @media (max-width: 767px) {
-  .game-content {
-    flex-direction: column;
-    align-items: center;
-    gap: var(--space-lg);
+  .game-container .game-content {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: var(--space-lg) !important;
+  }
+  
+  .game-container .game-area-lhs {
+    max-width: 100% !important;
+    order: 1 !important;
+    width: 100% !important;
+  }
+  
+  .game-container .game-sidebar-rhs {
+    width: 100% !important;
+    max-width: 100% !important;
+    order: 2 !important;
   }
 }
 
@@ -134,7 +146,7 @@
 
 /* Force LHS/RHS layout on larger screens */
 @media (min-width: 768px) {
-  .game-content {
+  .game-container .game-content {
     display: flex !important;
     flex-direction: row !important;
     align-items: flex-start !important;
@@ -144,14 +156,14 @@
     max-width: 100% !important;
   }
   
-  .game-area-lhs {
+  .game-container .game-area-lhs {
     flex: 1 !important;
     max-width: 70% !important;
     order: 1 !important;
     min-width: 0 !important;
   }
   
-  .game-sidebar-rhs {
+  .game-container .game-sidebar-rhs {
     width: 300px !important;
     max-width: 30% !important;
     order: 2 !important;
@@ -160,20 +172,51 @@
   }
 }
 
-/* Debug: Add borders to see layout structure */
+/* Additional layout enforcement */
+.game-container {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  width: 100% !important;
+}
+
+.game-container .game-content {
+  display: flex !important;
+  flex-direction: row !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  align-items: flex-start !important;
+  justify-content: center !important;
+  gap: var(--space-xl) !important;
+}
+
+.game-container .game-area-lhs {
+  flex: 1 !important;
+  max-width: 70% !important;
+  order: 1 !important;
+}
+
+.game-container .game-sidebar-rhs {
+  width: 300px !important;
+  max-width: 30% !important;
+  order: 2 !important;
+  flex-shrink: 0 !important;
+}
+
+/* Ensure proper layout structure */
 .game-content {
-  border: 2px solid var(--retro-yellow);
   min-height: 400px;
+  position: relative;
 }
 
 .game-area-lhs {
-  border: 2px solid var(--retro-green);
   min-height: 300px;
+  position: relative;
 }
 
 .game-sidebar-rhs {
-  border: 2px solid var(--retro-cyan);
   min-height: 300px;
+  position: relative;
 }
 
 /* Responsive adjustments */
