@@ -317,6 +317,7 @@ document.addEventListener('keydown',(e)=>{
     const inputNum = parseInt(target.input);
     if(inputNum === target.answer){
       // Correct answer!
+      beep(800, 0.2, 'sine', 0.05); // Success sound
       target.fly=true; target.done=true; wordsLeft = Math.max(0, wordsLeft-1); updateScore();
       score+=1; 
       if(rocket) rocket.grow();
