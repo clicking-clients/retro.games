@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Road Crosser</title>
+<style>
+:root {
+  --green: #0f0;
+  --yellow: #ff0;
+  --red: #f00;
+  --bg: #000;
+  --focus-outline: #0ff;
+}
+
+/* Accessibility and mobile improvements */
+* {
+  box-sizing: border-box;
+}
+
+body { 
+  background: var(--bg); 
+  color: var(--green); 
+  font-family: monospace; 
+  display: flex; 
+  justify-content: center; 
+  align-items: flex-start; 
+  height: 100%; 
+  margin: 0; 
+  padding: 15px;
+  font-size: 16px; /* Prevent zoom on mobile */
+}
+
+/* Focus styles for accessibility */
+*:focus {
+  outline: 2px solid var(--focus-outline);
+  outline-offset: 2px;
+}
+
+/* Mobile-first responsive design */
+#container { 
+  min-height: 100vh;
+  display: flex; 
+  flex-direction: column;
+  gap: 15px; 
+  align-items: center;
+  width: 100%;
+  max-width: 1200px;
+}
+
+#gameNav, 
+#gameNav a {
+  display: block;
+  margin-top: 5px;
+  text-transform: uppercase;
+  color: var(--green);
+  text-decoration: none;
+  padding: 8px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+#gameNav a:hover,
+#gameNav a:focus {
+  background-color: rgba(0, 255, 0, 0.1);
+}
+
+#gameNav a.active {
+  color: var(--yellow);
+  font-weight: bold;
+  text-decoration: underline;
+  background-color: rgba(255, 255, 0, 0.1);
+}
+
+#froggerGame { 
+  border: 4px solid var(--green); 
+  height: auto;
+  width: 100%;
+  max-width: 960px;
+  aspect-ratio: 960/480;
+  image-rendering: pixelated; 
+  background: var(--bg); 
+  display: block;
+  border-radius: 6px;
+}
+
+#sidebar { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 15px;
+  width: 100%;
+  max-width: 450px;
+}
+
+#title { 
+  text-transform: uppercase; 
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  color: var(--yellow); 
+  text-shadow: 0 0 8px var(--red); 
+  text-align: center;
+  margin: 0;
+}
+
+#scoreboard { 
+  border: 2px solid var(--green); 
+  padding: 12px;
+  border-radius: 6px;
+}
+
+.section-title { 
+  color: var(--yellow); 
+  margin-bottom: 8px; 
+  font-weight: bold;
+}
+
+#instructions {
+  line-height: 1.4;
+}
+
+#startLevel {
+  background: var(--bg);
+  color: var(--green);
+  border: 1px solid var(--green);
+  padding: 6px;
+  border-radius: 4px;
+  font-family: monospace;
+  margin-top: 8px;
+  width: 100%;
+}
+
+#startLevel:focus {
+  border-color: var(--focus-outline);
+}
+
+.explosion {
+  position: absolute;
+  background: radial-gradient(circle, var(--yellow) 0%, orange 60%, var(--red) 100%);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: explode 0.5s ease-out forwards;
+}
+
+@keyframes explode {
+  0% { transform: scale(0.5); opacity: 1; }
+  100% { transform: scale(2); opacity: 0; }
+}
+
+/* Mobile controls */
+.mobile-controls {
+  display: none;
+  gap: 10px;
+  margin-top: 15px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.mobile-btn {
+  background: rgba(0, 255, 0, 0.2);
+  border: 2px solid var(--green);
+  color: var(--green);
+  padding: 15px;
+  border-radius: 8px;
+  font-size: 1.2rem;
+  font-family: monospace;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  min-width: 60px;
+  transition: all 0.2s;
+}
+
+.mobile-btn:hover,
+.mobile-btn:focus,
+.mobile-btn:active {
+  background: rgba(0, 255, 0, 0.3);
+  transform: scale(1.05);
+}
+
+/* Responsive breakpoints */
+@media (min-width: 768px) {
+  #container {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 20px;
+  }
+  
+  #froggerGame {
+    height: 80vh;
+    width: 100vw;
+    max-width: 960px;
+  }
+  
+  #sidebar {
+    width: 450px;
+  }
+  
+  .mobile-controls {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .mobile-controls {
+    display: flex;
+  }
+  
+  body {
+    padding: 10px;
+  }
+  
+  #froggerGame {
+    max-width: 100vw;
+    margin: 0 auto;
+  }
+  
+  #title {
+    margin-top: 10px;
+    margin-bottom: 10px;
+  }
+  
+  #sidebar {
+    order: 3;
+  }
+  
+  #froggerGame {
+    order: 2;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --green: #00ff00;
+    --yellow: #ffff00;
+    --red: #ff0000;
+    --focus-outline: #ffffff;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Skip link for accessibility */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 6px;
+  background: var(--green);
+  color: var(--bg);
+  padding: 8px;
+  text-decoration: none;
+  border-radius: 4px;
+  z-index: 1001;
+  transition: top 0.3s;
+}
+
+.skip-link:focus {
+  top: 6px;
+}
+
+/* Screen reader support */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+</style>
+</head>
+<body>
+<!-- Skip to main content link for accessibility -->
+<a href="#froggerGame" class="skip-link">Skip to game</a>
+
+<div id="container">
+  <nav id="gameNav" style="padding:10px; background:#111; color:#0f0; font-family:monospace;">
+    <strong>Games:</strong>
+  </nav>
+  <h1 id="title">Road Dash</h1>
+  <canvas id="froggerGame" width="960" height="480" role="img" aria-label="Road Dash game area" tabindex="0"></canvas>
+  <div id="sidebar">
+    <div id="scoreboard" role="region" aria-label="Game Score">
+      <div class="section-title">SCORE</div>
+      <div id="score" aria-live="polite">0</div>
+    </div>
+    <div id="instructions" role="region" aria-label="Game Instructions">
+      <div class="section-title">CONTROLS</div>
+      <div role="list">
+        <div role="listitem">Arrow Keys: Move Frog</div>
+        <div role="listitem">P: Pause</div>
+        <div role="listitem">R: Reset</div>
+        <div role="listitem">Space: Respawn after hit</div>
+      </div>
+      <div class="section-title">RULES</div>
+      <div role="list">
+        <div role="listitem">Reach the top without hitting the obstacles to score points.</div>
+      </div>
+      <div class="section-title">START LEVEL</div>
+      <label for="startLevel">Starting Level:</label>
+      <input type="number" id="startLevel" value="1" min="1" max="5" aria-describedby="levelHelp" />
+      <div id="levelHelp" class="sr-only">Choose starting level from 1 to 5</div>
+    </div>
+    
+    <!-- Mobile Controls -->
+    <div class="mobile-controls">
+      <button class="mobile-btn" id="upBtn" aria-label="Move Up">↑</button>
+      <button class="mobile-btn" id="leftBtn" aria-label="Move Left">←</button>
+      <button class="mobile-btn" id="rightBtn" aria-label="Move Right">→</button>
+      <button class="mobile-btn" id="downBtn" aria-label="Move Down">↓</button>
+      <button class="mobile-btn" id="pauseBtn" aria-label="Pause/Resume">⏸</button>
+      <button class="mobile-btn" id="resetBtn" aria-label="Reset Game">🔄</button>
+      <button class="mobile-btn" id="respawnBtn" aria-label="Respawn">🔄</button>
+    </div>
+  </div>
+</div>
+<script src="navigation.js"></script>
+<script>
+const canvas = document.getElementById('froggerGame');
+const ctx = canvas.getContext('2d');
+const scale = 20;
+const rows = canvas.height / scale; // 24
+const cols = canvas.width / scale;  // 48
+let paused = false;
+let score = 0;
+let level = parseInt(document.getElementById('startLevel').value);
+
+const frog = {x: Math.floor(cols/2), y: rows-1, alpha: 1};
+const cars = [];
+const carRows = [3,5,7,9]; // lanes
+const CARS_PER_LANE = 3;
+let baseCarSpeed = 0.12; // tiles per frame at level 1 (smaller = slower)
+let respawning = false;
+let respawnTimerId = null;
+let spaceListener = null;
+let fadeIntervalId = null;
+
+function randInt(min, max){ return Math.floor(Math.random() * (max - min + 1)) + min; }
+function randFloat(min, max){ return Math.random() * (max - min) + min; }
+
+function spawnCar(laneIndex){
+  const y = carRows[laneIndex];
+  const dir = (laneIndex % 2 === 0) ? 1 : -1; // alternate directions per lane
+  const len = randInt(2,5); // 2..5 tiles
+  const speedMag = baseCarSpeed * level * randFloat(0.8, 1.4);
+  const speed = dir * speedMag;
+  const startOffset = randInt(0, cols); // random off-screen distance
+  let x;
+  if(dir > 0){
+    x = -startOffset - len; // start left off-screen
+  } else {
+    x = cols + startOffset; // start right off-screen
+  }
+  return { x, y, len, speed, dir };
+}
+
+function respawnCar(car){
+  const gap = randInt(2, 15);   // varied off-screen gap
+  car.len = randInt(2,5);       // new random length
+  const speedMag = baseCarSpeed * level * randFloat(0.8, 1.4); // new random speed
+  car.speed = car.dir * speedMag;
+  if(car.dir > 0){
+    car.x = -car.len - gap;
+  } else {
+    car.x = cols + gap;
+  }
+}
+
+function initCars(){
+  cars.length = 0;
+  for(let i=0;i<carRows.length;i++){
+    for(let k=0;k<CARS_PER_LANE;k++){
+      const car = spawnCar(i);
+      // Stagger cars within lane for spacing
+      const spacing = Math.floor(cols / CARS_PER_LANE) + randInt(2,8);
+      if(car.dir > 0){
+        car.x -= k * spacing;
+      } else {
+        car.x += k * spacing;
+      }
+      cars.push(car);
+    }
+  }
+}
+
+function drawCar(car) {
+  const baseX = Math.floor(car.x);
+  const y = car.y;
+  const len = car.len;
+  
+  // Car body (main rectangle)
+  ctx.fillStyle = '#f00';
+  ctx.fillRect(baseX, y, len, 1);
+  
+  // Add car details based on direction and length
+  if (len >= 3) {
+    // Car windows (lighter red)
+    ctx.fillStyle = '#ff6666';
+    if (car.dir > 0) { // Moving right
+      ctx.fillRect(baseX + 1, y, 1, 1); // Front window
+      if (len >= 4) {
+        ctx.fillRect(baseX + len - 2, y, 1, 1); // Back window
+      }
+    } else { // Moving left
+      ctx.fillRect(baseX + len - 2, y, 1, 1); // Front window
+      if (len >= 4) {
+        ctx.fillRect(baseX + 1, y, 1, 1); // Back window
+      }
+    }
+    
+    // Car wheels (dark circles)
+    ctx.fillStyle = '#333';
+    if (len >= 4) {
+      // Front wheel
+      ctx.fillRect(baseX + 1, y - 0.2, 0.6, 0.6);
+      // Back wheel
+      ctx.fillRect(baseX + len - 2, y - 0.2, 0.6, 0.6);
+    } else if (len >= 3) {
+      // Single wheel for shorter cars
+      ctx.fillRect(baseX + 1, y - 0.2, 0.6, 0.6);
+    }
+  }
+  
+  // Car headlights (yellow)
+  ctx.fillStyle = '#ffff00';
+  if (car.dir > 0) { // Moving right
+    ctx.fillRect(baseX + len - 1, y, 0.3, 0.3); // Right headlight
+  } else { // Moving left
+    ctx.fillRect(baseX, y, 0.3, 0.3); // Left headlight
+  }
+}
+
+function draw(){
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.save();
+  ctx.scale(scale, scale);
+
+  // frog with alpha for fade-in
+  ctx.globalAlpha = frog.alpha;
+  ctx.fillStyle = '#0f0';
+  ctx.fillRect(frog.x, frog.y, 1, 1);
+  ctx.globalAlpha = 1;
+
+  // draw cars with more realistic appearance
+  cars.forEach(car => {
+    drawCar(car);
+  });
+
+  ctx.restore();
+  document.getElementById('score').textContent = score;
+}
+
+function update(){
+  if(paused){ requestAnimationFrame(update); return; }
+
+  if(!respawning){
+    // move cars & handle respawn
+    cars.forEach(car => {
+      car.x += car.speed;
+      if(car.dir > 0 && car.x - car.len > cols){
+        respawnCar(car);
+      } else if(car.dir < 0 && car.x + car.len < 0){
+        respawnCar(car);
+      }
+    });
+
+    // collision check (tile-accurate)
+    for(const car of cars){
+      const carStart = Math.floor(car.x);
+      const carEnd = carStart + car.len; // exclusive
+      if(frog.y === car.y && frog.x >= carStart && frog.x < carEnd){
+        dramaticHit();
+        break;
+      }
+    }
+
+    // goal reached
+    if(frog.y === 0){
+      score++;
+      frog.y = rows - 1;
+      frog.x = Math.floor(cols/2);
+    }
+  }
+
+  draw();
+  requestAnimationFrame(update);
+}
+
+function dramaticHit(){
+  respawning = true;
+  // flashing screen
+  let flashes = 0;
+  const flashInterval = setInterval(() => {
+    ctx.fillStyle = (flashes % 2 === 0) ? '#f00' : '#000';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    flashes++;
+    if(flashes > 5){
+      clearInterval(flashInterval);
+      startRespawnCountdown();
+    }
+  }, 100);
+}
+
+function startRespawnCountdown(){
+  // guard so we don't attach multiple listeners/timers
+  if(respawnTimerId || spaceListener) return;
+
+  // one-time space listener
+  spaceListener = (e) => {
+    if(e.code === 'Space'){
+      doFadeIn();
+    }
+  };
+  document.addEventListener('keydown', spaceListener);
+
+  // auto after 2 seconds
+  respawnTimerId = setTimeout(() => {
+    doFadeIn();
+  }, 2000);
+}
+
+function doFadeIn(){
+  // ensure single execution
+  if(respawnTimerId){ clearTimeout(respawnTimerId); respawnTimerId = null; }
+  if(spaceListener){ document.removeEventListener('keydown', spaceListener); spaceListener = null; }
+  fadeInFrog();
+}
+
+function fadeInFrog(){
+  // reset frog & cars, then fade alpha from 0 -> 1
+  frog.x = Math.floor(cols/2);
+  frog.y = rows-1;
+  frog.alpha = 0;
+  score = 0;
+  level = parseInt(document.getElementById('startLevel').value);
+  initCars();
+
+  if(fadeIntervalId){ clearInterval(fadeIntervalId); }
+  fadeIntervalId = setInterval(() => {
+    frog.alpha += 0.05;
+    if(frog.alpha >= 1){
+      frog.alpha = 1;
+      clearInterval(fadeIntervalId);
+      fadeIntervalId = null;
+      respawning = false;
+    }
+  }, 30);
+}
+
+function dramaticHit(){
+  respawning = true;
+
+  // Explosion at frog position
+  const explosion = document.createElement('div');
+  explosion.className = 'explosion';
+  const pixelSize = canvas.width / cols; // matches your tile size
+  explosion.style.width = pixelSize + 'px';
+  explosion.style.height = pixelSize + 'px';
+  explosion.style.left = (frog.x * pixelSize + canvas.getBoundingClientRect().left) + 'px';
+  explosion.style.top = (frog.y * pixelSize + canvas.getBoundingClientRect().top) + 'px';
+  document.body.appendChild(explosion);
+  setTimeout(() => explosion.remove(), 500);
+
+  // flashing screen
+  let flashes = 0;
+  const flashInterval = setInterval(() => {
+    ctx.fillStyle = (flashes % 2 === 0) ? '#f00' : '#000';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    flashes++;
+    if(flashes > 5){
+      clearInterval(flashInterval);
+      startRespawnCountdown();
+    }
+  }, 100);
+}
+
+
+
+document.getElementById('startLevel').addEventListener('change', e => {
+  level = parseInt(e.target.value);
+  initCars();
+});
+
+/* ===== Mobile Controls ===== */
+const upBtn = document.getElementById('upBtn');
+const leftBtn = document.getElementById('leftBtn');
+const rightBtn = document.getElementById('rightBtn');
+const downBtn = document.getElementById('downBtn');
+const pauseBtn = document.getElementById('pauseBtn');
+const resetBtn = document.getElementById('resetBtn');
+const respawnBtn = document.getElementById('respawnBtn');
+
+// Mobile button handlers
+upBtn.addEventListener('click', () => {
+  if(!respawning && frog.y > 0) frog.y--;
+});
+
+leftBtn.addEventListener('click', () => {
+  if(!respawning && frog.x > 0) frog.x--;
+});
+
+rightBtn.addEventListener('click', () => {
+  if(!respawning && frog.x < cols-1) frog.x++;
+});
+
+downBtn.addEventListener('click', () => {
+  if(!respawning && frog.y < rows-1) frog.y++;
+});
+
+pauseBtn.addEventListener('click', () => {
+  paused = !paused;
+  pauseBtn.textContent = paused ? '▶' : '⏸';
+});
+
+resetBtn.addEventListener('click', () => {
+  respawning = false;
+  resetGame();
+});
+
+respawnBtn.addEventListener('click', () => {
+  if(respawning) {
+    doFadeIn();
+  }
+});
+
+// Touch support for mobile
+let touchStartX = 0;
+let touchStartY = 0;
+
+canvas.addEventListener('touchstart', (e) => {
+  e.preventDefault();
+  const touch = e.touches[0];
+  touchStartX = touch.clientX;
+  touchStartY = touch.clientY;
+}, { passive: false });
+
+canvas.addEventListener('touchend', (e) => {
+  e.preventDefault();
+  const touch = e.changedTouches[0];
+  const deltaX = touch.clientX - touchStartX;
+  const deltaY = touch.clientY - touchStartY;
+  
+  // Swipe threshold
+  if (Math.abs(deltaX) > 30 || Math.abs(deltaY) > 30) {
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+      // Horizontal swipe
+      if (deltaX > 0 && !respawning && frog.x < cols-1) {
+        frog.x++;
+      } else if (deltaX < 0 && !respawning && frog.x > 0) {
+        frog.x--;
+      }
+    } else {
+      // Vertical swipe
+      if (deltaY > 0 && !respawning && frog.y < rows-1) {
+        frog.y++;
+      } else if (deltaY < 0 && !respawning && frog.y > 0) {
+        frog.y--;
+      }
+    }
+  }
+}, { passive: false });
+
+document.addEventListener('keydown', e => {
+  if(respawning) return; // movement disabled while waiting to respawn
+  if(e.code==='ArrowLeft' && frog.x>0) frog.x--;
+  if(e.code==='ArrowRight' && frog.x<cols-1) frog.x++;
+  if(e.code==='ArrowUp' && frog.y>0) frog.y--;
+  if(e.code==='ArrowDown' && frog.y<rows-1) frog.y++;
+  if(e.code==='KeyP') paused=!paused;
+  if(e.code==='KeyR') { respawning=false; resetGame(); }
+});
+
+function resetGame(){
+  frog.x = Math.floor(cols/2);
+  frog.y = rows-1;
+  frog.alpha = 1;
+  score = 0;
+  level = parseInt(document.getElementById('startLevel').value);
+  initCars();
+}
+
+initCars();
+update();
+</script>
+</body>
+</html>

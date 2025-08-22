@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="../../core/base.css">
 <link rel="stylesheet" href="../../core/components.css">
 <link rel="stylesheet" href="../../core/responsive.css">
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <!-- Enhanced Navigation will be automatically inserted here -->
@@ -29,292 +30,235 @@ gameContainer.init();
 const canvas = gameContainer.getCanvas();
 const ctx = canvas.getContext('2d');
 
+// Game constants
+const scale = 20;
+const rows = canvas.height / scale; // 24
+const cols = canvas.width / scale;  // 48
+
 // Game variables
-let frog = { x: canvas.width / 2, y: canvas.height - 50, size: 20 };
-let cars = [];
-let logs = [];
+let paused = false;
 let score = 0;
-let lives = 3;
-let gameRunning = true;
-let gameOver = false;
 let level = 1;
+let baseCarSpeed = 0.12; // tiles per frame at level 1
+let respawning = false;
+let respawnTimerId = null;
+let fadeIntervalId = null;
 
-// Game settings
-const carSpeed = 2;
-const logSpeed = 1.5;
-const frogSpeed = 30;
+// Game objects
+const frog = {x: Math.floor(cols/2), y: rows-1, alpha: 1};
+const cars = [];
+const carRows = [3, 5, 7, 9]; // lanes
+const CARS_PER_LANE = 3;
 
-// Initialize game objects
-function initGame() {
-    // Create cars
-    cars = [];
-    for (let i = 0; i < 5; i++) {
-        cars.push({
-            x: Math.random() * canvas.width,
-            y: 100 + i * 80,
-            width: 40,
-            height: 20,
-            speed: carSpeed + Math.random() * 2,
-            direction: Math.random() < 0.5 ? 1 : -1
-        });
-    }
-
-    // Create logs
-    logs = [];
-    for (let i = 0; i < 3; i++) {
-        logs.push({
-            x: Math.random() * canvas.width,
-            y: 200 + i * 80,
-            width: 60,
-            height: 30,
-            speed: logSpeed + Math.random() * 1,
-            direction: Math.random() < 0.5 ? 1 : -1
-        });
-    }
+// Utility functions
+function randInt(min, max) { 
+    return Math.floor(Math.random() * (max - min + 1)) + min; 
 }
 
-// Draw functions
-function drawFrog() {
-    ctx.fillStyle = '#0f0';
-    ctx.fillRect(frog.x - frog.size/2, frog.y - frog.size/2, frog.size, frog.size);
+function randFloat(min, max) { 
+    return Math.random() * (max - min) + min; 
+}
+
+// Spawn car
+function spawnCar(laneIndex) {
+    const y = carRows[laneIndex];
+    const dir = (laneIndex % 2 === 0) ? 1 : -1; // alternate directions per lane
+    const len = randInt(2, 5); // 2..5 tiles
+    const speedMag = baseCarSpeed * level * randFloat(0.8, 1.4);
+    const speed = dir * speedMag;
+    const startOffset = randInt(0, cols); // random off-screen distance
+    let x;
     
-    // Eyes
-    ctx.fillStyle = '#000';
-    ctx.fillRect(frog.x - 8, frog.y - 8, 4, 4);
-    ctx.fillRect(frog.x + 4, frog.y - 8, 4, 4);
-}
-
-function drawCars() {
-    cars.forEach(car => {
-        ctx.fillStyle = '#f00';
-        ctx.fillRect(car.x, car.y, car.width, car.height);
-        
-        // Car details
-        ctx.fillStyle = '#800';
-        ctx.fillRect(car.x + 5, car.y + 5, car.width - 10, car.height - 10);
-    });
-}
-
-function drawLogs() {
-    logs.forEach(log => {
-        ctx.fillStyle = '#8B4513';
-        ctx.fillRect(log.x, log.y, log.width, log.height);
-        
-        // Log texture
-        ctx.fillStyle = '#654321';
-        ctx.fillRect(log.x + 5, log.y + 5, log.width - 10, log.height - 10);
-    });
-}
-
-function drawRoad() {
-    // Road background
-    ctx.fillStyle = '#333';
-    ctx.fillRect(0, 50, canvas.width, 200);
+    if (dir > 0) {
+        x = -startOffset - len; // start left off-screen
+    } else {
+        x = cols + startOffset; // start right off-screen
+    }
     
-    // Lane dividers
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 2;
-    for (let i = 0; i < 4; i++) {
-        const y = 100 + i * 50;
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(canvas.width, y);
-        ctx.stroke();
+    return { x, y, len, speed, dir };
+}
+
+// Respawn car
+function respawnCar(car) {
+    const gap = randInt(2, 15);   // varied off-screen gap
+    car.len = randInt(2, 5);       // new random length
+    const speedMag = baseCarSpeed * level * randFloat(0.8, 1.4); // new random speed
+    car.speed = car.dir * speedMag;
+    
+    if (car.dir > 0) {
+        car.x = -car.len - gap;
+    } else {
+        car.x = cols + gap;
     }
 }
 
-function drawRiver() {
-    // River background
-    ctx.fillStyle = '#0066cc';
-    ctx.fillRect(0, 250, canvas.width, 150);
-    
-    // River texture
-    ctx.strokeStyle = '#004499';
-    ctx.lineWidth = 1;
-    for (let i = 0; i < 10; i++) {
-        const y = 260 + i * 15;
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(canvas.width, y);
-        ctx.stroke();
-    }
-}
-
-function drawSafeZone() {
-    ctx.fillStyle = '#0a5';
-    ctx.fillRect(0, 400, canvas.width, 50);
-}
-
-function drawUI() {
-    ctx.fillStyle = '#fff';
-    ctx.font = '20px monospace';
-    ctx.textAlign = 'left';
-    ctx.fillText(`Score: ${score}`, 20, 30);
-    ctx.fillText(`Lives: ${lives}`, 20, 55);
-    ctx.fillText(`Level: ${level}`, 20, 80);
-}
-
-function drawGameOver() {
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    ctx.fillStyle = '#f00';
-    ctx.font = '48px monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2);
-    
-    ctx.fillStyle = '#fff';
-    ctx.font = '24px monospace';
-    ctx.fillText(`Final Score: ${score}`, canvas.width / 2, canvas.height / 2 + 50);
-    ctx.fillText('Press R to restart', canvas.width / 2, canvas.height / 2 + 100);
-}
-
-// Update functions
-function updateCars() {
-    cars.forEach(car => {
-        car.x += car.speed * car.direction;
-        
-        // Wrap around screen
-        if (car.x > canvas.width + car.width) {
-            car.x = -car.width;
-        } else if (car.x < -car.width) {
-            car.x = canvas.width + car.width;
-        }
-    });
-}
-
-function updateLogs() {
-    logs.forEach(log => {
-        log.x += log.speed * log.direction;
-        
-        // Wrap around screen
-        if (log.x > canvas.width + log.width) {
-            log.x = -log.width;
-        } else if (log.x < -log.width) {
-            log.x = canvas.width + log.width;
-        }
-    });
-}
-
-function checkCollisions() {
-    // Check car collisions
-    cars.forEach(car => {
-        if (frog.x + frog.size/2 > car.x && 
-            frog.x - frog.size/2 < car.x + car.width &&
-            frog.y + frog.size/2 > car.y && 
-            frog.y - frog.size/2 < car.y + car.height) {
-            lives--;
-            gameContainer.updateLives(lives);
-            resetFrog();
-            
-            if (lives <= 0) {
-                gameOver = true;
-                gameRunning = false;
+// Initialize cars
+function initCars() {
+    cars.length = 0;
+    for (let i = 0; i < carRows.length; i++) {
+        for (let k = 0; k < CARS_PER_LANE; k++) {
+            const car = spawnCar(i);
+            // Stagger cars within lane for spacing
+            const spacing = Math.floor(cols / CARS_PER_LANE) + randInt(2, 8);
+            if (car.dir > 0) {
+                car.x -= k * spacing;
+            } else {
+                car.x += k * spacing;
             }
-        }
-    });
-    
-    // Check log collisions (for safe crossing)
-    let onLog = false;
-    logs.forEach(log => {
-        if (frog.x + frog.size/2 > log.x && 
-            frog.x - frog.size/2 < log.x + log.width &&
-            frog.y + frog.size/2 > log.y && 
-            frog.y - frog.size/2 < log.y + log.height) {
-            onLog = true;
-            // Move frog with log
-            frog.x += log.speed * log.direction;
-        }
-    });
-    
-    // If frog is in river but not on log, lose life
-    if (frog.y > 250 && frog.y < 400 && !onLog) {
-        lives--;
-        gameContainer.updateLives(lives);
-        resetFrog();
-        
-        if (lives <= 0) {
-            gameOver = true;
-            gameRunning = false;
+            cars.push(car);
         }
     }
 }
 
-function resetFrog() {
-    frog.x = canvas.width / 2;
-    frog.y = canvas.height - 50;
-}
-
-function checkWin() {
-    if (frog.y <= 50) {
-        score += 100;
-        level++;
-        gameContainer.updateScore(score);
-        resetFrog();
-        
-        // Increase difficulty
-        cars.forEach(car => car.speed += 0.5);
-        logs.forEach(log => log.speed += 0.3);
-    }
-}
-
-// Main game loop
-function gameLoop() {
-    if (!gameRunning) return;
-    
+// Draw function
+function draw() {
     // Clear canvas
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // Draw game elements
-    drawRoad();
-    drawRiver();
-    drawSafeZone();
-    drawCars();
-    drawLogs();
-    drawFrog();
-    drawUI();
+    ctx.save();
+    ctx.scale(scale, scale);
+
+    // Draw frog with alpha for fade-in
+    ctx.globalAlpha = frog.alpha;
+    ctx.fillStyle = '#0f0';
+    ctx.fillRect(frog.x, frog.y, 1, 1);
+    ctx.globalAlpha = 1;
+
+    // Draw cars (snap to integer tile for crisp pixels)
+    ctx.fillStyle = '#f00';
+    cars.forEach(car => {
+        const baseX = Math.floor(car.x);
+        for (let i = 0; i < car.len; i++) {
+            ctx.fillRect(baseX + i, car.y, 1, 1);
+        }
+    });
+
+    ctx.restore();
     
-    // Update game objects
-    updateCars();
-    updateLogs();
+    // Update game container UI
+    gameContainer.updateScore(score);
+    gameContainer.updateLives(level);
+}
+
+// Update function
+function update() {
+    if (paused) { 
+        requestAnimationFrame(update); 
+        return; 
+    }
+
+    if (!respawning) {
+        // Move cars & handle respawn
+        cars.forEach(car => {
+            car.x += car.speed;
+            if (car.dir > 0 && car.x - car.len > cols) {
+                respawnCar(car);
+            } else if (car.dir < 0 && car.x + car.len < 0) {
+                respawnCar(car);
+            }
+        });
+
+        // Collision check (tile-accurate)
+        for (const car of cars) {
+            const carStart = Math.floor(car.x);
+            const carEnd = carStart + car.len; // exclusive
+            if (frog.y === car.y && frog.x >= carStart && frog.x < carEnd) {
+                dramaticHit();
+                break;
+            }
+        }
+
+        // Goal reached
+        if (frog.y === 0) {
+            score++;
+            level++;
+            frog.y = rows - 1;
+            frog.x = Math.floor(cols/2);
+            gameContainer.updateScore(score);
+            gameContainer.updateLives(level);
+        }
+    }
+
+    draw();
+    requestAnimationFrame(update);
+}
+
+// Dramatic hit effect
+function dramaticHit() {
+    respawning = true;
     
-    // Check collisions and win condition
-    checkCollisions();
-    checkWin();
+    // Reset frog position
+    frog.x = Math.floor(cols/2);
+    frog.y = rows - 1;
+    frog.alpha = 0.3;
     
-    // Keep frog on screen
-    frog.x = Math.max(frog.size/2, Math.min(canvas.width - frog.size/2, frog.x));
-    frog.y = Math.max(frog.size/2, Math.min(canvas.height - frog.size/2, frog.y));
+    // Fade in effect
+    if (fadeIntervalId) clearInterval(fadeIntervalId);
+    fadeIntervalId = setInterval(() => {
+        frog.alpha = Math.min(1, frog.alpha + 0.1);
+        if (frog.alpha >= 1) {
+            clearInterval(fadeIntervalId);
+            respawning = false;
+        }
+    }, 50);
+}
+
+// Reset game
+function resetGame() {
+    score = 0;
+    level = 1;
+    paused = false;
+    respawning = false;
     
-    requestAnimationFrame(gameLoop);
+    frog.x = Math.floor(cols/2);
+    frog.y = rows - 1;
+    frog.alpha = 1;
+    
+    if (respawnTimerId) clearTimeout(respawnTimerId);
+    if (fadeIntervalId) clearInterval(fadeIntervalId);
+    
+    initCars();
+    
+    gameContainer.updateScore(score);
+    gameContainer.updateLives(level);
 }
 
 // Event listeners
 gameContainer.on('keydown', (e) => {
-    if (gameOver) {
-        if (e.key === 'r' || e.key === 'R') {
-            restartGame();
-        }
-        return;
-    }
+    if (respawning) return;
     
     switch(e.key) {
-        case 'ArrowLeft':
-            frog.x -= frogSpeed;
-            break;
-        case 'ArrowRight':
-            frog.x += frogSpeed;
-            break;
         case 'ArrowUp':
-            frog.y -= frogSpeed;
+            if (frog.y > 0) frog.y--;
             break;
         case 'ArrowDown':
-            frog.y += frogSpeed;
+            if (frog.y < rows - 1) frog.y++;
+            break;
+        case 'ArrowLeft':
+            if (frog.x > 0) frog.x--;
+            break;
+        case 'ArrowRight':
+            if (frog.x < cols - 1) frog.x++;
+            break;
+        case 'p':
+        case 'P':
+            paused = !paused;
+            if (!paused) {
+                update();
+            }
+            break;
+        case 'r':
+        case 'R':
+            resetGame();
+            update();
             break;
         case ' ':
-            gameRunning = !gameRunning;
-            if (gameRunning) gameLoop();
+            if (respawning) {
+                respawning = false;
+                frog.alpha = 1;
+                if (fadeIntervalId) clearInterval(fadeIntervalId);
+            }
             break;
     }
 });
@@ -326,50 +270,49 @@ let touchStartY = 0;
 canvas.addEventListener('touchstart', (e) => {
     e.preventDefault();
     const touch = e.touches[0];
-    touchStartX = touch.clientX;
-    touchStartY = touch.clientY;
+    const rect = canvas.getBoundingClientRect();
+    touchStartX = touch.clientX - rect.left;
+    touchStartY = touch.clientY - rect.top;
 });
 
 canvas.addEventListener('touchend', (e) => {
     e.preventDefault();
     const touch = e.changedTouches[0];
-    const deltaX = touch.clientX - touchStartX;
-    const deltaY = touch.clientY - touchStartY;
+    const rect = canvas.getBoundingClientRect();
+    const touchX = touch.clientX - rect.left;
+    const touchY = touch.clientY - rect.top;
     
+    const deltaX = touchX - touchStartX;
+    const deltaY = touchY - touchStartY;
+    
+    // Determine swipe direction
     if (Math.abs(deltaX) > Math.abs(deltaY)) {
-        if (deltaX > 20) frog.x += frogSpeed;
-        else if (deltaX < -20) frog.x -= frogSpeed;
+        if (deltaX > 0 && frog.x < cols - 1) {
+            frog.x++;
+        } else if (deltaX < 0 && frog.x > 0) {
+            frog.x--;
+        }
     } else {
-        if (deltaY > 20) frog.y += frogSpeed;
-        else if (deltaY < -20) frog.y -= frogSpeed;
+        if (deltaY > 0 && frog.y < rows - 1) {
+            frog.y++;
+        } else if (deltaY < 0 && frog.y > 0) {
+            frog.y--;
+        }
     }
 });
 
-function restartGame() {
-    score = 0;
-    lives = 3;
-    level = 1;
-    gameOver = false;
-    gameRunning = true;
-    gameContainer.updateScore(score);
-    gameContainer.updateLives(lives);
-    resetFrog();
-    initGame();
-    gameLoop();
-}
-
 // Initialize game
-initGame();
-gameLoop();
+initCars();
+update();
 
 // Update game container with game instance
 gameContainer.gameInstance = {
-    pause: () => { gameRunning = false; },
-    resume: () => { gameRunning = true; gameLoop(); },
-    restart: restartGame
+    pause: () => { paused = true; },
+    resume: () => { paused = false; update(); },
+    restart: resetGame
 };
 
-console.log('Road Dash game initialized with universal system');
+console.log('REAL Road Dash game initialized with universal system');
 </script>
 </body>
 </html>

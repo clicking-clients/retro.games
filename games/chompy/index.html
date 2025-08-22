@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="../../core/base.css">
 <link rel="stylesheet" href="../../core/components.css">
 <link rel="stylesheet" href="../../core/responsive.css">
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <!-- Enhanced Navigation will be automatically inserted here -->
@@ -19,7 +20,7 @@ import { GAME_CONFIGS } from '../../config/games.js';
 const navigation = new EnhancedNavigation();
 
 // Initialize game container with chompy config
-const gameConfig = GAME_CONFIGS.chompy;
+const gameConfig = GAME_CONFIGS['chompy'];
 const gameContainer = new GameContainer(gameConfig);
 
 // Initialize the container
@@ -30,435 +31,353 @@ const canvas = gameContainer.getCanvas();
 const ctx = canvas.getContext('2d');
 
 // Game constants
-const CELL_SIZE = 20;
-const MAZE_WIDTH = 28;
-const MAZE_HEIGHT = 31;
+const TILE = 20;
+const COLS = 28;
+const ROWS = 32;
+canvas.width = COLS * TILE;
+canvas.height = ROWS * TILE;
 
 // Game variables
 let score = 0;
-let lives = 3;
-let gameRunning = true;
-let gameOver = false;
 let level = 1;
+let lives = 3;
+let paused = false;
+let gameEnded = false;
+let lastFrame = performance.now();
 
-// Game objects
-let player = { x: 14, y: 23, direction: 'right', nextDirection: 'right' };
-let ghosts = [];
-let dots = [];
-let powerPellets = [];
-let maze = [];
+// Maps
+const MAPS = [
+    // Classic map
+    ["############################",
+     "#............##............#",
+     "#.####.#####.##.#####.####.#",
+     "#o####.#####.##.#####.####o#",
+     "#.####.#####.##.#####.####.#",
+     "#..........................#",
+     "#.####.##.########.##.####.#",
+     "#.####.##.########.##.####.#",
+     "#......##....##....##......#",
+     "######.##### ## #####.######",
+     "     #.##### ## #####.#     ",
+     "     #.##          ##.#     ",
+     "######.## ###HH### ##.######",
+     "      .   #HHHHHH#   .      ",
+     "######.## ######## ##.######",
+     "     #.##          ##.#     ",
+     "     #.## ######## ##.#     ",
+     "######.## ######## ##.######",
+     "#............##............#",
+     "#.####.#####.##.#####.####.#",
+     "#o..##.....o..##..o.....##o#",
+     "###.##.##.########.##.##.###",
+     "#......##....##....##......#",
+     "#.##########.##.##########.#",
+     "#..........................#",
+     "#.####.#####.##.#####.####.#",
+     "#o####.#####.##.#####.####o#",
+     "#.####.#####.##.#####.####.#",
+     "#..........................#",
+     "#............##............#",
+     "############################"]
+];
 
-// Initialize maze layout (simplified Pac-Man style)
-function initMaze() {
-    // Create empty maze
-    maze = [];
-    for (let y = 0; y < MAZE_HEIGHT; y++) {
-        maze[y] = [];
-        for (let x = 0; x < MAZE_WIDTH; x++) {
-            maze[y][x] = 0; // 0 = empty, 1 = wall
-        }
-    }
-    
-    // Add walls around edges
-    for (let x = 0; x < MAZE_WIDTH; x++) {
-        maze[0][x] = 1;
-        maze[MAZE_HEIGHT - 1][x] = 1;
-    }
-    for (let y = 0; y < MAZE_HEIGHT; y++) {
-        maze[y][0] = 1;
-        maze[y][MAZE_WIDTH - 1] = 1;
-    }
-    
-    // Add some internal walls
-    for (let x = 5; x < 23; x++) {
-        maze[5][x] = 1;
-        maze[25][x] = 1;
-    }
-    for (let y = 5; y < 26; y++) {
-        maze[y][5] = 1;
-        maze[y][22] = 1;
-    }
-    
-    // Add dots
-    dots = [];
-    for (let y = 1; y < MAZE_HEIGHT - 1; y++) {
-        for (let x = 1; x < MAZE_WIDTH - 1; x++) {
-            if (maze[y][x] === 0) {
-                dots.push({ x, y });
-            }
-        }
-    }
-    
-    // Add power pellets at corners
-    powerPellets = [
-        { x: 1, y: 1 },
-        { x: MAZE_WIDTH - 2, y: 1 },
-        { x: 1, y: MAZE_HEIGHT - 2 },
-        { x: MAZE_WIDTH - 2, y: MAZE_HEIGHT - 2 }
-    ];
+let currentMapIndex = 0;
+let board = [];
+
+// Player (Pac-Man)
+const pac = {
+    x: 14,
+    y: 23,
+    vx: 0,
+    vy: 0,
+    nextVX: 0,
+    nextVY: 0,
+    baseSpeed: 0.15,
+    speed: 0.15,
+    mouth: 0
+};
+
+// Ghosts
+const ghosts = [
+    { x: 13, y: 11, vx: 0, vy: 0, baseSpeed: 0.12, color: '#ff0000' },
+    { x: 14, y: 11, vx: 0, vy: 0, baseSpeed: 0.12, color: '#ffb8ff' },
+    { x: 15, y: 11, vx: 0, vy: 0, baseSpeed: 0.12, color: '#00ffff' },
+    { x: 16, y: 11, vx: 0, vy: 0, baseSpeed: 0.12, color: '#ffb852' }
+];
+
+let frightenedTimer = 0;
+
+// Game functions
+function loadBoard() {
+    board = MAPS[currentMapIndex].map(row => row.split(''));
 }
 
-// Initialize ghosts
-function initGhosts() {
-    ghosts = [
-        { x: 14, y: 11, direction: 'left', color: '#ff0000', mode: 'chase' },
-        { x: 13, y: 14, direction: 'up', color: '#ffb8ff', mode: 'chase' },
-        { x: 14, y: 14, direction: 'down', color: '#00ffff', mode: 'chase' },
-        { x: 15, y: 14, direction: 'right', color: '#ffb852', mode: 'chase' }
-    ];
+function isCenter(entity) {
+    return Math.abs(entity.x - Math.round(entity.x)) < 0.1 && 
+           Math.abs(entity.y - Math.round(entity.y)) < 0.1;
 }
 
-// Check if position is valid
-function isValidPosition(x, y) {
-    return x >= 0 && x < MAZE_WIDTH && y >= 0 && y < MAZE_HEIGHT && maze[y][x] === 0;
-}
-
-// Move player
-function movePlayer() {
-    const directions = {
-        'up': { dx: 0, dy: -1 },
-        'down': { dx: 0, dy: 1 },
-        'left': { dx: -1, dy: 0 },
-        'right': { dx: 1, dy: 0 }
-    };
+function canMoveInt(x, y, vx, vy, isPac) {
+    const newX = x + vx;
+    const newY = y + vy;
     
-    // Try to change direction
-    if (player.nextDirection !== player.direction) {
-        const newDir = directions[player.nextDirection];
-        if (isValidPosition(player.x + newDir.dx, player.y + newDir.dy)) {
-            player.direction = player.nextDirection;
-        }
+    if (newX < 0 || newX >= COLS || newY < 0 || newY >= ROWS) return false;
+    
+    const tile = board[Math.round(newY)][Math.round(newX)];
+    return tile !== '#' && tile !== 'H';
+}
+
+function moveEntity(entity, isPac) {
+    entity.x += entity.vx * entity.speed;
+    entity.y += entity.vy * entity.speed;
+    
+    // Wrap around tunnel
+    if (entity.x < 0) entity.x = COLS - 1;
+    if (entity.x >= COLS) entity.x = 0;
+}
+
+function update() {
+    if (paused) return;
+    
+    const now = performance.now();
+    const dt = Math.min(50, now - lastFrame);
+    lastFrame = now;
+    
+    // Update Pac-Man speed based on level
+    pac.speed = Math.min(0.22, pac.baseSpeed + (level - 1) * 0.01);
+    ghosts.forEach(g => g.speed = Math.min(0.28, g.baseSpeed * (1 + (level - 1) * 0.04)));
+    
+    // Update Pac-Man mouth animation
+    pac.mouth += 0.28 * (dt / 16);
+    
+    // Handle Pac-Man movement
+    if (isCenter(pac) && canMoveInt(Math.round(pac.x), Math.round(pac.y), pac.nextVX, pac.nextVY, true)) {
+        pac.vx = pac.nextVX;
+        pac.vy = pac.nextVY;
     }
     
-    // Move in current direction
-    const dir = directions[player.direction];
-    if (isValidPosition(player.x + dir.dx, player.y + dir.dy)) {
-        player.x += dir.dx;
-        player.y += dir.dy;
-    }
+    moveEntity(pac, true);
     
-    // Wrap around edges
-    if (player.x < 0) player.x = MAZE_WIDTH - 1;
-    if (player.x >= MAZE_WIDTH) player.x = 0;
-}
-
-// Move ghosts
-function moveGhosts() {
-    ghosts.forEach(ghost => {
-        const directions = ['up', 'down', 'left', 'right'];
-        const validDirections = [];
+    // Eat pellets
+    if (isCenter(pac)) {
+        const cx = Math.round(pac.x);
+        const cy = Math.round(pac.y);
+        const tile = board[cy][cx];
         
-        directions.forEach(dir => {
-            const dx = dir === 'left' ? -1 : dir === 'right' ? 1 : 0;
-            const dy = dir === 'up' ? -1 : dir === 'down' ? 1 : 0;
-            
-            if (isValidPosition(ghost.x + dx, ghost.y + dy)) {
-                validDirections.push(dir);
-            }
-        });
-        
-        if (validDirections.length > 0) {
-            // Simple ghost AI - move randomly
-            const randomDir = validDirections[Math.floor(Math.random() * validDirections.length)];
-            ghost.direction = randomDir;
-            
-            const dx = randomDir === 'left' ? -1 : randomDir === 'right' ? 1 : 0;
-            const dy = randomDir === 'up' ? -1 : randomDir === 'down' ? 1 : 0;
-            
-            ghost.x += dx;
-            ghost.y += dy;
-        }
-        
-        // Wrap around edges
-        if (ghost.x < 0) ghost.x = MAZE_WIDTH - 1;
-        if (ghost.x >= MAZE_WIDTH) ghost.x = 0;
-    });
-}
-
-// Check collisions
-function checkCollisions() {
-    // Check dot collisions
-    dots = dots.filter(dot => {
-        if (dot.x === player.x && dot.y === player.y) {
+        if (tile === '.') {
+            board[cy][cx] = ' ';
             score += 10;
             gameContainer.updateScore(score);
-            return false;
-        }
-        return true;
-    });
-    
-    // Check power pellet collisions
-    powerPellets = powerPellets.filter(pellet => {
-        if (pellet.x === player.x && pellet.y === player.y) {
+        } else if (tile === 'o') {
+            board[cy][cx] = ' ';
             score += 50;
+            frightenedTimer = Math.max(frightenedTimer, 60 * 6);
             gameContainer.updateScore(score);
-            // Make ghosts vulnerable
-            ghosts.forEach(ghost => {
-                ghost.mode = 'vulnerable';
-                ghost.color = '#0000ff';
-                setTimeout(() => {
-                    ghost.mode = 'chase';
-                    ghost.color = ghost.originalColor || '#ff0000';
-                }, 5000);
-            });
-            return false;
         }
-        return true;
-    });
+    }
     
-    // Check ghost collisions
-    ghosts.forEach(ghost => {
-        if (ghost.x === player.x && ghost.y === player.y) {
-            if (ghost.mode === 'vulnerable') {
-                // Eat ghost
-                score += 200;
-                gameContainer.updateScore(score);
-                ghost.x = 14;
-                ghost.y = 14;
-                ghost.mode = 'chase';
-                ghost.color = ghost.originalColor || '#ff0000';
-            } else {
-                // Lose life
-                lives--;
-                gameContainer.updateLives(lives);
-                if (lives <= 0) {
-                    gameOver = true;
-                    gameRunning = false;
-                } else {
-                    // Reset player position
-                    player.x = 14;
-                    player.y = 23;
-                    player.direction = 'right';
-                    player.nextDirection = 'right';
-                }
-            }
-        }
-    });
+    // Update ghosts
+    updateGhosts();
     
-    // Check win condition
-    if (dots.length === 0 && powerPellets.length === 0) {
+    // Check level completion
+    if (!board.some(row => row.includes('.') || row.includes('o'))) {
         level++;
-        initMaze();
-        initGhosts();
-        player.x = 14;
-        player.y = 23;
+        gameContainer.updateLives(level);
+        loadBoard();
     }
 }
 
-// Draw functions
-function drawMaze() {
-    for (let y = 0; y < MAZE_HEIGHT; y++) {
-        for (let x = 0; x < MAZE_WIDTH; x++) {
-            if (maze[y][x] === 1) {
-                ctx.fillStyle = '#0000ff';
-                ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+function updateGhosts() {
+    ghosts.forEach(g => {
+        if (isCenter(g)) {
+            const cx = Math.round(g.x);
+            const cy = Math.round(g.y);
+            const DIRS = [{vx: 1, vy: 0}, {vx: -1, vy: 0}, {vx: 0, vy: 1}, {vx: 0, vy: -1}];
+            let valid = DIRS.filter(d => canMoveInt(cx, cy, d.vx, d.vy, false));
+            
+            if (valid.length > 0) {
+                let choice;
+                if (frightenedTimer > 0) {
+                    // Frightened mode - random movement
+                    choice = valid[Math.floor(Math.random() * valid.length)];
+                } else {
+                    // Chase mode - move towards Pac-Man
+                    valid.sort((a, b) => {
+                        const ax = cx + a.vx - pac.x;
+                        const ay = cy + a.vy - pac.y;
+                        const bx = cx + b.vx - pac.x;
+                        const by = cy + b.vy - pac.y;
+                        return (ax * ax + ay * ay) - (bx * bx + by * by);
+                    });
+                    choice = valid[0];
+                }
+                
+                g.vx = choice.vx;
+                g.vy = choice.vy;
             }
         }
+        
+        moveEntity(g, false);
+    });
+    
+    // Update frightened timer
+    if (frightenedTimer > 0) {
+        frightenedTimer--;
     }
 }
 
-function drawDots() {
-    ctx.fillStyle = '#ffff00';
-    dots.forEach(dot => {
-        ctx.beginPath();
-        ctx.arc(
-            dot.x * CELL_SIZE + CELL_SIZE / 2,
-            dot.y * CELL_SIZE + CELL_SIZE / 2,
-            2,
-            0,
-            Math.PI * 2
-        );
-        ctx.fill();
-    });
-}
-
-function drawPowerPellets() {
-    ctx.fillStyle = '#ffff00';
-    powerPellets.forEach(pellet => {
-        ctx.beginPath();
-        ctx.arc(
-            pellet.x * CELL_SIZE + CELL_SIZE / 2,
-            pellet.y * CELL_SIZE + CELL_SIZE / 2,
-            6,
-            0,
-            Math.PI * 2
-        );
-        ctx.fill();
-    });
-}
-
-function drawPlayer() {
-    ctx.fillStyle = '#ffff00';
-    ctx.beginPath();
-    ctx.arc(
-        player.x * CELL_SIZE + CELL_SIZE / 2,
-        player.y * CELL_SIZE + CELL_SIZE / 2,
-        CELL_SIZE / 2,
-        0,
-        Math.PI * 2
-    );
-    ctx.fill();
-    
-    // Draw mouth
-    ctx.fillStyle = '#000';
-    const mouthAngle = Math.PI / 4;
-    const startAngle = {
-        'right': 0,
-        'left': Math.PI,
-        'up': -Math.PI / 2,
-        'down': Math.PI / 2
-    }[player.direction];
-    
-    ctx.beginPath();
-    ctx.arc(
-        player.x * CELL_SIZE + CELL_SIZE / 2,
-        player.y * CELL_SIZE + CELL_SIZE / 2,
-        CELL_SIZE / 3,
-        startAngle - mouthAngle,
-        startAngle + mouthAngle
-    );
-    ctx.lineTo(
-        player.x * CELL_SIZE + CELL_SIZE / 2,
-        player.y * CELL_SIZE + CELL_SIZE / 2
-    );
-    ctx.fill();
-}
-
-function drawGhosts() {
-    ghosts.forEach(ghost => {
-        ctx.fillStyle = ghost.color;
-        ctx.beginPath();
-        ctx.arc(
-            ghost.x * CELL_SIZE + CELL_SIZE / 2,
-            ghost.y * CELL_SIZE + CELL_SIZE / 2,
-            CELL_SIZE / 2,
-            Math.PI,
-            0
-        );
-        ctx.lineTo(
-            ghost.x * CELL_SIZE + CELL_SIZE / 2,
-            ghost.y * CELL_SIZE + CELL_SIZE / 2 + CELL_SIZE / 2
-        );
-        ctx.fill();
-        
-        // Draw eyes
-        ctx.fillStyle = '#fff';
-        ctx.beginPath();
-        ctx.arc(
-            ghost.x * CELL_SIZE + CELL_SIZE / 3,
-            ghost.y * CELL_SIZE + CELL_SIZE / 3,
-            3,
-            0,
-            Math.PI * 2
-        );
-        ctx.arc(
-            ghost.x * CELL_SIZE + (CELL_SIZE * 2) / 3,
-            ghost.y * CELL_SIZE + CELL_SIZE / 3,
-            3,
-            0,
-            Math.PI * 2
-        );
-        ctx.fill();
-        
-        // Draw pupils
-        ctx.fillStyle = '#000';
-        ctx.beginPath();
-        ctx.arc(
-            ghost.x * CELL_SIZE + CELL_SIZE / 3,
-            ghost.y * CELL_SIZE + CELL_SIZE / 3,
-            1.5,
-            0,
-            Math.PI * 2
-        );
-        ctx.arc(
-            ghost.x * CELL_SIZE + (CELL_SIZE * 2) / 3,
-            ghost.y * CELL_SIZE + CELL_SIZE / 3,
-            1.5,
-            0,
-            Math.PI * 2
-        );
-        ctx.fill();
-    });
-}
-
-function drawUI() {
-    ctx.fillStyle = '#fff';
-    ctx.font = '16px monospace';
-    ctx.textAlign = 'left';
-    ctx.fillText(`Score: ${score}`, 10, 20);
-    ctx.fillText(`Lives: ${lives}`, 10, 40);
-    ctx.fillText(`Level: ${level}`, 10, 60);
-}
-
-function drawGameOver() {
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    ctx.fillStyle = '#f00';
-    ctx.font = '32px monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2 - 50);
-    
-    ctx.fillStyle = '#fff';
-    ctx.font = '20px monospace';
-    ctx.fillText(`Final Score: ${score}`, canvas.width / 2, canvas.height / 2);
-    ctx.fillText('Press R to restart', canvas.width / 2, canvas.height / 2 + 50);
-}
-
-// Game loop
-function gameLoop() {
-    if (!gameRunning) return;
-    
+function draw() {
     // Clear canvas
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // Update game state
-    movePlayer();
-    moveGhosts();
-    checkCollisions();
-    
-    // Draw game elements
-    drawMaze();
-    drawDots();
-    drawPowerPellets();
-    drawPlayer();
-    drawGhosts();
-    drawUI();
-    
-    if (gameOver) {
-        drawGameOver();
-        return;
+    // Draw board
+    for (let y = 0; y < ROWS; y++) {
+        for (let x = 0; x < COLS; x++) {
+            const tile = board[y][x];
+            const drawX = x * TILE;
+            const drawY = y * TILE;
+            
+            if (tile === '#') {
+                ctx.fillStyle = '#0000ff';
+                ctx.fillRect(drawX, drawY, TILE, TILE);
+            } else if (tile === '.') {
+                ctx.fillStyle = '#ffff00';
+                ctx.fillRect(drawX + TILE/2 - 2, drawY + TILE/2 - 2, 4, 4);
+            } else if (tile === 'o') {
+                ctx.fillStyle = '#ffff00';
+                ctx.beginPath();
+                ctx.arc(drawX + TILE/2, drawY + TILE/2, 6, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
     }
     
+    // Draw Pac-Man
+    drawPacMan();
+    
+    // Draw ghosts
+    drawGhosts();
+    
+    // Draw UI
+    drawUI();
+}
+
+function drawPacMan() {
+    ctx.save();
+    ctx.translate(pac.x * TILE + TILE/2, pac.y * TILE + TILE/2);
+    
+    // Rotate based on direction
+    if (pac.vx > 0) ctx.rotate(0);
+    else if (pac.vx < 0) ctx.rotate(Math.PI);
+    else if (pac.vy > 0) ctx.rotate(Math.PI/2);
+    else if (pac.vy < 0) ctx.rotate(-Math.PI/2);
+    
+    ctx.fillStyle = '#ffff00';
+    ctx.beginPath();
+    ctx.arc(0, 0, TILE/2, pac.mouth, 2*Math.PI - pac.mouth);
+    ctx.lineTo(0, 0);
+    ctx.fill();
+    
+    ctx.restore();
+}
+
+function drawGhosts() {
+    ghosts.forEach(g => {
+        ctx.save();
+        ctx.translate(g.x * TILE + TILE/2, g.y * TILE + TILE/2);
+        
+        // Ghost body
+        ctx.fillStyle = frightenedTimer > 0 ? '#0000ff' : g.color;
+        ctx.beginPath();
+        ctx.arc(0, 0, TILE/2, 0, Math.PI);
+        ctx.rect(-TILE/2, 0, TILE, TILE/2);
+        ctx.fill();
+        
+        // Ghost eyes
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(-TILE/4, -TILE/6, TILE/8, TILE/8);
+        ctx.fillRect(TILE/8, -TILE/6, TILE/8, TILE/8);
+        
+        ctx.restore();
+    });
+}
+
+function drawUI() {
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '16px monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText(`Score: ${score}`, 10, 20);
+    ctx.fillText(`Level: ${level}`, 10, 40);
+    ctx.fillText(`Lives: ${lives}`, 10, 60);
+    
+    if (paused) {
+        ctx.fillStyle = '#ffff00';
+        ctx.font = '24px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('PAUSED', canvas.width/2, canvas.height/2);
+    }
+}
+
+function gameLoop() {
+    update();
+    draw();
     requestAnimationFrame(gameLoop);
 }
 
 // Event listeners
 gameContainer.on('keydown', (e) => {
-    if (gameOver) {
-        if (e.key === 'r' || e.key === 'R') {
-            restartGame();
-        }
-        return;
-    }
+    const k = e.key;
     
-    switch(e.key) {
+    switch(k) {
         case 'ArrowUp':
-            player.nextDirection = 'up';
+        case 'w':
+        case 'W':
+            pac.nextVX = 0;
+            pac.nextVY = -1;
             break;
         case 'ArrowDown':
-            player.nextDirection = 'down';
+        case 's':
+        case 'S':
+            pac.nextVX = 0;
+            pac.nextVY = 1;
             break;
         case 'ArrowLeft':
-            player.nextDirection = 'left';
+        case 'a':
+        case 'A':
+            pac.nextVX = -1;
+            pac.nextVY = 0;
             break;
         case 'ArrowRight':
-            player.nextDirection = 'right';
+        case 'd':
+        case 'D':
+            pac.nextVX = 1;
+            pac.nextVY = 0;
             break;
-        case ' ':
-            gameRunning = !gameRunning;
-            if (gameRunning) gameLoop();
+        case 'p':
+        case 'P':
+            if (!gameEnded) {
+                paused = !paused;
+            }
+            break;
+        case 'r':
+        case 'R':
+            // Reset game
+            score = 0;
+            level = 1;
+            lives = 3;
+            paused = false;
+            gameEnded = false;
+            frightenedTimer = 0;
+            pac.x = 14;
+            pac.y = 23;
+            pac.vx = 0;
+            pac.vy = 0;
+            pac.nextVX = 0;
+            pac.nextVY = 0;
+            loadBoard();
+            gameContainer.updateScore(score);
+            gameContainer.updateLives(level);
             break;
     }
 });
@@ -485,51 +404,54 @@ canvas.addEventListener('touchend', (e) => {
     const deltaX = touchX - touchStartX;
     const deltaY = touchY - touchStartY;
     
+    // Determine swipe direction
     if (Math.abs(deltaX) > Math.abs(deltaY)) {
-        if (deltaX > 30) {
-            player.nextDirection = 'right';
-        } else if (deltaX < -30) {
-            player.nextDirection = 'left';
+        if (deltaX > 0) {
+            pac.nextVX = 1;
+            pac.nextVY = 0;
+        } else {
+            pac.nextVX = -1;
+            pac.nextVY = 0;
         }
     } else {
-        if (deltaY > 30) {
-            player.nextDirection = 'down';
-        } else if (deltaY < -30) {
-            player.nextDirection = 'up';
+        if (deltaY > 0) {
+            pac.nextVX = 0;
+            pac.nextVY = 1;
+        } else {
+            pac.nextVX = 0;
+            pac.nextVY = -1;
         }
     }
 });
 
-function restartGame() {
-    score = 0;
-    lives = 3;
-    level = 1;
-    gameOver = false;
-    gameRunning = true;
-    gameContainer.updateScore(score);
-    gameContainer.updateLives(lives);
-    initMaze();
-    initGhosts();
-    player.x = 14;
-    player.y = 23;
-    player.direction = 'right';
-    player.nextDirection = 'right';
-    gameLoop();
-}
-
 // Initialize game
-initMaze();
-initGhosts();
+loadBoard();
 gameLoop();
 
 // Update game container with game instance
 gameContainer.gameInstance = {
-    pause: () => { gameRunning = false; },
-    resume: () => { gameRunning = true; gameLoop(); },
-    restart: restartGame
+    pause: () => { paused = true; },
+    resume: () => { paused = false; },
+    restart: () => {
+        score = 0;
+        level = 1;
+        lives = 3;
+        paused = false;
+        gameEnded = false;
+        frightenedTimer = 0;
+        pac.x = 14;
+        pac.y = 23;
+        pac.vx = 0;
+        pac.vy = 0;
+        pac.nextVX = 0;
+        pac.nextVY = 0;
+        loadBoard();
+        gameContainer.updateScore(score);
+        gameContainer.updateLives(level);
+    }
 };
 
-console.log('Chompy game initialized with universal system');
+console.log('REAL Chompy (Dot Eater) game initialized with universal system');
 </script>
 </body>
 </html>
