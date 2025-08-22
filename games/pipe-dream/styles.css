@@ -1,340 +1,123 @@
 /* ========================================
-   WORMY - GAME SPECIFIC STYLES
+   PIPE DREAM - GAME SPECIFIC STYLES
    ======================================== */
 
-/* Game-specific overrides and customizations */
-.game-header {
+:root {
+  --wall: #0bb;
+  --bg: #000;
+  --score: #0f0;
+  --title: #ffd700;
+  --focus-outline: #0ff;
+}
+
+/* Game-specific overrides for GameContainer */
+.game-container[data-game="pipe-dream"] {
+  background: #1a1a2e;
+  border: 3px solid #0f0;
+  border-radius: 15px;
+  padding: 20px;
+  margin: 20px auto;
+  max-width: 800px;
   text-align: center;
-  margin-bottom: var(--space-lg);
 }
 
-.game-meta {
-  display: flex;
-  gap: var(--space-md);
-  justify-content: center;
-  flex-wrap: wrap;
-  margin-top: var(--space-sm);
+/* Game canvas styling */
+.game-container[data-game="pipe-dream"] .game-canvas {
+  border: 4px solid #0f0;
+  background: #000;
+  border-radius: 10px;
+  box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
 }
 
-.game-category,
-.game-difficulty,
-.game-time {
-  background: rgba(0, 255, 0, 0.1);
-  border: 1px solid var(--retro-green);
-  padding: var(--space-xs) var(--space-sm);
-  border-radius: var(--button-border-radius);
-  font-size: var(--font-size-sm);
-  text-transform: uppercase;
+/* Game title styling */
+.game-container[data-game="pipe-dream"] .game-title {
+  color: var(--title);
+  text-shadow: 0 0 8px #f00;
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  margin-bottom: 20px;
 }
 
-.game-canvas-area {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+/* Sidebar styling for Pipe Dream */
+.game-container[data-game="pipe-dream"] .game-sidebar {
+  background: rgba(0, 255, 0, 0.05);
+  border: 2px solid #0f0;
+  border-radius: 10px;
+  padding: 20px;
 }
 
-.game-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.9);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.overlay-content {
-  text-align: center;
-  color: var(--retro-green);
-  padding: var(--space-xl);
-}
-
-.overlay-buttons {
-  display: flex;
-  gap: var(--space-md);
-  justify-content: center;
-  margin-top: var(--space-lg);
-}
-
-.score-grid {
-  display: grid;
-  gap: var(--space-sm);
-}
-
-.score-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.score-label {
-  color: var(--retro-green);
-}
-
-.score-value {
-  color: var(--retro-yellow);
-  font-weight: bold;
-}
-
-.controls-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-sm);
-}
-
-.control-item {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-xs);
-}
-
-.control-name {
-  color: var(--retro-yellow);
-  font-weight: bold;
-  text-transform: uppercase;
-}
-
-.control-description {
-  color: var(--retro-green);
-  font-size: var(--font-size-sm);
-}
-
-.stats-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-sm);
-}
-
-.stat-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.stat-label {
-  color: var(--retro-green);
-}
-
-.stat-value {
-  color: var(--retro-yellow);
-  font-weight: bold;
-}
-
-.action-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-sm);
-}
-
-.game-instructions {
-  margin-top: var(--space-xl);
-  padding: var(--space-lg);
-  border: 2px solid var(--retro-green);
-  border-radius: var(--game-border-radius);
+/* Scoreboard styling */
+.game-container[data-game="pipe-dream"] .scoreboard {
   background: rgba(0, 0, 0, 0.3);
+  border: 2px solid #0f0;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 20px;
 }
 
-.game-instructions h2 {
-  color: var(--retro-yellow);
-  margin-bottom: var(--space-md);
-  text-align: center;
+.game-container[data-game="pipe-dream"] .scoreboard .section-title {
+  color: var(--title);
+  font-weight: bold;
+  margin-bottom: 8px;
   text-transform: uppercase;
 }
 
-.feature-list {
-  list-style: none;
-  padding: 0;
-  margin: var(--space-md) 0 0 0;
-}
-
-.feature-list li {
-  padding: var(--space-xs) 0;
-  color: var(--retro-green);
-  position: relative;
-  padding-left: var(--space-lg);
-}
-
-.feature-list li::before {
-  content: '▶';
-  color: var(--retro-yellow);
-  position: absolute;
-  left: 0;
-}
-
-.game-footer {
-  margin-top: var(--space-xl);
-  padding: var(--space-lg);
-  border-top: 2px solid var(--retro-green);
-  text-align: center;
-}
-
-.game-info {
-  display: flex;
-  justify-content: center;
-  gap: var(--space-lg);
-  margin-bottom: var(--space-md);
-  color: var(--retro-green);
-  opacity: 0.7;
-}
-
-.game-tags {
-  display: flex;
-  justify-content: center;
-  gap: var(--space-sm);
-  flex-wrap: wrap;
-}
-
-.game-tag {
-  background: rgba(0, 255, 0, 0.1);
-  border: 1px solid var(--retro-green);
-  padding: var(--space-xs) var(--space-sm);
-  border-radius: var(--button-border-radius);
-  font-size: var(--font-size-sm);
-  color: var(--retro-green);
-}
-
-.home-button {
-  position: fixed;
-  top: var(--space-md);
-  right: var(--space-md);
-  background: var(--retro-bg);
-  color: var(--retro-green);
-  padding: var(--space-sm) var(--space-md);
-  text-decoration: none;
-  border: 2px solid var(--retro-green);
-  border-radius: var(--button-border-radius);
+.game-container[data-game="pipe-dream"] .scoreboard .value {
+  color: var(--score);
   font-weight: bold;
-  z-index: 1000;
-  transition: var(--transition-normal);
+  font-size: 1.2rem;
 }
 
-.home-button:hover,
-.home-button:focus {
-  background: var(--retro-green);
-  color: var(--retro-bg);
-  box-shadow: var(--shadow-glow) var(--retro-green);
+/* Instructions styling */
+.game-container[data-game="pipe-dream"] .instructions {
+  color: var(--score);
+  font-size: 0.9rem;
+  line-height: 1.4;
+  text-align: left;
 }
 
-.loading-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: var(--retro-bg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2000;
+/* Controls section styling */
+.game-container[data-game="pipe-dream"] .game-controls {
+  margin: 20px 0;
 }
 
-.loading-spinner {
-  text-align: center;
-  color: var(--retro-green);
+.game-container[data-game="pipe-dream"] .control-group {
+  margin-bottom: 15px;
 }
 
-.loading-spinner p {
-  margin-top: var(--space-md);
-  font-size: var(--font-size-lg);
-}
-
-.error-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: var(--retro-bg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2000;
-}
-
-.error-content {
-  text-align: center;
-  color: var(--retro-red);
-  padding: var(--space-xl);
-  max-width: 500px;
-}
-
-.error-content h2 {
-  color: var(--retro-red);
-  margin-bottom: var(--space-md);
-}
-
-.error-content .btn {
-  margin: var(--space-sm);
-}
-
-/* Wormy-specific enhancements */
-.game-canvas {
-  border: 4px solid var(--retro-green);
-  box-shadow: var(--shadow-glow) var(--retro-green);
-}
-
-.game-canvas:focus {
-  border-color: var(--retro-yellow);
-  box-shadow: var(--shadow-glow) var(--retro-yellow);
-}
-
-/* Snake-themed color variations */
-.snake-green {
-  color: #00ff00;
-}
-
-.snake-yellow {
-  color: #ffff00;
-}
-
-.snake-red {
-  color: #ff0000;
-}
-
-/* Game state indicators */
-.game-state-menu .game-canvas {
-  border-color: var(--retro-cyan);
-  box-shadow: var(--shadow-glow) var(--retro-cyan);
-}
-
-.game-state-playing .game-canvas {
-  border-color: var(--retro-green);
-  box-shadow: var(--shadow-glow) var(--retro-green);
-}
-
-.game-state-paused .game-canvas {
-  border-color: var(--retro-yellow);
-  box-shadow: var(--shadow-glow) var(--retro-yellow);
-}
-
-.game-state-gameover .game-canvas {
-  border-color: var(--retro-red);
-  box-shadow: var(--shadow-glow) var(--retro-red);
+.game-container[data-game="pipe-dream"] .control-label {
+  color: var(--title);
+  font-weight: bold;
+  margin-bottom: 8px;
+  text-transform: uppercase;
 }
 
 /* Responsive adjustments */
-@media (max-width: 767px) {
-  .game-meta {
-    flex-direction: column;
-    align-items: center;
+@media (max-width: 768px) {
+  .game-container[data-game="pipe-dream"] {
+    padding: 15px;
+    margin: 10px auto;
   }
   
-  .overlay-buttons {
-    flex-direction: column;
-    align-items: center;
+  .game-container[data-game="pipe-dream"] .game-title {
+    font-size: 1.5rem;
   }
   
-  .action-buttons {
-    flex-direction: row;
-    flex-wrap: wrap;
+  .game-container[data-game="pipe-dream"] .game-sidebar {
+    padding: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .game-container[data-game="pipe-dream"] {
+    padding: 10px;
+    margin: 5px auto;
   }
   
-  .game-info {
-    flex-direction: column;
-    gap: var(--space-sm);
+  .game-container[data-game="pipe-dream"] .game-title {
+    font-size: 1.25rem;
+  }
+  
+  .game-container[data-game="pipe-dream"] .game-sidebar {
+    padding: 10px;
   }
 }

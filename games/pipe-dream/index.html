@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="../../core/base.css">
 <link rel="stylesheet" href="../../core/components.css">
 <link rel="stylesheet" href="../../core/responsive.css">
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <!-- Enhanced Navigation will be automatically inserted here -->
@@ -101,149 +102,148 @@ function updateWaterFlow(deltaTime) {
             const water = waterFlow[i];
             const cell = grid[water.y][water.x];
             
-            if (cell.type) {
-                // Find next direction based on pipe type and rotation
-                const nextDirection = getNextDirection(cell.type, cell.rotation, water.direction);
+            if (cell && cell.type) {
+                // Check connections and move water accordingly
+                const connections = getPipeConnections(cell.type, cell.rotation);
                 
-                if (nextDirection) {
-                    const nextX = water.x + (nextDirection === 'left' ? -1 : nextDirection === 'right' ? 1 : 0);
-                    const nextY = water.y + (nextDirection === 'up' ? -1 : nextDirection === 'down' ? 1 : 0);
-                    
-                    if (nextX >= 0 && nextX < GRID_WIDTH && nextY >= 0 && nextY < GRID_HEIGHT) {
-                        water.x = nextX;
-                        water.y = nextY;
-                        water.direction = nextDirection;
+                if (connections.includes(water.direction)) {
+                    // Water can flow through this pipe
+                    const nextDirection = getNextDirection(water.direction, connections);
+                    if (nextDirection) {
+                        const nextX = water.x + (nextDirection === 'left' ? -1 : nextDirection === 'right' ? 1 : 0);
+                        const nextY = water.y + (nextDirection === 'up' ? -1 : nextDirection === 'down' ? 1 : 0);
                         
-                        // Mark cell as having water
-                        grid[water.y][water.x].hasWater = true;
-                        
-                        // Check if water reached the bottom
-                        if (water.y === GRID_HEIGHT - 1) {
-                            score += 10;
-                            gameContainer.updateScore(score);
+                        if (nextX >= 0 && nextX < GRID_WIDTH && nextY >= 0 && nextY < GRID_HEIGHT) {
+                            water.x = nextX;
+                            water.y = nextY;
+                            water.direction = nextDirection;
+                            
+                            // Mark cell as having water
+                            grid[water.y][water.x].hasWater = true;
+                        } else {
+                            // Water reached the edge
                             waterFlow.splice(i, 1);
                         }
                     } else {
-                        // Water hit boundary
+                        // No valid next direction
                         waterFlow.splice(i, 1);
                     }
                 } else {
-                    // No valid direction - remove water
+                    // Water cannot flow through this pipe
                     waterFlow.splice(i, 1);
                 }
             } else {
-                // No pipe - remove water
+                // No pipe at this location
                 waterFlow.splice(i, 1);
-            }
-        }
-        
-        // Add new water drops
-        if (waterFlow.length < 5) {
-            const startX = Math.floor(Math.random() * GRID_WIDTH);
-            if (grid[0][startX].type) {
-                waterFlow.push({ x: startX, y: 0, direction: 'down' });
             }
         }
     }
 }
 
-// Get next direction for water flow
-function getNextDirection(pipeType, rotation, currentDirection) {
-    const pipe = PIPE_TYPES[pipeType];
-    const connections = rotateConnections(pipe.connections, rotation);
+// Get pipe connections based on type and rotation
+function getPipeConnections(pipeType, rotation) {
+    const baseConnections = PIPE_TYPES[pipeType].connections;
+    const rotatedConnections = [];
     
-    // Find opposite of current direction
-    const opposites = {
-        'up': 'down',
-        'down': 'up',
+    for (const connection of baseConnections) {
+        let rotatedConnection = connection;
+        
+        // Apply rotation
+        for (let i = 0; i < rotation / 90; i++) {
+            switch (rotatedConnection) {
+                case 'top': rotatedConnection = 'right'; break;
+                case 'right': rotatedConnection = 'bottom'; break;
+                case 'bottom': rotatedConnection = 'left'; break;
+                case 'left': rotatedConnection = 'top'; break;
+            }
+        }
+        
+        rotatedConnections.push(rotatedConnection);
+    }
+    
+    return rotatedConnections;
+}
+
+// Get next direction for water flow
+function getNextDirection(currentDirection, connections) {
+    const oppositeDirections = {
+        'top': 'bottom',
+        'bottom': 'top',
         'left': 'right',
         'right': 'left'
     };
     
-    const opposite = opposites[currentDirection];
+    const opposite = oppositeDirections[currentDirection];
     
-    // Find valid connections (not the opposite of current direction)
-    const validConnections = connections.filter(conn => conn !== opposite);
-    
-    if (validConnections.length > 0) {
-        return validConnections[0];
+    // Find a connection that's not the opposite direction
+    for (const connection of connections) {
+        if (connection !== opposite) {
+            return connection;
+        }
     }
     
     return null;
 }
 
-// Rotate connections based on pipe rotation
-function rotateConnections(connections, rotation) {
-    const rotated = [...connections];
-    const steps = rotation / 90;
-    
-    for (let i = 0; i < steps; i++) {
-        rotated.forEach((conn, index) => {
-            switch (conn) {
-                case 'top': rotated[index] = 'right'; break;
-                case 'right': rotated[index] = 'bottom'; break;
-                case 'bottom': rotated[index] = 'left'; break;
-                case 'left': rotated[index] = 'top'; break;
-            }
-        });
-    }
-    
-    return rotated;
-}
-
 // Draw functions
 function drawGrid() {
+    ctx.strokeStyle = '#0f0';
+    ctx.lineWidth = 1;
+    
     for (let y = 0; y < GRID_HEIGHT; y++) {
         for (let x = 0; x < GRID_WIDTH; x++) {
-            const cell = grid[y][x];
-            const pixelX = x * GRID_SIZE;
-            const pixelY = y * GRID_SIZE;
-            
-            // Draw cell background
-            if (cell.hasWater) {
-                ctx.fillStyle = 'rgba(0, 100, 255, 0.3)';
-            } else {
-                ctx.fillStyle = '#333';
-            }
-            ctx.fillRect(pixelX, pixelY, GRID_SIZE, GRID_SIZE);
-            
-            // Draw pipe if exists
-            if (cell.type) {
-                drawPipe(cell.type, cell.rotation, pixelX, pixelY);
-            }
+            const cellX = x * GRID_SIZE;
+            const cellY = y * GRID_SIZE;
             
             // Draw grid lines
-            ctx.strokeStyle = '#666';
-            ctx.lineWidth = 1;
-            ctx.strokeRect(pixelX, pixelY, GRID_SIZE, GRID_SIZE);
+            ctx.strokeRect(cellX, cellY, GRID_SIZE, GRID_SIZE);
+            
+            // Draw pipe if present
+            const cell = grid[y][x];
+            if (cell.type) {
+                drawPipe(cellX, cellY, cell.type, cell.rotation, cell.hasWater);
+            }
         }
     }
 }
 
-function drawPipe(type, rotation, x, y) {
+function drawPipe(x, y, type, rotation, hasWater) {
     ctx.save();
     ctx.translate(x + GRID_SIZE / 2, y + GRID_SIZE / 2);
     ctx.rotate((rotation * Math.PI) / 180);
     
-    ctx.fillStyle = '#888';
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = hasWater ? '#00f' : '#0f0';
+    ctx.lineWidth = 3;
     
     switch (type) {
         case 'straight':
-            ctx.fillRect(-GRID_SIZE / 4, -GRID_SIZE / 2, GRID_SIZE / 2, GRID_SIZE);
+            ctx.beginPath();
+            ctx.moveTo(0, -GRID_SIZE / 3);
+            ctx.lineTo(0, GRID_SIZE / 3);
+            ctx.stroke();
             break;
         case 'corner':
-            ctx.fillRect(-GRID_SIZE / 2, -GRID_SIZE / 2, GRID_SIZE / 2, GRID_SIZE / 2);
-            ctx.fillRect(-GRID_SIZE / 2, 0, GRID_SIZE / 2, GRID_SIZE / 2);
+            ctx.beginPath();
+            ctx.moveTo(0, -GRID_SIZE / 3);
+            ctx.lineTo(0, 0);
+            ctx.lineTo(GRID_SIZE / 3, 0);
+            ctx.stroke();
             break;
         case 't':
-            ctx.fillRect(-GRID_SIZE / 2, -GRID_SIZE / 2, GRID_SIZE, GRID_SIZE / 2);
-            ctx.fillRect(-GRID_SIZE / 4, 0, GRID_SIZE / 2, GRID_SIZE / 2);
+            ctx.beginPath();
+            ctx.moveTo(-GRID_SIZE / 3, 0);
+            ctx.lineTo(GRID_SIZE / 3, 0);
+            ctx.moveTo(0, 0);
+            ctx.lineTo(0, GRID_SIZE / 3);
+            ctx.stroke();
             break;
         case 'cross':
-            ctx.fillRect(-GRID_SIZE / 2, -GRID_SIZE / 4, GRID_SIZE, GRID_SIZE / 2);
-            ctx.fillRect(-GRID_SIZE / 4, -GRID_SIZE / 2, GRID_SIZE / 2, GRID_SIZE);
+            ctx.beginPath();
+            ctx.moveTo(-GRID_SIZE / 3, 0);
+            ctx.lineTo(GRID_SIZE / 3, 0);
+            ctx.moveTo(0, -GRID_SIZE / 3);
+            ctx.lineTo(0, GRID_SIZE / 3);
+            ctx.stroke();
             break;
     }
     
@@ -251,66 +251,39 @@ function drawPipe(type, rotation, x, y) {
 }
 
 function drawWaterFlow() {
-    ctx.fillStyle = '#0066ff';
-    waterFlow.forEach(water => {
-        const pixelX = water.x * GRID_SIZE + GRID_SIZE / 2;
-        const pixelY = water.y * GRID_SIZE + GRID_SIZE / 2;
+    ctx.fillStyle = '#00f';
+    ctx.globalAlpha = 0.7;
+    
+    for (const water of waterFlow) {
+        const x = water.x * GRID_SIZE + GRID_SIZE / 2;
+        const y = water.y * GRID_SIZE + GRID_SIZE / 2;
         
         ctx.beginPath();
-        ctx.arc(pixelX, pixelY, 8, 0, Math.PI * 2);
+        ctx.arc(x, y, 5, 0, Math.PI * 2);
         ctx.fill();
-        
-        // Draw water trail
-        ctx.strokeStyle = '#0066ff';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.moveTo(pixelX, pixelY);
-        
-        const trailLength = 20;
-        const trailX = pixelX + (water.direction === 'left' ? -trailLength : water.direction === 'right' ? trailLength : 0);
-        const trailY = pixelY + (water.direction === 'up' ? -trailLength : water.direction === 'down' ? trailLength : 0);
-        
-        ctx.lineTo(trailX, trailY);
-        ctx.stroke();
-    });
+    }
+    
+    ctx.globalAlpha = 1;
 }
 
 function drawUI() {
     ctx.fillStyle = '#fff';
-    ctx.font = '20px monospace';
+    ctx.font = '16px monospace';
     ctx.textAlign = 'left';
-    ctx.fillText(`Score: ${score}`, 10, 30);
-    ctx.fillText(`Level: ${level}`, 10, 60);
-    ctx.fillText(`Water Drops: ${waterFlow.length}`, 10, 90);
-}
-
-function drawGameOver() {
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    ctx.fillStyle = '#f00';
-    ctx.font = '48px monospace';
-    ctx.textAlign = 'center';
-    ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2 - 50);
-    
-    ctx.fillStyle = '#fff';
-    ctx.font = '24px monospace';
-    ctx.fillText(`Final Score: ${score}`, canvas.width / 2, canvas.height / 2);
-    ctx.fillText('Press R to restart', canvas.width / 2, canvas.height / 2 + 50);
+    ctx.fillText(`Score: ${score}`, 10, 20);
+    ctx.fillText(`Level: ${level}`, 10, 40);
 }
 
 // Game loop
-let lastTime = 0;
-function gameLoop(currentTime) {
-    const deltaTime = currentTime - lastTime;
-    lastTime = currentTime;
+function gameLoop(timestamp) {
+    if (!gameRunning) return;
     
     // Clear canvas
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
     // Update game state
-    updateWaterFlow(deltaTime);
+    updateWaterFlow(16); // Assuming 60 FPS
     
     // Draw game elements
     drawGrid();
@@ -342,40 +315,42 @@ gameContainer.on('keydown', (e) => {
     }
 });
 
-// Mouse/touch controls
-canvas.addEventListener('click', (e) => {
-    if (gameOver) return;
-    
-    const rect = canvas.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
-    const clickY = e.clientY - rect.top;
-    
-    const gridX = Math.floor(clickX / GRID_SIZE);
-    const gridY = Math.floor(clickY / GRID_SIZE);
-    
-    if (gridX >= 0 && gridX < GRID_WIDTH && gridY >= 0 && gridY < GRID_HEIGHT) {
-        // Rotate pipe if it exists
-        if (grid[gridY][gridX].type) {
-            grid[gridY][gridX].rotation = (grid[gridY][gridX].rotation + 90) % 360;
-        }
-    }
-});
-
 // Touch controls for mobile
+let touchStartX = 0;
+let touchStartY = 0;
+
 canvas.addEventListener('touchstart', (e) => {
     e.preventDefault();
     const touch = e.touches[0];
     const rect = canvas.getBoundingClientRect();
+    touchStartX = touch.clientX - rect.left;
+    touchStartY = touch.clientY - rect.top;
+});
+
+canvas.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    const touch = e.changedTouches[0];
+    const rect = canvas.getBoundingClientRect();
     const touchX = touch.clientX - rect.left;
     const touchY = touch.clientY - rect.top;
     
+    // Handle touch input for pipe placement
     const gridX = Math.floor(touchX / GRID_SIZE);
     const gridY = Math.floor(touchY / GRID_SIZE);
     
     if (gridX >= 0 && gridX < GRID_WIDTH && gridY >= 0 && gridY < GRID_HEIGHT) {
-        if (grid[gridY][gridX].type) {
-            grid[gridY][gridX].rotation = (grid[gridY][gridX].rotation + 90) % 360;
-        }
+        // Place a random pipe at touch location
+        const pipeTypes = Object.keys(PIPE_TYPES);
+        const randomType = pipeTypes[Math.floor(Math.random() * pipeTypes.length)];
+        
+        grid[gridY][gridX] = {
+            type: randomType,
+            rotation: Math.floor(Math.random() * 4) * 90,
+            hasWater: false
+        };
+        
+        score += 10;
+        gameContainer.updateScore(score);
     }
 });
 
@@ -385,6 +360,7 @@ function restartGame() {
     gameOver = false;
     gameRunning = true;
     gameContainer.updateScore(score);
+    gameContainer.updateLives(level);
     initGrid();
     initWaterFlow();
     gameLoop();
