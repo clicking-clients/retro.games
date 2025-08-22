@@ -360,13 +360,13 @@ class PipeDreamGame {
     
     createNewPuzzle() {
         // Generate new math problem
-        this.gameState.currentExpression = this.mathGenerator.generateExpression(
+        this.gameState.currentExpression = MathExpressionGenerator.generateExpression(
             this.gameState.difficulty,
             this.gameState.operations,
             this.gameState.allowNegatives
         );
         
-        this.gameState.correctAnswer = this.mathGenerator.evaluateExpression(this.gameState.currentExpression);
+        this.gameState.correctAnswer = MathExpressionGenerator.evaluateExpression(this.gameState.currentExpression);
         this.gameState.decoyAnswers = this.generateDecoyAnswers();
         
         // Create game grid
