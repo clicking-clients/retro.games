@@ -228,24 +228,37 @@ export class EnhancedNavigation {
     title.textContent = '🎮 Games Collection';
     title.className = 'nav-title';
     
-    const subtitle = document.createElement('p');
-    subtitle.textContent = 'Choose your adventure';
-    subtitle.className = 'nav-subtitle';
+    const gameSelect = document.createElement('select');
+    gameSelect.className = 'game-select';
+    gameSelect.addEventListener('change', (e) => {
+      if (e.target.value) {
+        window.location.href = e.target.value;
+      }
+    });
     
-    // Add collapsible controls
-    const controls = document.createElement('div');
-    controls.className = 'nav-controls';
+    // Add default option
+    const defaultOption = document.createElement('option');
+    defaultOption.value = '';
+    defaultOption.textContent = 'Choose your adventure';
+    gameSelect.appendChild(defaultOption);
     
-    const collapseBtn = document.createElement('button');
-    collapseBtn.className = 'nav-collapse-btn';
-    collapseBtn.setAttribute('aria-label', 'Collapse navigation');
-    collapseBtn.innerHTML = '<span class="collapse-icon">◀</span>';
-    collapseBtn.addEventListener('click', () => this.toggleNavigationCollapse());
+    // Add game options
+    Object.keys(GAME_CONFIGS).forEach(gameKey => {
+      const game = GAME_CONFIGS[gameKey];
+      const option = document.createElement('option');
+      option.value = `/games/${gameKey}/`;
+      option.textContent = game.title;
+      
+      // Mark current game as selected
+      if (window.location.pathname.includes(`/games/${gameKey}/`)) {
+        option.selected = true;
+      }
+      
+      gameSelect.appendChild(option);
+    });
     
-    controls.appendChild(collapseBtn);
     header.appendChild(title);
-    header.appendChild(subtitle);
-    header.appendChild(controls);
+    header.appendChild(gameSelect);
     container.appendChild(header);
   }
   
@@ -649,7 +662,10 @@ export class EnhancedNavigation {
         }
         
         .nav-header {
-          text-align: center;
+          display: flex;
+          flex-direction: row;
+          justify-content: space-between;
+          align-items: center;
           margin-bottom: var(--space-lg);
         }
         

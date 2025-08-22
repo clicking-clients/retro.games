@@ -54,11 +54,15 @@ export class GameContainer {
   }
   
   /**
-   * Create the game content area
+   * Create the game content area with LHS/RHS layout
    */
   createGameContent() {
     this.elements.gameContent = document.createElement('div');
     this.elements.gameContent.className = 'game-content';
+    
+    // Create left side game area
+    this.elements.gameAreaLhs = document.createElement('div');
+    this.elements.gameAreaLhs.className = 'game-area-lhs';
     
     // Create game title
     this.elements.title = document.createElement('h1');
@@ -84,20 +88,23 @@ export class GameContainer {
     // Add canvas to wrapper
     this.elements.canvasWrapper.appendChild(this.elements.canvas);
     
-    // Add elements to game content
-    this.elements.gameContent.appendChild(this.elements.title);
-    this.elements.gameContent.appendChild(this.elements.canvasWrapper);
+    // Add elements to left side game area
+    this.elements.gameAreaLhs.appendChild(this.elements.title);
+    this.elements.gameAreaLhs.appendChild(this.elements.canvasWrapper);
+    
+    // Add left side to game content
+    this.elements.gameContent.appendChild(this.elements.gameAreaLhs);
     
     // Add to main container
     this.elements.container.appendChild(this.elements.gameContent);
   }
   
   /**
-   * Create the sidebar
+   * Create the sidebar (RHS)
    */
   createSidebar() {
     this.elements.sidebar = document.createElement('div');
-    this.elements.sidebar.className = 'game-sidebar compact-sidebar';
+    this.elements.sidebar.className = 'game-sidebar-rhs compact-sidebar';
     
     // Create scoreboard
     this.createScoreboard();

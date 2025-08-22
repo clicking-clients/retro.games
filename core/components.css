@@ -218,6 +218,31 @@
   gap: var(--space-xs);
 }
 
+/* ===== GAME SELECT MENU STYLES ===== */
+.game-select {
+  background: transparent;
+  border: 2px solid var(--retro-green);
+  color: var(--retro-green);
+  padding: 8px 12px;
+  border-radius: 5px;
+  font-size: 14px;
+  cursor: pointer;
+  min-width: 200px;
+  font-family: inherit;
+}
+
+.game-select:focus {
+  outline: none;
+  border-color: var(--retro-yellow);
+  box-shadow: 0 0 8px var(--retro-yellow);
+}
+
+.game-select option {
+  background: var(--bg-dark);
+  color: var(--retro-green);
+  padding: 8px;
+}
+
 /* ===== COLLAPSIBLE NAVIGATION STYLES ===== */
 .nav-controls {
   display: flex;
