@@ -151,11 +151,8 @@ async function initModularComponents() {
     // Create rocket instance
     rocket = new Rocket(
       rocketOverlay,
-      { 
-        fireworksPop: () => audio.fireworksPop(), 
-        rocketRumble: () => audio.rocketRumble(), 
-        actx: audio.actx 
-      },
+      audio,
+      fireworks,
       () => { splashLevelOver(true); level++; }
     );
     
